@@ -48,7 +48,6 @@ export class UsersController {
    */
   @Post(':username/roles')
   @Roles(
-    Role.ANOMALY_ADMIN,
     Role.STORE_ADMIN,
     Role.PRODUCT_ADMIN,
   )
@@ -67,7 +66,6 @@ export class UsersController {
    */
   @Delete(':username/roles/:role')
   @Roles(
-    Role.ANOMALY_ADMIN,
     Role.STORE_ADMIN,
     Role.PRODUCT_ADMIN,
   )

@@ -44,7 +44,7 @@ export class PermissionRequestsController {
    */
   @Get()
   @UseGuards(RolesGuard)
-  @Roles(Role.ANOMALY_ADMIN, Role.STORE_ADMIN, Role.PRODUCT_ADMIN)
+  @Roles(Role.STORE_ADMIN, Role.PRODUCT_ADMIN)
   findAll(@Request() req: any, @Query('pending') pending?: string) {
     const roles: Role[] = req.user.roles;
     if (pending === 'true') {
@@ -54,12 +54,30 @@ export class PermissionRequestsController {
   }
 
   /**
+   * GET /permission-requests/by-user/:username
+   *
+   * Fetch all requests for a specific username.
+   *
+   * - Any JWT holder can look up their OWN username.
+   * - FLOW_ADMIN / ANOMALY_ADMIN can look up any username
+   *   (useful for filtering pending requests before approval).
+   *
+   * JwtAuthGuard only — access control is enforced in the service.
+   *
+   * Note: declared BEFORE /:id to prevent NestJS matching "by-user" as an ID.
+   */
+  @Get('by-user/:username')
+  findByUsername(@Param('username') username: string, @Request() req: any) {
+    return this.service.findByUsername(username, req.user.username, req.user.roles);
+  }
+
+  /**
    * GET /permission-requests/:id
-   * All admins — retrieve a single request.
+   * All admins — retrieve a single request by its MongoDB ID.
    */
   @Get(':id')
   @UseGuards(RolesGuard)
-  @Roles(Role.ANOMALY_ADMIN, Role.STORE_ADMIN, Role.PRODUCT_ADMIN)
+  @Roles(Role.STORE_ADMIN, Role.PRODUCT_ADMIN)
   findOne(@Param('id') id: string) {
     return this.service.findById(id);
   }
@@ -77,7 +95,7 @@ export class PermissionRequestsController {
    */
   @Patch(':id/approve')
   @UseGuards(RolesGuard)
-  @Roles(Role.ANOMALY_ADMIN, Role.STORE_ADMIN, Role.PRODUCT_ADMIN)
+  @Roles(Role.STORE_ADMIN, Role.PRODUCT_ADMIN)
   approve(
     @Param('id') id: string,
     @Body() dto: ReviewRolesDto,
@@ -94,7 +112,7 @@ export class PermissionRequestsController {
    */
   @Patch(':id/reject')
   @UseGuards(RolesGuard)
-  @Roles(Role.ANOMALY_ADMIN, Role.STORE_ADMIN, Role.PRODUCT_ADMIN)
+  @Roles(Role.STORE_ADMIN, Role.PRODUCT_ADMIN)
   reject(
     @Param('id') id: string,
     @Body() dto: ReviewRolesDto,

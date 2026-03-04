@@ -97,6 +97,36 @@ export class PermissionRequestsService {
     return all.filter((req) => req.overallStatus !== OverallRequestStatus.APPROVED && req.overallStatus !== OverallRequestStatus.REJECTED);
   }
 
+  /**
+   * Return all requests for a given username.
+   *
+   * Access rules (service-level):
+   *  - Any user can fetch their OWN requests (requesterUsername === targetUsername).
+   *  - ANOMALY_ADMIN can fetch requests for any username.
+   *  - FLOW_ADMIN can fetch requests for any username (useful for pre-approval filtering).
+   *  - Regular users (no admin role) can only fetch their own.
+   */
+  async findByUsername(
+    targetUsername: string,
+    requesterUsername: string,
+    requesterRoles: Role[],
+  ): Promise<Array<PermissionRequestDocument & { overallStatus: OverallRequestStatus }>> {
+    const isSelf = requesterUsername === targetUsername;
+    const isAdmin = hasAnomalyAdmin(requesterRoles) || requesterRoles.some(isAdminRole);
+
+    if (!isSelf && !isAdmin) {
+      throw new ForbiddenException(
+        'You can only view your own permission requests',
+      );
+    }
+
+    const requests = await this.permissionRequestModel
+      .find({ username: targetUsername })
+      .exec();
+
+    return requests.map((req) => this.withOverallStatus(req));
+  }
+
   /** Get a single permission request by ID. */
   async findById(id: string): Promise<PermissionRequestDocument> {
     const req = await this.permissionRequestModel.findById(id).exec();
