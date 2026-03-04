@@ -75,12 +75,15 @@ export class UsersService {
   }
 
   /**
-   * Assign a single role to a user.
+   * Assign a single role to a user, creating the user document if needed.
    *
    * Service-level security:
    *  - requesterRoles must contain ANOMALY_ADMIN
    *    OR a FLOW_ADMIN whose flow matches the target role.
    *  - Nobody (except ANOMALY_ADMIN themselves) can assign ANOMALY_ADMIN.
+   *
+   * Uses upsert — FLOW_ADMIN can assign roles to users who don't exist in DB
+   * yet, which creates the user document in the same operation.
    */
   async assignRole(
     targetUsername: string,
@@ -88,15 +91,8 @@ export class UsersService {
     requesterRoles: Role[],
   ): Promise<UserDocument> {
     this.validateRoleMutationPermission(roleToAssign, requesterRoles, 'assign');
-
-    const target = await this.findByUsernameOrFail(targetUsername);
-
-    if (target.roles.includes(roleToAssign)) {
-      return target; // Idempotent — already has role
-    }
-
-    target.roles = [...target.roles, roleToAssign];
-    return target.save();
+    // Upsert: creates the user if not in DB, or appends the role if they are.
+    return this.upsertUserWithRoles(targetUsername, [roleToAssign]);
   }
 
   /**

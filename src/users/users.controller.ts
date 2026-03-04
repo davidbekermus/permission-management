@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Post,
+  Patch,
   Delete,
   Param,
   Body,
@@ -46,7 +47,7 @@ export class UsersController {
    * ANOMALY_ADMIN or FLOW_ADMIN — assign a role to a user.
    * Service validates that the requester's flow matches the target role's flow.
    */
-  @Post(':username/roles')
+  @Patch(':username/roles')
   @AdminRoles()
   assignRole(
     @Param('username') username: string,
