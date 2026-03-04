@@ -14,7 +14,7 @@ import { CreatePermissionRequestDto } from './dto/create-permission-request.dto'
 import { ReviewRolesDto } from './dto/review-roles.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
-import { Roles } from '../common/decorators/roles.decorator';
+import { AdminRoles } from '../common/decorators/roles.decorator';
 import { Role } from '../common/utils/roles.util';
 
 @UseGuards(JwtAuthGuard)
@@ -37,14 +37,14 @@ export class PermissionRequestsController {
 
   /**
    * GET /permission-requests
-   * All admins — list requests scoped to their flow(s).
-   * ANOMALY_ADMIN sees all requests.
+   * All flow admins — list requests scoped to their flow(s).
+   * ANOMALY_ADMIN sees all requests (via RolesGuard bypass).
    *
    * ?pending=true  → filter to only non-fully-resolved requests
    */
   @Get()
   @UseGuards(RolesGuard)
-  @Roles(Role.STORE_ADMIN, Role.PRODUCT_ADMIN)
+  @AdminRoles()
   findAll(@Request() req: any, @Query('pending') pending?: string) {
     const roles: Role[] = req.user.roles;
     if (pending === 'true') {
@@ -73,11 +73,11 @@ export class PermissionRequestsController {
 
   /**
    * GET /permission-requests/:id
-   * All admins — retrieve a single request by its MongoDB ID.
+   * All flow admins — retrieve a single request by its MongoDB ID.
    */
   @Get(':id')
   @UseGuards(RolesGuard)
-  @Roles(Role.STORE_ADMIN, Role.PRODUCT_ADMIN)
+  @AdminRoles()
   findOne(@Param('id') id: string) {
     return this.service.findById(id);
   }
@@ -88,14 +88,14 @@ export class PermissionRequestsController {
    * Approve specific roles within a request.
    * Body: { roles: ["STORE_USER"] } — list of roles to approve.
    *
-   * - ANOMALY_ADMIN: can approve any roles.
+   * - ANOMALY_ADMIN: can approve any roles (via guard bypass).
    * - FLOW_ADMIN: can only approve roles within their own flow.
    *
    * On approval, the user's document is created/updated with the approved roles.
    */
   @Patch(':id/approve')
   @UseGuards(RolesGuard)
-  @Roles(Role.STORE_ADMIN, Role.PRODUCT_ADMIN)
+  @AdminRoles()
   approve(
     @Param('id') id: string,
     @Body() dto: ReviewRolesDto,
@@ -112,7 +112,7 @@ export class PermissionRequestsController {
    */
   @Patch(':id/reject')
   @UseGuards(RolesGuard)
-  @Roles(Role.STORE_ADMIN, Role.PRODUCT_ADMIN)
+  @AdminRoles()
   reject(
     @Param('id') id: string,
     @Body() dto: ReviewRolesDto,

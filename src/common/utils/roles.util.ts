@@ -84,6 +84,21 @@ export function getRolesForFlow(flow: string): Role[] {
 }
 
 /**
+ * Returns all flow-level ADMIN roles (excludes ANOMALY_ADMIN).
+ * Reads the Role enum dynamically — no manual updates needed when adding flows.
+ *
+ * e.g. getAllFlowAdminRoles() → [Role.STORE_ADMIN, Role.PRODUCT_ADMIN]
+ *
+ * Used by @AdminRoles() so that adding ORDER_ADMIN to the enum automatically
+ * includes it in every admin-guarded route.
+ */
+export function getAllFlowAdminRoles(): Role[] {
+  return Object.values(Role).filter(
+    (role) => isAdminRole(role) && !isAnomalyAdmin(role),
+  );
+}
+
+/**
  * Checks whether a target role belongs to the same flow as the requester's
  * admin role. Used to validate FLOW_ADMIN scope.
  *

@@ -11,7 +11,7 @@ import {
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
-import { Roles } from '../common/decorators/roles.decorator';
+import { Roles, AdminRoles } from '../common/decorators/roles.decorator';
 import { Role } from '../common/utils/roles.util';
 import { CreateUserDto } from './dto/create-user.dto';
 import { AssignRoleDto } from './dto/assign-role.dto';
@@ -47,10 +47,7 @@ export class UsersController {
    * Service validates that the requester's flow matches the target role's flow.
    */
   @Post(':username/roles')
-  @Roles(
-    Role.STORE_ADMIN,
-    Role.PRODUCT_ADMIN,
-  )
+  @AdminRoles()
   assignRole(
     @Param('username') username: string,
     @Body() dto: AssignRoleDto,
@@ -65,10 +62,7 @@ export class UsersController {
    * Service validates flow scope.
    */
   @Delete(':username/roles/:role')
-  @Roles(
-    Role.STORE_ADMIN,
-    Role.PRODUCT_ADMIN,
-  )
+  @AdminRoles()
   removeRole(
     @Param('username') username: string,
     @Param('role') role: Role,
