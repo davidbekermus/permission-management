@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { Role } from '../common/utils/roles.util';
+import { JWT_SECRET } from './auth.constants';
 
 export interface JwtPayload {
   /** User's DB _id, or the username string if user not yet in DB */
@@ -23,7 +24,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: process.env.JWT_SECRET ?? 'change-me-in-production',
+      secretOrKey: JWT_SECRET,
     });
   }
 

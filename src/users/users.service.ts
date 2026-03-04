@@ -10,6 +10,7 @@ import { User, UserDocument } from './schemas/user.schema';
 import {
   Role,
   isAnomalyAdmin,
+  isAdminRole,
   hasAnomalyAdmin,
   canAdminManageRole,
   getFlowFromRole,
@@ -145,7 +146,7 @@ export class UsersService {
 
     // Find the first admin role the requester holds in any flow
     const requesterAdminRole = requesterRoles.find(
-      (r) => r.endsWith('_ADMIN') && !isAnomalyAdmin(r),
+      (r) => isAdminRole(r) && !isAnomalyAdmin(r),
     );
 
     if (!requesterAdminRole) {

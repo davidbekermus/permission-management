@@ -5,7 +5,11 @@ import { Role } from '../../common/utils/roles.util';
 export type PermissionRequestDocument = PermissionRequest & Document;
 
 /** Status of a single role within a permission request. */
-export type RoleRequestStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
+export enum RoleRequestStatus {
+  PENDING = 'PENDING',
+  APPROVED = 'APPROVED',
+  REJECTED = 'REJECTED',
+}
 
 /**
  * Compact per-role status tracker.
@@ -20,11 +24,12 @@ export class RoleRequestItem {
  * Computed overall status of a permission request — derived from role statuses.
  * Not stored in DB; calculated on the fly.
  */
-export type OverallRequestStatus =
-  | 'PENDING'
-  | 'APPROVED'
-  | 'PARTIALLY_APPROVED'
-  | 'REJECTED';
+export enum OverallRequestStatus {
+  PENDING = 'PENDING',
+  APPROVED = 'APPROVED',
+  PARTIALLY_APPROVED = 'PARTIALLY_APPROVED',
+  REJECTED = 'REJECTED',
+}
 
 @Schema({ timestamps: true })
 export class PermissionRequest {
@@ -42,8 +47,8 @@ export class PermissionRequest {
         role: { type: String, enum: Object.values(Role), required: true },
         status: {
           type: String,
-          enum: ['PENDING', 'APPROVED', 'REJECTED'],
-          default: 'PENDING',
+          enum: Object.values(RoleRequestStatus),
+          default: RoleRequestStatus.PENDING,
         },
       },
     ],

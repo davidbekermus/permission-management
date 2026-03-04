@@ -3,6 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
 import { Role } from '../common/utils/roles.util';
 import { JwtPayload } from './jwt.strategy';
+import { SEED_ADMIN_USERNAME } from './auth.constants';
 
 @Injectable()
 export class AuthService {
@@ -55,12 +56,12 @@ export class AuthService {
    * Call POST /auth/seed once to bootstrap the system.
    */
   async seedSuperAdmin(): Promise<{ message: string }> {
-    const existing = await this.usersService.findByUsername('superadmin');
+    const existing = await this.usersService.findByUsername(SEED_ADMIN_USERNAME);
     if (existing) {
-      return { message: 'superadmin already exists' };
+      return { message: `${SEED_ADMIN_USERNAME} already exists` };
     }
 
-    await this.usersService.createUser('superadmin', [Role.ANOMALY_ADMIN]);
-    return { message: 'superadmin created with ANOMALY_ADMIN role' };
+    await this.usersService.createUser(SEED_ADMIN_USERNAME, [Role.ANOMALY_ADMIN]);
+    return { message: `${SEED_ADMIN_USERNAME} created with ANOMALY_ADMIN role` };
   }
 }

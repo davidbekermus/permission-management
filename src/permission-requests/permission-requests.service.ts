@@ -11,6 +11,7 @@ import {
   PermissionRequestDocument,
   OverallRequestStatus,
   RoleRequestItem,
+  RoleRequestStatus,
 } from './schemas/permission-request.schema';
 import { CreatePermissionRequestDto } from './dto/create-permission-request.dto';
 import { ReviewRolesDto } from './dto/review-roles.dto';
@@ -19,6 +20,7 @@ import {
   Role,
   hasAnomalyAdmin,
   isAnomalyAdmin,
+  isAdminRole,
   canAdminManageRole,
   getFlowFromRole,
 } from '../common/utils/roles.util';
@@ -46,7 +48,7 @@ export class PermissionRequestsService {
   ): Promise<PermissionRequestDocument> {
     const roleItems: RoleRequestItem[] = dto.roles.map((role) => ({
       role,
-      status: 'PENDING',
+      status: RoleRequestStatus.PENDING,
     }));
 
     const request = new this.permissionRequestModel({
@@ -77,7 +79,7 @@ export class PermissionRequestsService {
           req.roles.some((item) =>
             requesterRoles.some(
               (rr) =>
-                rr.endsWith('_ADMIN') &&
+                isAdminRole(rr) &&
                 !isAnomalyAdmin(rr) &&
                 canAdminManageRole(rr, item.role),
             ),
@@ -92,7 +94,7 @@ export class PermissionRequestsService {
     requesterRoles: Role[],
   ): Promise<Array<PermissionRequestDocument & { overallStatus: OverallRequestStatus }>> {
     const all = await this.findAll(requesterRoles);
-    return all.filter((req) => req.overallStatus !== 'APPROVED' && req.overallStatus !== 'REJECTED');
+    return all.filter((req) => req.overallStatus !== OverallRequestStatus.APPROVED && req.overallStatus !== OverallRequestStatus.REJECTED);
   }
 
   /** Get a single permission request by ID. */
@@ -130,9 +132,9 @@ export class PermissionRequestsService {
     let approvedRoles: Role[] = [];
 
     request.roles = request.roles.map((item) => {
-      if (dto.roles.includes(item.role) && item.status === 'PENDING') {
+      if (dto.roles.includes(item.role) && item.status === RoleRequestStatus.PENDING) {
         approvedRoles.push(item.role);
-        return { ...item, status: 'APPROVED' };
+        return { ...item, status: RoleRequestStatus.APPROVED };
       }
       return item;
     });
@@ -169,8 +171,8 @@ export class PermissionRequestsService {
     this.validateReviewerCanActOnRoles(dto.roles, reviewerRoles, 'reject');
 
     request.roles = request.roles.map((item) => {
-      if (dto.roles.includes(item.role) && item.status === 'PENDING') {
-        return { ...item, status: 'REJECTED' };
+      if (dto.roles.includes(item.role) && item.status === RoleRequestStatus.PENDING) {
+        return { ...item, status: RoleRequestStatus.REJECTED };
       }
       return item;
     });
@@ -196,14 +198,14 @@ export class PermissionRequestsService {
    */
   private computeOverallStatus(roles: RoleRequestItem[]): OverallRequestStatus {
     const statuses = roles.map((r) => r.status);
-    const allApproved = statuses.every((s) => s === 'APPROVED');
-    const allRejected = statuses.every((s) => s === 'REJECTED');
-    const anyPending = statuses.some((s) => s === 'PENDING');
+    const allApproved = statuses.every((s) => s === RoleRequestStatus.APPROVED);
+    const allRejected = statuses.every((s) => s === RoleRequestStatus.REJECTED);
+    const anyPending = statuses.some((s) => s === RoleRequestStatus.PENDING);
 
-    if (allApproved) return 'APPROVED';
-    if (allRejected) return 'REJECTED';
-    if (anyPending) return 'PENDING';
-    return 'PARTIALLY_APPROVED';
+    if (allApproved) return OverallRequestStatus.APPROVED;
+    if (allRejected) return OverallRequestStatus.REJECTED;
+    if (anyPending) return OverallRequestStatus.PENDING;
+    return OverallRequestStatus.PARTIALLY_APPROVED;
   }
 
   private withOverallStatus(
@@ -232,7 +234,7 @@ export class PermissionRequestsService {
 
     // Find reviewer's admin roles (excluding ANOMALY_ADMIN)
     const reviewerAdminRoles = reviewerRoles.filter(
-      (r) => r.endsWith('_ADMIN') && !isAnomalyAdmin(r),
+      (r) => isAdminRole(r) && !isAnomalyAdmin(r),
     );
 
     if (reviewerAdminRoles.length === 0) {
