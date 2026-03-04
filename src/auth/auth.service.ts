@@ -1,0 +1,66 @@
+import { Injectable } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import { UsersService } from '../users/users.service';
+import { Role } from '../common/utils/roles.util';
+import { JwtPayload } from './jwt.strategy';
+
+@Injectable()
+export class AuthService {
+  constructor(
+    private readonly jwtService: JwtService,
+    private readonly usersService: UsersService,
+  ) {}
+
+  /**
+   * Simulates an OSS (external single sign-on) login.
+   *
+   * Flow:
+   *  1. Accept the username as if it was already validated by an external OSS.
+   *  2. Look up the user in our DB to retrieve their current roles.
+   *  3. Issue a JWT:
+   *     - If user is in DB → payload includes their DB _id and roles.
+   *     - If user is NOT in DB → payload uses username as sub with empty roles.
+   *
+   * The user document is NOT created here. It is created only when a
+   * permission request is approved (see PermissionRequestsService).
+   */
+  async login(username: string): Promise<{ access_token: string }> {
+    const user = await this.usersService.findByUsername(username);
+
+    let payload: JwtPayload;
+
+    if (user) {
+      payload = {
+        sub: (user._id as any).toString(),
+        username: user.username,
+        roles: user.roles,
+      };
+    } else {
+      // User not in DB yet — issue token with empty roles so they can
+      // access permission-request endpoints.
+      payload = {
+        sub: username, // temporary identifier until user doc is created
+        username,
+        roles: [] as Role[],
+      };
+    }
+
+    return {
+      access_token: this.jwtService.sign(payload),
+    };
+  }
+
+  /**
+   * Dev-only seed: creates a ANOMALY_ADMIN user named "superadmin" if none exists.
+   * Call POST /auth/seed once to bootstrap the system.
+   */
+  async seedSuperAdmin(): Promise<{ message: string }> {
+    const existing = await this.usersService.findByUsername('superadmin');
+    if (existing) {
+      return { message: 'superadmin already exists' };
+    }
+
+    await this.usersService.createUser('superadmin', [Role.ANOMALY_ADMIN]);
+    return { message: 'superadmin created with ANOMALY_ADMIN role' };
+  }
+}
