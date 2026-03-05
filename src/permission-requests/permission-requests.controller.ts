@@ -15,7 +15,7 @@ import { ReviewRolesDto } from './dto/review-roles.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { AdminRoles } from '../common/decorators/roles.decorator';
-import { Role } from '../common/utils/roles.util';
+import { OverallRequestStatus } from './types/permission-request.types';
 
 @UseGuards(JwtAuthGuard)
 @Controller('permission-requests')
@@ -45,12 +45,8 @@ export class PermissionRequestsController {
   @Get()
   @UseGuards(RolesGuard)
   @AdminRoles()
-  findAll(@Request() req: any, @Query('pending') pending?: string) {
-    const roles: Role[] = req.user.roles;
-    if (pending === 'true') {
-      return this.service.findPending(roles);
-    }
-    return this.service.findAll(roles);
+  findAll(@Request() req: any, @Query('status') status?: OverallRequestStatus) {
+    return this.service.findAll(req.user.roles, status);
   }
 
   /**

@@ -2,24 +2,24 @@ import {
   Injectable,
   NotFoundException,
   ForbiddenException,
-  BadRequestException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import {
   PermissionRequest,
   PermissionRequestDocument,
+} from './schemas/permission-request.schema';
+import {
   OverallRequestStatus,
   RoleRequestItem,
   RoleRequestStatus,
-} from './schemas/permission-request.schema';
+} from './types/permission-request.types';
 import { CreatePermissionRequestDto } from './dto/create-permission-request.dto';
 import { ReviewRolesDto } from './dto/review-roles.dto';
 import { UsersService } from '../users/users.service';
 import {
   Role,
   hasAnomalyAdmin,
-  isAnomalyAdmin,
   isAdminRole,
   canAdminManageRole,
   assertAdminCanManageRoles,
@@ -65,36 +65,28 @@ export class PermissionRequestsService {
   // ---------------------------------------------------------------------------
 
   /**
-   * Return all permission requests with computed overall status.
+   * Return permission requests visible to the requester, optionally filtered by overall status.
    * ANOMALY_ADMIN sees all; FLOW_ADMIN sees requests containing their flow's roles.
    */
   async findAll(
     requesterRoles: Role[],
+    status?: OverallRequestStatus,
   ): Promise<Array<PermissionRequestDocument & { overallStatus: OverallRequestStatus }>> {
     const all = await this.permissionRequestModel.find().exec();
 
-    const filtered = hasAnomalyAdmin(requesterRoles)
+    const scoped = hasAnomalyAdmin(requesterRoles)
       ? all
       : all.filter((req) =>
           req.roles.some((item) =>
             requesterRoles.some(
-              (rr) =>
-                isAdminRole(rr) &&
-                !isAnomalyAdmin(rr) &&
-                canAdminManageRole(rr, item.role),
+              (rr) => isAdminRole(rr) && canAdminManageRole(rr, item.role),
             ),
           ),
         );
 
-    return filtered.map((req) => this.withOverallStatus(req));
-  }
+    const withStatus = scoped.map((req) => this.withOverallStatus(req));
 
-  /** Return only requests that still have at least one PENDING role. */
-  async findPending(
-    requesterRoles: Role[],
-  ): Promise<Array<PermissionRequestDocument & { overallStatus: OverallRequestStatus }>> {
-    const all = await this.findAll(requesterRoles);
-    return all.filter((req) => req.overallStatus !== OverallRequestStatus.APPROVED && req.overallStatus !== OverallRequestStatus.REJECTED);
+    return status ? withStatus.filter((req) => req.overallStatus === status) : withStatus;
   }
 
   /**
