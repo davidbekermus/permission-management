@@ -13,17 +13,18 @@ export class UsersService {
   constructor(
     @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
   ) {}
+  
+  /** Return all users (up to 20). */
+  async findAll(): Promise<UserDocument[]> {
+    const limit = 20;
+    return this.userModel.find().limit(limit).exec();
+  }
 
   /** Find a user by username — throws NotFoundException if not found. */
   async findByUsername(username: string): Promise<UserDocument> {
     const user = await this.userModel.findOne({ username }).exec();
     if (!user) throw new NotFoundException(`User "${username}" not found`);
     return user;
-  }
-
-  /** Return all users (up to 20). */
-  async findAll(): Promise<UserDocument[]> {
-    return this.userModel.find().limit(20).exec();
   }
 
   /**
@@ -49,12 +50,12 @@ export class UsersService {
   }
 
   /**
-   * Create or update a user — upsert pattern used by permission approval.
-   * Atomically adds roles (no duplicates via $addToSet).
-   * Creates the user document if it does not exist yet.
+   * Internal-only: atomically adds roles to a user, creating the document if needed.
+   * No permission check — callers are responsible for validating access before calling this.
    *
-   * Intentionally skips requesterRoles validation — this is a trusted internal
-   * call made only after permission approval has already been verified.
+   * Used by:
+   *  - assignRole (admin API) — after assertAdminCanManageRoles passes.
+   *  - PermissionRequestsService.approveRoles — after the approval guard passes.
    */
   async upsertUserWithRoles(
     username: string,
@@ -69,15 +70,9 @@ export class UsersService {
   }
 
   /**
-   * Assign a single role to a user, creating the user document if needed.
-   *
-   * Service-level security:
-   *  - requesterRoles must contain ANOMALY_ADMIN
-   *    OR a FLOW_ADMIN whose flow matches the target role.
-   *  - Nobody (except ANOMALY_ADMIN themselves) can assign ANOMALY_ADMIN.
-   *
-   * Uses upsert — FLOW_ADMIN can assign roles to users who don't exist in DB
-   * yet, which creates the user document in the same operation.
+   * Admin API: assign a single role to a user.
+   * Validates that the requester has permission to manage the target role,
+   * then delegates to upsertUserWithRoles..
    */
   async assignRole(
     targetUsername: string,

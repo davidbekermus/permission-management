@@ -14,6 +14,7 @@ export class AuthService {
 
   /**
    * Simulates an OSS (external single sign-on) login.
+   * will be changed when intergrated to the app 
    *
    * Flow:
    *  1. Accept the username as if it was already validated by an external OSS.

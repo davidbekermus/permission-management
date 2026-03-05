@@ -1,7 +1,6 @@
 import { SetMetadata } from '@nestjs/common';
 import { Role, getAllFlowAdminRoles, getRolesForFlow } from '../utils/roles.util';
 
-/** Metadata key used by RolesGuard to read required roles. */
 export const ROLES_KEY = 'roles';
 
 /**

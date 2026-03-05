@@ -3,6 +3,7 @@ import {
   Get,
   Post,
   Patch,
+  Delete,
   Param,
   Body,
   UseGuards,
@@ -25,8 +26,6 @@ export class PermissionRequestsController {
   constructor(private readonly service: PermissionRequestsService) {}
 
   /**
-   * POST /permission-requests
-   *
    * Any authenticated user (even with zero roles) can submit a request.
    * The requester's username is taken from the JWT payload — not from the body.
    *
@@ -38,12 +37,8 @@ export class PermissionRequestsController {
   }
 
   /**
-   * GET /permission-requests
    * Admin-only — list requests scoped to the requester's flow(s).
    * ANOMALY_ADMIN sees all requests (via RolesGuard bypass).
-   *
-   * ?status=PENDING  → filter by computed overall status
-   * ?username=alice  → partial case-insensitive live search by username
    */
   @Get()
   @UseGuards(RolesGuard)
@@ -57,20 +52,15 @@ export class PermissionRequestsController {
   }
 
   /**
-   * GET /permission-requests/mine
-   *
    * Returns the authenticated user's own permission requests.
    * No admin access — admins use GET /permission-requests?username= instead.
-   *
-   * Note: declared BEFORE /:id to prevent NestJS matching "mine" as an ID.
    */
-  @Get('mine')
+  @Get('my-requests')
   findMine(@Request() req: AuthedRequest) {
     return this.service.findMine(req.user.username);
   }
 
   /**
-   * GET /permission-requests/:id
    * All flow admins — retrieve a single request by its MongoDB ID.
    */
   @Get(':id')
@@ -81,12 +71,8 @@ export class PermissionRequestsController {
   }
 
   /**
-   * PATCH /permission-requests/:id/roles
-   *
    * Add new roles to an existing permission request.
    * Only the request owner can call this — ownership is enforced in the service.
-   *
-   * Roles already present (in any status) are silently ignored.
    */
   @Patch(':id/roles')
   addRoles(
@@ -98,8 +84,20 @@ export class PermissionRequestsController {
   }
 
   /**
-   * PATCH /permission-requests/:id/approve
-   *
+   * Remove pending roles from a request.
+   * Only the request owner can call this.
+   * If all roles are removed, the request is deleted and null is returned.
+   */
+  @Delete(':id/roles')
+  removeRoles(
+    @Param('id') id: string,
+    @Body() dto: ReviewRolesDto,
+    @Request() req: AuthedRequest,
+  ) {
+    return this.service.removeRolesFromRequest(id, req.user.username, dto);
+  }
+
+  /**
    * Approve specific roles within a request.
    * Body: { roles: ["STORE_USER"] } — list of roles to approve.
    *
@@ -120,8 +118,6 @@ export class PermissionRequestsController {
   }
 
   /**
-   * PATCH /permission-requests/:id/reject
-   *
    * Reject specific roles within a request.
    * Same scope rules as approve.
    */

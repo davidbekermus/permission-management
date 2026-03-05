@@ -43,8 +43,6 @@ export class UsersController {
   }
 
   /**
-   * POST /users
-   * Any admin — create a user directly (bypasses permission flow).
    * FLOW_ADMIN can only assign roles within their own flow.
    * ANOMALY_ADMIN can assign any roles.
    */
@@ -56,9 +54,7 @@ export class UsersController {
   }
 
   /**
-   * PATCH /users/:username/roles
    * ANOMALY_ADMIN or FLOW_ADMIN — assign a role to a user.
-   * Service validates that the requester's flow matches the target role's flow.
    */
   @Patch(':username/roles')
   @UseGuards(RolesGuard)
@@ -72,9 +68,7 @@ export class UsersController {
   }
 
   /**
-   * DELETE /users/:username/roles/:role
    * ANOMALY_ADMIN or FLOW_ADMIN — remove a role from a user.
-   * Service validates flow scope.
    */
   @Delete(':username/roles/:role')
   @UseGuards(RolesGuard)

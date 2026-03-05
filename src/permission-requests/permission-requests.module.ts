@@ -13,7 +13,7 @@ import { UsersModule } from '../users/users.module';
     MongooseModule.forFeature([
       { name: PermissionRequest.name, schema: PermissionRequestSchema },
     ]),
-    UsersModule, // needed to upsert users on approval
+    UsersModule,
   ],
   controllers: [PermissionRequestsController],
   providers: [PermissionRequestsService],

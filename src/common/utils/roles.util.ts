@@ -6,7 +6,9 @@ import { ForbiddenException } from '@nestjs/common';
  * Naming convention: {FLOW}_{TYPE}
  *   - FLOW: uppercase string identifying the feature area (e.g. STORE, PRODUCT)
  *   - TYPE: either ADMIN or USER
- *
+ * 
+ * note: the firxt index must be the name of the flow
+ * 
  * Special case: ANOMALY_ADMIN has no flow and overrides ALL permissions.
  *
  * Adding a new flow (e.g. ORDER) requires ONLY adding two lines here:
@@ -46,20 +48,16 @@ export function isAdminRole(role: Role): boolean {
 
 /**
  * Extracts the flow prefix from a role.
+ * exampel:
  * - STORE_ADMIN  → 'STORE'
- * - STORE_USER   → 'STORE'
- * - PRODUCT_ADMIN → 'PRODUCT'
  * - ANOMALY_ADMIN → null (special role with no flow)
  *
  * Works generically: everything before the last underscore segment is the flow.
  */
 export function getFlowFromRole(role: Role): string | null {
   if (isAnomalyAdmin(role)) return null;
-
   const parts = role.split('_');
-  // Last segment is the type (ADMIN or USER); everything before is the flow.
-  // e.g. STORE_ADMIN → ['STORE', 'ADMIN'] → flow = 'STORE'
-  // e.g. MY_CUSTOM_ADMIN → ['MY', 'CUSTOM', 'ADMIN'] → flow = 'MY_CUSTOM'
+  
   return parts.slice(0, -1).join('_');
 }
 
@@ -103,10 +101,7 @@ export function canAdminManageRole(
   adminRole: Role,
   targetRole: Role,
 ): boolean {
-  // ANOMALY_ADMIN can manage everything (but this util is for flow checks)
   if (isAnomalyAdmin(adminRole)) return true;
-  // No one other than ANOMALY_ADMIN can assign ANOMALY_ADMIN
-  if (isAnomalyAdmin(targetRole)) return false;
 
   return getFlowFromRole(adminRole) === getFlowFromRole(targetRole);
 }

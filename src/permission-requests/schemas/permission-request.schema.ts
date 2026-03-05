@@ -14,7 +14,6 @@ export class PermissionRequest {
   @Prop({ required: true, trim: true })
   username: string;
 
-  /** Each requested role with its own PENDING/APPROVED/REJECTED status. */
   @Prop({
     type: [
       {
@@ -30,15 +29,12 @@ export class PermissionRequest {
   })
   roles: RoleRequestItem[];
 
-  /** When the request was submitted. */
   @Prop({ default: () => new Date() })
   requestedAt: Date;
 
-  /** Username of the admin who last reviewed this request. */
   @Prop({ default: null })
   reviewedBy?: string;
 
-  /** When the last review action occurred. */
   @Prop({ default: null })
   reviewedAt?: Date;
 }
