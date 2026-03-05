@@ -271,14 +271,18 @@ export class PermissionRequestsService {
    * - All PENDING              → PENDING
    * - All APPROVED             → APPROVED
    * - All REJECTED             → REJECTED
-   * - Mix of APPROVED/REJECTED → PARTIALLY_APPROVED
+   * - Mix of any statuses      → PARTIALLY_APPROVED
+   *
+   * Single pass: if the Set of unique statuses has exactly one entry,
+   * all roles share that status. More than one entry means a mix.
    */
   private computeOverallStatus(roles: RoleRequestItem[]): OverallRequestStatus {
-    const statuses = roles.map((r) => r.status);
-    if (statuses.every((s) => s === RoleRequestStatus.APPROVED)) return OverallRequestStatus.APPROVED;
-    if (statuses.every((s) => s === RoleRequestStatus.REJECTED))  return OverallRequestStatus.REJECTED;
-    if (statuses.every((s) => s === RoleRequestStatus.PENDING))   return OverallRequestStatus.PENDING;
-    return OverallRequestStatus.PARTIALLY_APPROVED;
+    const unique = new Set(roles.map((r) => r.status));
+    if (unique.size !== 1) return OverallRequestStatus.PARTIALLY_APPROVED;
+    const [only] = unique;
+    if (only === RoleRequestStatus.APPROVED) return OverallRequestStatus.APPROVED;
+    if (only === RoleRequestStatus.REJECTED)  return OverallRequestStatus.REJECTED;
+    return OverallRequestStatus.PENDING;
   }
 
   private withOverallStatus(
