@@ -1,3 +1,5 @@
+import { ForbiddenException } from '@nestjs/common';
+
 /**
  * Central Role enum — single source of truth for all roles in the system.
  *
@@ -116,4 +118,51 @@ export function canAdminManageRole(
   if (isAnomalyAdmin(targetRole)) return false;
 
   return getFlowFromRole(adminRole) === getFlowFromRole(targetRole);
+}
+
+/**
+ * Asserts that the requester has permission to act on all the given target roles.
+ *
+ * Rules:
+ *  1. ANOMALY_ADMIN can act on anything.
+ *  2. Only ANOMALY_ADMIN can act on the ANOMALY_ADMIN role.
+ *  3. FLOW_ADMIN can only act on roles within their own flow.
+ *  4. Non-admins cannot act at all.
+ *
+ * Throws ForbiddenException if any rule is violated.
+ * Used by both UsersService and PermissionRequestsService to avoid duplication.
+ */
+export function assertAdminCanManageRoles(
+  requesterRoles: Role[],
+  targetRoles: Role[],
+  action: string,
+): void {
+  if (hasAnomalyAdmin(requesterRoles)) return;
+
+  const adminRoles = requesterRoles.filter(
+    (r) => isAdminRole(r) && !isAnomalyAdmin(r),
+  );
+
+  if (adminRoles.length === 0) {
+    throw new ForbiddenException(`You must be an admin to ${action} roles`);
+  }
+
+  for (const targetRole of targetRoles) {
+    if (isAnomalyAdmin(targetRole)) {
+      throw new ForbiddenException(
+        `Only ANOMALY_ADMIN can ${action} the ANOMALY_ADMIN role`,
+      );
+    }
+
+    const canAct = adminRoles.some((adminRole) =>
+      canAdminManageRole(adminRole, targetRole),
+    );
+
+    if (!canAct) {
+      const targetFlow = getFlowFromRole(targetRole);
+      throw new ForbiddenException(
+        `You do not have admin access to the ${targetFlow} flow`,
+      );
+    }
+  }
 }

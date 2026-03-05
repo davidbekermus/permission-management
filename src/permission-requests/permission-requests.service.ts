@@ -22,7 +22,7 @@ import {
   isAnomalyAdmin,
   isAdminRole,
   canAdminManageRole,
-  getFlowFromRole,
+  assertAdminCanManageRoles,
 } from '../common/utils/roles.util';
 
 @Injectable()
@@ -157,7 +157,7 @@ export class PermissionRequestsService {
   ): Promise<PermissionRequestDocument & { overallStatus: OverallRequestStatus }> {
     const request = await this.findById(requestId);
 
-    this.validateReviewerCanActOnRoles(dto.roles, reviewerRoles, 'approve');
+    assertAdminCanManageRoles(reviewerRoles, dto.roles, 'approve');
 
     let approvedRoles: Role[] = [];
 
@@ -198,7 +198,7 @@ export class PermissionRequestsService {
   ): Promise<PermissionRequestDocument & { overallStatus: OverallRequestStatus }> {
     const request = await this.findById(requestId);
 
-    this.validateReviewerCanActOnRoles(dto.roles, reviewerRoles, 'reject');
+    assertAdminCanManageRoles(reviewerRoles, dto.roles, 'reject');
 
     request.roles = request.roles.map((item) => {
       if (dto.roles.includes(item.role) && item.status === RoleRequestStatus.PENDING) {
@@ -246,52 +246,4 @@ export class PermissionRequestsService {
     });
   }
 
-  /**
-   * Validates that the reviewer has permission to act on the specified roles.
-   *
-   * Rules (using role utilities — no hardcoded flow names):
-   *  1. ANOMALY_ADMIN can act on any roles.
-   *  2. FLOW_ADMIN can only act on roles within their own flow.
-   *  3. ANOMALY_ADMIN role itself cannot be approved/rejected by FLOW_ADMIN.
-   */
-  private validateReviewerCanActOnRoles(
-    targetRoles: Role[],
-    reviewerRoles: Role[],
-    action: 'approve' | 'reject',
-  ): void {
-    // ANOMALY_ADMIN overrides everything
-    if (hasAnomalyAdmin(reviewerRoles)) return;
-
-    // Find reviewer's admin roles (excluding ANOMALY_ADMIN)
-    const reviewerAdminRoles = reviewerRoles.filter(
-      (r) => isAdminRole(r) && !isAnomalyAdmin(r),
-    );
-
-    if (reviewerAdminRoles.length === 0) {
-      throw new ForbiddenException(
-        `You must be an admin to ${action} permission requests`,
-      );
-    }
-
-    for (const targetRole of targetRoles) {
-      // Nobody except ANOMALY_ADMIN can approve/reject ANOMALY_ADMIN role
-      if (isAnomalyAdmin(targetRole)) {
-        throw new ForbiddenException(
-          'Only ANOMALY_ADMIN can approve or reject the ANOMALY_ADMIN role',
-        );
-      }
-
-      // Check if any of the reviewer's admin roles covers this target role's flow
-      const canAct = reviewerAdminRoles.some((adminRole) =>
-        canAdminManageRole(adminRole, targetRole),
-      );
-
-      if (!canAct) {
-        const targetFlow = getFlowFromRole(targetRole);
-        throw new ForbiddenException(
-          `You do not have admin access to the ${targetFlow} flow`,
-        );
-      }
-    }
-  }
 }

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
 import { Role } from '../common/utils/roles.util';
@@ -26,17 +26,17 @@ export class AuthService {
    * permission request is approved (see PermissionRequestsService).
    */
   async login(username: string): Promise<{ access_token: string }> {
-    const user = await this.usersService.findByUsername(username);
-
     let payload: JwtPayload;
 
-    if (user) {
+    try {
+      const user = await this.usersService.findByUsername(username);
       payload = {
         sub: (user._id as any).toString(),
         username: user.username,
         roles: user.roles,
       };
-    } else {
+    } catch (e) {
+      if (!(e instanceof NotFoundException)) throw e;
       // User not in DB yet — issue token with empty roles so they can
       // access permission-request endpoints.
       payload = {
@@ -56,9 +56,11 @@ export class AuthService {
    * Call POST /auth/seed once to bootstrap the system.
    */
   async seedSuperAdmin(): Promise<{ message: string }> {
-    const existing = await this.usersService.findByUsername(SEED_ADMIN_USERNAME);
-    if (existing) {
+    try {
+      await this.usersService.findByUsername(SEED_ADMIN_USERNAME);
       return { message: `${SEED_ADMIN_USERNAME} already exists` };
+    } catch (e) {
+      if (!(e instanceof NotFoundException)) throw e;
     }
 
     await this.usersService.createUser(SEED_ADMIN_USERNAME, [Role.ANOMALY_ADMIN]);

@@ -17,19 +17,27 @@ import { Role } from '../common/utils/roles.util';
 import { CreateUserDto } from './dto/create-user.dto';
 import { AssignRoleDto } from './dto/assign-role.dto';
 
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard)
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   /**
    * GET /users
-   * ANOMALY_ADMIN only — list all users.
+   * Any authenticated user — list all users.
    */
   @Get()
-  @Roles(Role.ANOMALY_ADMIN)
   findAll() {
     return this.usersService.findAll();
+  }
+
+  /**
+   * GET /users/:username
+   * Any authenticated user — fetch a single user by username.
+   */
+  @Get(':username')
+  findByUsername(@Param('username') username: string) {
+    return this.usersService.findByUsername(username);
   }
 
   /**
@@ -37,17 +45,19 @@ export class UsersController {
    * ANOMALY_ADMIN only — create a user directly (bypasses permission flow).
    */
   @Post()
+  @UseGuards(RolesGuard)
   @Roles(Role.ANOMALY_ADMIN)
   create(@Body() dto: CreateUserDto) {
     return this.usersService.createUser(dto.username, dto.roles ?? []);
   }
 
   /**
-   * POST /users/:username/roles
+   * PATCH /users/:username/roles
    * ANOMALY_ADMIN or FLOW_ADMIN — assign a role to a user.
    * Service validates that the requester's flow matches the target role's flow.
    */
   @Patch(':username/roles')
+  @UseGuards(RolesGuard)
   @AdminRoles()
   assignRole(
     @Param('username') username: string,
@@ -63,6 +73,7 @@ export class UsersController {
    * Service validates flow scope.
    */
   @Delete(':username/roles/:role')
+  @UseGuards(RolesGuard)
   @AdminRoles()
   removeRole(
     @Param('username') username: string,
