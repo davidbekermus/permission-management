@@ -8,6 +8,7 @@ import {
   UseGuards,
   Request,
   Query,
+  ParseEnumPipe,
 } from '@nestjs/common';
 import { PermissionRequestsService } from './permission-requests.service';
 import { CreatePermissionRequestDto } from './dto/create-permission-request.dto';
@@ -16,6 +17,7 @@ import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { AdminRoles } from '../common/decorators/roles.decorator';
 import { OverallRequestStatus } from './types/permission-request.types';
+import { AuthedRequest } from '../common/interfaces/authed-request.interface';
 
 @UseGuards(JwtAuthGuard)
 @Controller('permission-requests')
@@ -31,7 +33,7 @@ export class PermissionRequestsController {
    * JwtAuthGuard only (no RolesGuard) so zero-role users can access this.
    */
   @Post()
-  create(@Body() dto: CreatePermissionRequestDto, @Request() req: any) {
+  create(@Body() dto: CreatePermissionRequestDto, @Request() req: AuthedRequest) {
     return this.service.create(req.user.username, dto);
   }
 
@@ -47,8 +49,8 @@ export class PermissionRequestsController {
   @UseGuards(RolesGuard)
   @AdminRoles()
   findAll(
-    @Request() req: any,
-    @Query('status') status?: OverallRequestStatus,
+    @Request() req: AuthedRequest,
+    @Query('status', new ParseEnumPipe(OverallRequestStatus, { optional: true })) status?: OverallRequestStatus,
     @Query('username') username?: string,
   ) {
     return this.service.findAll(req.user.roles, status, username);
@@ -63,7 +65,7 @@ export class PermissionRequestsController {
    * Note: declared BEFORE /:id to prevent NestJS matching "mine" as an ID.
    */
   @Get('mine')
-  findMine(@Request() req: any) {
+  findMine(@Request() req: AuthedRequest) {
     return this.service.findMine(req.user.username);
   }
 
@@ -90,7 +92,7 @@ export class PermissionRequestsController {
   addRoles(
     @Param('id') id: string,
     @Body() dto: CreatePermissionRequestDto,
-    @Request() req: any,
+    @Request() req: AuthedRequest,
   ) {
     return this.service.addRolesToRequest(id, req.user.username, dto);
   }
@@ -112,7 +114,7 @@ export class PermissionRequestsController {
   approve(
     @Param('id') id: string,
     @Body() dto: ReviewRolesDto,
-    @Request() req: any,
+    @Request() req: AuthedRequest,
   ) {
     return this.service.approveRoles(id, dto, req.user.username, req.user.roles);
   }
@@ -129,7 +131,7 @@ export class PermissionRequestsController {
   reject(
     @Param('id') id: string,
     @Body() dto: ReviewRolesDto,
-    @Request() req: any,
+    @Request() req: AuthedRequest,
   ) {
     return this.service.rejectRoles(id, dto, req.user.username, req.user.roles);
   }

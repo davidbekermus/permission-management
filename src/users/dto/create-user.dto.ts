@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, MinLength, IsArray, IsEnum, ArrayMinSize } from 'class-validator';
+import { IsString, IsNotEmpty, MinLength, IsArray, IsEnum, ArrayMinSize, ArrayUnique } from 'class-validator';
 import { Role } from '../../common/utils/roles.util';
 
 export class CreateUserDto {
@@ -9,6 +9,7 @@ export class CreateUserDto {
 
   @IsArray()
   @ArrayMinSize(1)
+  @ArrayUnique()
   @IsEnum(Role, { each: true })
   roles: Role[];
 }

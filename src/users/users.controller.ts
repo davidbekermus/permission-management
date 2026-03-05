@@ -8,6 +8,7 @@ import {
   Body,
   UseGuards,
   Request,
+  ParseEnumPipe,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
@@ -16,6 +17,7 @@ import { AdminRoles } from '../common/decorators/roles.decorator';
 import { Role } from '../common/utils/roles.util';
 import { CreateUserDto } from './dto/create-user.dto';
 import { AssignRoleDto } from './dto/assign-role.dto';
+import { AuthedRequest } from '../common/interfaces/authed-request.interface';
 
 @UseGuards(JwtAuthGuard)
 @Controller('users')
@@ -49,7 +51,7 @@ export class UsersController {
   @Post()
   @UseGuards(RolesGuard)
   @AdminRoles()
-  create(@Body() dto: CreateUserDto, @Request() req: any) {
+  create(@Body() dto: CreateUserDto, @Request() req: AuthedRequest) {
     return this.usersService.createUser(dto.username, dto.roles, req.user.roles);
   }
 
@@ -64,7 +66,7 @@ export class UsersController {
   assignRole(
     @Param('username') username: string,
     @Body() dto: AssignRoleDto,
-    @Request() req: any,
+    @Request() req: AuthedRequest,
   ) {
     return this.usersService.assignRole(username, dto.role, req.user.roles);
   }
@@ -79,9 +81,9 @@ export class UsersController {
   @AdminRoles()
   removeRole(
     @Param('username') username: string,
-    @Param('role') role: Role,
-    @Request() req: any,
+    @Param('role', new ParseEnumPipe(Role)) roleToRemove: Role,
+    @Request() req: AuthedRequest,
   ) {
-    return this.usersService.removeRole(username, role, req.user.roles);
+    return this.usersService.removeRole(username, roleToRemove, req.user.roles);
   }
 }
