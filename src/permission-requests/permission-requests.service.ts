@@ -240,11 +240,11 @@ export class PermissionRequestsService {
 
   private withOverallStatus(
     req: PermissionRequestDocument,
-  ): Record<string, any> {
+  ): PermissionRequestDocument & { overallStatus: OverallRequestStatus } {
     return {
       ...req.toObject(),
       overallStatus: this.computeOverallStatus(req.roles),
-    };
+    } as PermissionRequestDocument & { overallStatus: OverallRequestStatus };
   }
 
 }
