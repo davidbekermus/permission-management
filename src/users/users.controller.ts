@@ -12,7 +12,7 @@ import {
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
-import { Roles, AdminRoles } from '../common/decorators/roles.decorator';
+import { AdminRoles } from '../common/decorators/roles.decorator';
 import { Role } from '../common/utils/roles.util';
 import { CreateUserDto } from './dto/create-user.dto';
 import { AssignRoleDto } from './dto/assign-role.dto';
@@ -42,13 +42,15 @@ export class UsersController {
 
   /**
    * POST /users
-   * ANOMALY_ADMIN only — create a user directly (bypasses permission flow).
+   * Any admin — create a user directly (bypasses permission flow).
+   * FLOW_ADMIN can only assign roles within their own flow.
+   * ANOMALY_ADMIN can assign any roles.
    */
   @Post()
   @UseGuards(RolesGuard)
-  @Roles(Role.ANOMALY_ADMIN)
-  create(@Body() dto: CreateUserDto) {
-    return this.usersService.createUser(dto.username, dto.roles ?? []);
+  @AdminRoles()
+  create(@Body() dto: CreateUserDto, @Request() req: any) {
+    return this.usersService.createUser(dto.username, dto.roles, req.user.roles);
   }
 
   /**

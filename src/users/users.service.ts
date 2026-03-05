@@ -27,10 +27,19 @@ export class UsersService {
   }
 
   /**
-   * Create a new user with optional initial roles.
-   * Used by: AuthService.seedSuperAdmin, PermissionRequestsService (on approval).
+   * Create a new user with the given roles.
+   *
+   * Pass requesterRoles to enforce flow-scope validation (admin API path).
+   * Omit requesterRoles for trusted internal calls (seed, permission approval).
    */
-  async createUser(username: string, roles: Role[] = []): Promise<UserDocument> {
+  async createUser(
+    username: string,
+    roles: Role[],
+    requesterRoles?: Role[],
+  ): Promise<UserDocument> {
+    if (requesterRoles) {
+      assertAdminCanManageRoles(requesterRoles, roles, 'assign');
+    }
     const existing = await this.userModel.findOne({ username }).exec();
     if (existing) {
       throw new ConflictException(`User "${username}" already exists`);
