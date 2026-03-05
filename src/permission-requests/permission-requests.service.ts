@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   ForbiddenException,
+  ConflictException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -21,8 +22,9 @@ import {
   Role,
   hasAnomalyAdmin,
   isAdminRole,
-  canAdminManageRole,
   assertAdminCanManageRoles,
+  getFlowFromRole,
+  getRolesForFlow,
 } from '../common/utils/roles.util';
 
 @Injectable()
@@ -46,6 +48,17 @@ export class PermissionRequestsService {
     username: string,
     dto: CreatePermissionRequestDto,
   ): Promise<PermissionRequestDocument> {
+    const conflicting = await this.permissionRequestModel.findOne({
+      username,
+      'roles': { $elemMatch: { role: { $in: dto.roles }, status: RoleRequestStatus.PENDING } },
+    }).exec();
+
+    if (conflicting) {
+      throw new ConflictException(
+        'A pending request already exists for one or more of these roles',
+      );
+    }
+
     const roleItems: RoleRequestItem[] = dto.roles.map((role) => ({
       role,
       status: RoleRequestStatus.PENDING,
@@ -60,86 +73,121 @@ export class PermissionRequestsService {
     return request.save();
   }
 
+  /**
+   * Add new roles to an existing permission request.
+   * Only the request owner can call this.
+   * Roles already present (in any status) are silently ignored.
+   */
+  async addRolesToRequest(
+    requestId: string,
+    username: string,
+    dto: CreatePermissionRequestDto,
+  ): Promise<PermissionRequestDocument> {
+    const request = await this.fetchDocument(requestId);
+
+    if (request.username !== username) {
+      throw new ForbiddenException('You can only modify your own permission requests');
+    }
+
+    const existingRoles = new Set(request.roles.map((r) => r.role));
+    const newRoles = dto.roles.filter((r) => !existingRoles.has(r));
+
+    if (newRoles.length === 0) {
+      return request;
+    }
+
+    const newItems: RoleRequestItem[] = newRoles.map((role) => ({
+      role,
+      status: RoleRequestStatus.PENDING,
+    }));
+
+    request.roles = [...request.roles, ...newItems];
+    request.markModified('roles');
+    return request.save();
+  }
+
   // ---------------------------------------------------------------------------
   // Read
   // ---------------------------------------------------------------------------
 
   /**
-   * Return permission requests visible to the requester, optionally filtered by overall status.
-   * ANOMALY_ADMIN sees all; FLOW_ADMIN sees requests containing their flow's roles.
+   * Return permission requests visible to the requester, with optional filters.
+   *
+   * Access:
+   *  - ANOMALY_ADMIN sees all requests.
+   *  - FLOW_ADMIN sees only requests containing their flow's roles (MongoDB-level filter).
+   *
+   * Filters (all optional):
+   *  - username: partial case-insensitive regex match (live search).
+   *  - status: exact match on computed overallStatus (applied in JS after fetch).
+   *
+   * Returns up to 20 results. When status is set the returned count may be less.
    */
   async findAll(
     requesterRoles: Role[],
     status?: OverallRequestStatus,
+    username?: string,
   ): Promise<Array<PermissionRequestDocument & { overallStatus: OverallRequestStatus }>> {
-    const all = await this.permissionRequestModel.find().exec();
+    const usernameFilter = username
+      ? { username: { $regex: username, $options: 'i' } }
+      : {};
 
-    const scoped = hasAnomalyAdmin(requesterRoles)
-      ? all
-      : all.filter((req) =>
-          req.roles.some((item) =>
-            requesterRoles.some(
-              (rr) => isAdminRole(rr) && canAdminManageRole(rr, item.role),
-            ),
-          ),
-        );
+    let docs: PermissionRequestDocument[];
 
-    const withStatus = scoped.map((req) => this.withOverallStatus(req));
+    if (hasAnomalyAdmin(requesterRoles)) {
+      docs = await this.permissionRequestModel.find(usernameFilter).limit(20).exec();
+    } else {
+      const adminRoles = requesterRoles.filter(isAdminRole);
+      if (adminRoles.length === 0) return [];
 
+      const flowRoles = adminRoles.flatMap((r) => {
+        const flow = getFlowFromRole(r);
+        return flow ? getRolesForFlow(flow) : [];
+      });
+
+      docs = await this.permissionRequestModel
+        .find({ 'roles.role': { $in: flowRoles }, ...usernameFilter })
+        .limit(20)
+        .exec();
+    }
+
+    const withStatus = docs.map((req) => this.withOverallStatus(req));
     return status ? withStatus.filter((req) => req.overallStatus === status) : withStatus;
   }
 
   /**
-   * Return all requests for a given username.
-   *
-   * Access rules (service-level):
-   *  - Any user can fetch their OWN requests (requesterUsername === targetUsername).
-   *  - ANOMALY_ADMIN can fetch requests for any username.
-   *  - FLOW_ADMIN can fetch requests for any username (useful for pre-approval filtering).
-   *  - Regular users (no admin role) can only fetch their own.
+   * Return all requests belonging to the requester themselves.
+   * Admins use findAll with ?username= instead of this endpoint.
    */
-  async findByUsername(
-    targetUsername: string,
+  async findMine(
     requesterUsername: string,
-    requesterRoles: Role[],
   ): Promise<Array<PermissionRequestDocument & { overallStatus: OverallRequestStatus }>> {
-    const isSelf = requesterUsername === targetUsername;
-    const isAdmin = hasAnomalyAdmin(requesterRoles) || requesterRoles.some(isAdminRole);
-
-    if (!isSelf && !isAdmin) {
-      throw new ForbiddenException(
-        'You can only view your own permission requests',
-      );
-    }
-
     const requests = await this.permissionRequestModel
-      .find({ username: targetUsername })
+      .find({ username: requesterUsername })
+      .limit(20)
       .exec();
 
     return requests.map((req) => this.withOverallStatus(req));
   }
 
-  /** Get a single permission request by ID. */
-  async findById(id: string): Promise<PermissionRequestDocument> {
-    const req = await this.permissionRequestModel.findById(id).exec();
-    if (!req) throw new NotFoundException(`Permission request ${id} not found`);
-    return req;
+  /** Get a single permission request by ID, including computed overallStatus. */
+  async findById(
+    id: string,
+  ): Promise<PermissionRequestDocument & { overallStatus: OverallRequestStatus }> {
+    return this.withOverallStatus(await this.fetchDocument(id));
   }
 
   // ---------------------------------------------------------------------------
-  // Approve
+  // Approve / Reject
   // ---------------------------------------------------------------------------
 
   /**
-   * Approve specific roles within a permission request.
+   * Approve one or more roles within a permission request.
+   * Body: { roles: ["STORE_USER", "STORE_ADMIN"] } — all roles approved in one call.
    *
    * Service-level security:
    *  - ANOMALY_ADMIN can approve any roles.
    *  - FLOW_ADMIN can only approve roles within their own flow.
-   *
-   * On approval:
-   *  - Updates RoleRequestItem.status to 'APPROVED' for matching roles.
-   *  - Calls UsersService.upsertUserWithRoles — creates user doc if needed.
    */
   async approveRoles(
     requestId: string,
@@ -147,40 +195,12 @@ export class PermissionRequestsService {
     reviewerUsername: string,
     reviewerRoles: Role[],
   ): Promise<PermissionRequestDocument & { overallStatus: OverallRequestStatus }> {
-    const request = await this.findById(requestId);
-
-    assertAdminCanManageRoles(reviewerRoles, dto.roles, 'approve');
-
-    let approvedRoles: Role[] = [];
-
-    request.roles = request.roles.map((item) => {
-      if (dto.roles.includes(item.role) && item.status === RoleRequestStatus.PENDING) {
-        approvedRoles.push(item.role);
-        return { ...item, status: RoleRequestStatus.APPROVED };
-      }
-      return item;
-    });
-
-    request.reviewedBy = reviewerUsername;
-    request.reviewedAt = new Date();
-
-    await request.save();
-
-    // Add approved roles to the user (creates user doc if first approval)
-    if (approvedRoles.length > 0) {
-      await this.usersService.upsertUserWithRoles(request.username, approvedRoles);
-    }
-
-    return this.withOverallStatus(request);
+    return this.reviewRoles(requestId, dto, reviewerUsername, reviewerRoles, RoleRequestStatus.APPROVED);
   }
 
-  // ---------------------------------------------------------------------------
-  // Reject
-  // ---------------------------------------------------------------------------
-
   /**
-   * Reject specific roles within a permission request.
-   * Same scope rules as approve — FLOW_ADMIN only acts within their flow.
+   * Reject one or more roles within a permission request.
+   * Same scope rules as approveRoles — FLOW_ADMIN only acts within their flow.
    */
   async rejectRoles(
     requestId: string,
@@ -188,13 +208,40 @@ export class PermissionRequestsService {
     reviewerUsername: string,
     reviewerRoles: Role[],
   ): Promise<PermissionRequestDocument & { overallStatus: OverallRequestStatus }> {
-    const request = await this.findById(requestId);
+    return this.reviewRoles(requestId, dto, reviewerUsername, reviewerRoles, RoleRequestStatus.REJECTED);
+  }
 
-    assertAdminCanManageRoles(reviewerRoles, dto.roles, 'reject');
+  // ---------------------------------------------------------------------------
+  // Private Helpers
+  // ---------------------------------------------------------------------------
 
+  /**
+   * Core approve/reject logic — shared by approveRoles and rejectRoles.
+   *
+   * Handles any number of roles in a single call (multi-role approval/rejection).
+   * Only PENDING roles matching dto.roles are affected; others are left unchanged.
+   *
+   * Order of operations (for safe retry on failure):
+   *  1. Upsert user roles first (approve path) — atomic and idempotent ($addToSet).
+   *  2. Save the request. If this fails, the admin can retry — the upsert won't
+   *     add duplicate roles.
+   */
+  private async reviewRoles(
+    requestId: string,
+    dto: ReviewRolesDto,
+    reviewerUsername: string,
+    reviewerRoles: Role[],
+    targetStatus: RoleRequestStatus.APPROVED | RoleRequestStatus.REJECTED,
+  ): Promise<PermissionRequestDocument & { overallStatus: OverallRequestStatus }> {
+    const request = await this.fetchDocument(requestId);
+
+    assertAdminCanManageRoles(reviewerRoles, dto.roles, targetStatus.toLowerCase());
+
+    const affectedRoles: Role[] = [];
     request.roles = request.roles.map((item) => {
       if (dto.roles.includes(item.role) && item.status === RoleRequestStatus.PENDING) {
-        return { ...item, status: RoleRequestStatus.REJECTED };
+        affectedRoles.push(item.role);
+        return { ...item, status: targetStatus };
       }
       return item;
     });
@@ -202,13 +249,21 @@ export class PermissionRequestsService {
     request.reviewedBy = reviewerUsername;
     request.reviewedAt = new Date();
 
+    if (targetStatus === RoleRequestStatus.APPROVED && affectedRoles.length > 0) {
+      await this.usersService.upsertUserWithRoles(request.username, affectedRoles);
+    }
+
+    request.markModified('roles');
     await request.save();
     return this.withOverallStatus(request);
   }
 
-  // ---------------------------------------------------------------------------
-  // Private Helpers
-  // ---------------------------------------------------------------------------
+  /** Fetch the raw Mongoose document by ID. Used internally so callers can mutate and .save(). */
+  private async fetchDocument(id: string): Promise<PermissionRequestDocument> {
+    const req = await this.permissionRequestModel.findById(id).exec();
+    if (!req) throw new NotFoundException(`Permission request ${id} not found`);
+    return req;
+  }
 
   /**
    * Computes the overall status of a request from its individual role statuses.
@@ -220,13 +275,9 @@ export class PermissionRequestsService {
    */
   private computeOverallStatus(roles: RoleRequestItem[]): OverallRequestStatus {
     const statuses = roles.map((r) => r.status);
-    const allApproved = statuses.every((s) => s === RoleRequestStatus.APPROVED);
-    const allRejected = statuses.every((s) => s === RoleRequestStatus.REJECTED);
-    const anyPending = statuses.some((s) => s === RoleRequestStatus.PENDING);
-
-    if (allApproved) return OverallRequestStatus.APPROVED;
-    if (allRejected) return OverallRequestStatus.REJECTED;
-    if (anyPending) return OverallRequestStatus.PENDING;
+    if (statuses.every((s) => s === RoleRequestStatus.APPROVED)) return OverallRequestStatus.APPROVED;
+    if (statuses.every((s) => s === RoleRequestStatus.REJECTED))  return OverallRequestStatus.REJECTED;
+    if (statuses.every((s) => s === RoleRequestStatus.PENDING))   return OverallRequestStatus.PENDING;
     return OverallRequestStatus.PARTIALLY_APPROVED;
   }
 

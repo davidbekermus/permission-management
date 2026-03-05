@@ -5,7 +5,10 @@ import { Role } from '../common/utils/roles.util';
 import { JWT_SECRET } from './auth.constants';
 
 export interface JwtPayload {
-  /** User's DB _id, or the username string if user not yet in DB */
+  /**
+   *  Always the username — consistent whether the user is in DB or not. 
+   *  because the username originly comes from the oss
+  */
   sub: string;
   username: string;
   roles: Role[];

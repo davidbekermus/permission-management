@@ -1,5 +1,5 @@
 import { SetMetadata } from '@nestjs/common';
-import { Role, getAllFlowAdminRoles } from '../utils/roles.util';
+import { Role, getAllFlowAdminRoles, getRolesForFlow } from '../utils/roles.util';
 
 /** Metadata key used by RolesGuard to read required roles. */
 export const ROLES_KEY = 'roles';
@@ -27,3 +27,16 @@ export const Roles = (...roles: Role[]) => SetMetadata(ROLES_KEY, roles);
  *   findAll() { ... }
  */
 export const AdminRoles = () => SetMetadata(ROLES_KEY, getAllFlowAdminRoles());
+
+/**
+ * @FlowRoles(flow) — grants access to all roles belonging to a specific flow.
+ *
+ * Resolves roles dynamically from the Role enum, so adding ORDER_ADMIN/ORDER_USER
+ * to the enum automatically makes @FlowRoles('ORDER') work — no other changes needed.
+ *
+ * Usage:
+ *   @FlowRoles('STORE')   // resolves to [STORE_ADMIN, STORE_USER] automatically
+ *   @Controller('store')
+ *   export class StoreController { ... }
+ */
+export const FlowRoles = (flow: string) => SetMetadata(ROLES_KEY, getRolesForFlow(flow));

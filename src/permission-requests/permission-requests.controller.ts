@@ -37,34 +37,34 @@ export class PermissionRequestsController {
 
   /**
    * GET /permission-requests
-   * All flow admins — list requests scoped to their flow(s).
+   * Admin-only — list requests scoped to the requester's flow(s).
    * ANOMALY_ADMIN sees all requests (via RolesGuard bypass).
    *
-   * ?pending=true  → filter to only non-fully-resolved requests
+   * ?status=PENDING  → filter by computed overall status
+   * ?username=alice  → partial case-insensitive live search by username
    */
   @Get()
   @UseGuards(RolesGuard)
   @AdminRoles()
-  findAll(@Request() req: any, @Query('status') status?: OverallRequestStatus) {
-    return this.service.findAll(req.user.roles, status);
+  findAll(
+    @Request() req: any,
+    @Query('status') status?: OverallRequestStatus,
+    @Query('username') username?: string,
+  ) {
+    return this.service.findAll(req.user.roles, status, username);
   }
 
   /**
-   * GET /permission-requests/by-user/:username
+   * GET /permission-requests/mine
    *
-   * Fetch all requests for a specific username.
+   * Returns the authenticated user's own permission requests.
+   * No admin access — admins use GET /permission-requests?username= instead.
    *
-   * - Any JWT holder can look up their OWN username.
-   * - FLOW_ADMIN / ANOMALY_ADMIN can look up any username
-   *   (useful for filtering pending requests before approval).
-   *
-   * JwtAuthGuard only — access control is enforced in the service.
-   *
-   * Note: declared BEFORE /:id to prevent NestJS matching "by-user" as an ID.
+   * Note: declared BEFORE /:id to prevent NestJS matching "mine" as an ID.
    */
-  @Get('by-user/:username')
-  findByUsername(@Param('username') username: string, @Request() req: any) {
-    return this.service.findByUsername(username, req.user.username, req.user.roles);
+  @Get('mine')
+  findMine(@Request() req: any) {
+    return this.service.findMine(req.user.username);
   }
 
   /**
@@ -76,6 +76,23 @@ export class PermissionRequestsController {
   @AdminRoles()
   findOne(@Param('id') id: string) {
     return this.service.findById(id);
+  }
+
+  /**
+   * PATCH /permission-requests/:id/roles
+   *
+   * Add new roles to an existing permission request.
+   * Only the request owner can call this — ownership is enforced in the service.
+   *
+   * Roles already present (in any status) are silently ignored.
+   */
+  @Patch(':id/roles')
+  addRoles(
+    @Param('id') id: string,
+    @Body() dto: CreatePermissionRequestDto,
+    @Request() req: any,
+  ) {
+    return this.service.addRolesToRequest(id, req.user.username, dto);
   }
 
   /**

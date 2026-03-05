@@ -21,9 +21,9 @@ export class UsersService {
     return user;
   }
 
-  /** Return all users. */
+  /** Return all users (up to 20). */
   async findAll(): Promise<UserDocument[]> {
-    return this.userModel.find().exec();
+    return this.userModel.find().limit(20).exec();
   }
 
   /**
@@ -50,24 +50,22 @@ export class UsersService {
 
   /**
    * Create or update a user — upsert pattern used by permission approval.
-   * If user exists, appends the new roles (no duplicates).
-   * If user doesn't exist, creates a new user document.
+   * Atomically adds roles (no duplicates via $addToSet).
+   * Creates the user document if it does not exist yet.
+   *
+   * Intentionally skips requesterRoles validation — this is a trusted internal
+   * call made only after permission approval has already been verified.
    */
   async upsertUserWithRoles(
     username: string,
     rolesToAdd: Role[],
   ): Promise<UserDocument> {
-    const existing = await this.userModel.findOne({ username }).exec();
-
-    if (existing) {
-      // Merge without duplicates
-      const merged = Array.from(new Set([...existing.roles, ...rolesToAdd]));
-      existing.roles = merged;
-      return existing.save();
-    }
-
-    // First-time creation on permission approval
-    return this.createUser(username, rolesToAdd);
+    const doc = await this.userModel.findOneAndUpdate(
+      { username },
+      { $addToSet: { roles: { $each: rolesToAdd } } },
+      { new: true, upsert: true, runValidators: true, setDefaultsOnInsert: true },
+    ).exec();
+    return doc!;
   }
 
   /**

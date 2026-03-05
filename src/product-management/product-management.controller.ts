@@ -12,12 +12,11 @@ import { ProductManagementService } from './product-management.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
-import { Roles } from '../common/decorators/roles.decorator';
-import { Role } from '../common/utils/roles.util';
+import { FlowRoles } from '../common/decorators/roles.decorator';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('products')
-@Roles(Role.PRODUCT_ADMIN, Role.PRODUCT_USER)
+@FlowRoles('PRODUCT')
 export class ProductManagementController {
   constructor(private readonly service: ProductManagementService) {}
 

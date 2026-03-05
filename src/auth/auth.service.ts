@@ -19,9 +19,10 @@ export class AuthService {
    *  1. Accept the username as if it was already validated by an external OSS.
    *  2. Look up the user in our DB to retrieve their current roles.
    *  3. Issue a JWT:
-   *     - If user is in DB → payload includes their DB _id and roles.
-   *     - If user is NOT in DB → payload uses username as sub with empty roles.
+   *     - If user is in DB → payload carries their current roles.
+   *     - If user is NOT in DB → payload carries empty roles [].
    *
+   * sub is always the username string — consistent regardless of DB state.
    * The user document is NOT created here. It is created only when a
    * permission request is approved (see PermissionRequestsService).
    */
@@ -31,7 +32,7 @@ export class AuthService {
     try {
       const user = await this.usersService.findByUsername(username);
       payload = {
-        sub: (user._id as any).toString(),
+        sub: user.username,
         username: user.username,
         roles: user.roles,
       };
@@ -40,7 +41,7 @@ export class AuthService {
       // User not in DB yet — issue token with empty roles so they can
       // access permission-request endpoints.
       payload = {
-        sub: username, // temporary identifier until user doc is created
+        sub: username,
         username,
         roles: [] as Role[],
       };
