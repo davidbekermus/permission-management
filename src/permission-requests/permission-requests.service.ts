@@ -20,7 +20,6 @@ import { ReviewRolesDto } from './dto/review-roles.dto';
 import { UsersService } from '../users/users.service';
 import {
   Role,
-  hasAnomalyAdmin,
   isAdminRole,
   assertAdminCanManageRoles,
   getFlowFromRole,
@@ -134,7 +133,7 @@ export class PermissionRequestsService {
 
     let docs: PermissionRequestDocument[];
 
-    if (hasAnomalyAdmin(requesterRoles)) {
+    if (requesterRoles.includes(Role.ANOMALY_ADMIN)) {
       docs = await this.permissionRequestModel.find(usernameFilter).limit(20).exec();
     } else {
       const adminRoles = requesterRoles.filter(isAdminRole);

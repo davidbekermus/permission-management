@@ -31,18 +31,9 @@ export enum Role {
 
 /**
  * Returns true if the role is ANOMALY_ADMIN.
- * ANOMALY_ADMIN bypasses all permission checks.
  */
 export function isAnomalyAdmin(role: Role): boolean {
   return role === Role.ANOMALY_ADMIN;
-}
-
-/**
- * Returns true if any of the provided roles is ANOMALY_ADMIN.
- * Convenience overload for checking a collection of roles.
- */
-export function hasAnomalyAdmin(roles: Role[]): boolean {
-  return roles.some(isAnomalyAdmin);
 }
 
 /**
@@ -137,7 +128,7 @@ export function assertAdminCanManageRoles(
   targetRoles: Role[],
   action: string,
 ): void {
-  if (hasAnomalyAdmin(requesterRoles)) return;
+  if (requesterRoles.includes(Role.ANOMALY_ADMIN)) return;
 
   const adminRoles = requesterRoles.filter(
     (r) => isAdminRole(r) && !isAnomalyAdmin(r),

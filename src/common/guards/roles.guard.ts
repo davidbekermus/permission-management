@@ -1,7 +1,7 @@
 import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { ROLES_KEY } from '../decorators/roles.decorator';
-import { Role, hasAnomalyAdmin } from '../utils/roles.util';
+import { Role } from '../utils/roles.util';
 
 /**
  * RolesGuard — checks that the authenticated user has at least one of the
@@ -41,7 +41,7 @@ export class RolesGuard implements CanActivate {
     const userRoles: Role[] = user?.roles ?? [];
 
     // ANOMALY_ADMIN overrides all role checks
-    if (hasAnomalyAdmin(userRoles)) {
+    if (userRoles.includes(Role.ANOMALY_ADMIN)) {
       return true;
     }
 
