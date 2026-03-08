@@ -11,6 +11,8 @@ async function bootstrap() {
    * - forbidNonWhitelisted: throw if unknown properties are sent
    * - transform: auto-cast primitives (e.g. string → number for @IsNumber)
    */
+  app.enableCors({ origin: process.env.CLIENT_URL ?? 'http://localhost:5173' });
+
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,

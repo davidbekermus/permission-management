@@ -6,6 +6,7 @@ import {
   Delete,
   Param,
   Body,
+  Query,
   UseGuards,
   Request,
   ParseEnumPipe,
@@ -29,8 +30,8 @@ export class UsersController {
    * Any authenticated user — list all users.
    */
   @Get()
-  findAll() {
-    return this.usersService.findAll();
+  findAll(@Query('username') username?: string) {
+    return this.usersService.findAll(username);
   }
 
   /**

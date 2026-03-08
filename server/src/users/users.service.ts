@@ -14,10 +14,12 @@ export class UsersService {
     @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
   ) {}
   
-  /** Return all users (up to 20). */
-  async findAll(): Promise<UserDocument[]> {
-    const limit = 20;
-    return this.userModel.find().limit(limit).exec();
+  /** Return all users (up to 20), optionally filtered by username prefix. */
+  async findAll(username?: string): Promise<UserDocument[]> {
+    const filter = username
+      ? { username: { $regex: username, $options: 'i' } }
+      : {};
+    return this.userModel.find(filter).limit(20).exec();
   }
 
   /** Find a user by username — throws NotFoundException if not found. */
