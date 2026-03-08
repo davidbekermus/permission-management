@@ -2,7 +2,6 @@ import {
   Injectable,
   NotFoundException,
   ForbiddenException,
-  ConflictException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -36,23 +35,33 @@ export class PermissionRequestsService {
   ) {}
 
   /**
-   * Submit a new permission request.
+   * Submit a permission request (upsert).
+   * If the user already has a request document, the new roles are merged into it
+   * as PENDING (skipping roles that already exist in any status).
+   * If no document exists, a new one is created.
    * Any authenticated user (even with zero roles) can do this.
-   * Each requested role starts with PENDING status.
    */
   async create(
     username: string,
     dto: CreatePermissionRequestDto,
-  ): Promise<PermissionRequestDocument> {
-    const existingOpen = await this.permissionRequestModel.findOne({
-      username,
-      roles: { $elemMatch: { status: RoleRequestStatus.PENDING } },
-    }).exec();
+  ): Promise<PermissionRequestDocument & { overallStatus: OverallRequestStatus }> {
+    const existing = await this.permissionRequestModel.findOne({ username }).exec();
 
-    if (existingOpen) {
-      throw new ConflictException(
-        'You already have an open request. Add roles to it or remove unwanted ones before creating a new one.',
-      );
+    if (existing) {
+      const existingRoles = new Set(existing.roles.map((r) => r.role));
+      const newRoles = dto.roles.filter((r) => !existingRoles.has(r));
+
+      if (newRoles.length > 0) {
+        const newItems: RoleRequestItem[] = newRoles.map((role) => ({
+          role,
+          status: RoleRequestStatus.PENDING,
+        }));
+        existing.roles = [...existing.roles, ...newItems];
+        existing.markModified('roles');
+        await existing.save();
+      }
+
+      return withOverallStatus(existing);
     }
 
     const roleItems: RoleRequestItem[] = dto.roles.map((role) => ({
@@ -60,13 +69,13 @@ export class PermissionRequestsService {
       status: RoleRequestStatus.PENDING,
     }));
 
-    const request = new this.permissionRequestModel({
+    const saved = await new this.permissionRequestModel({
       username,
       roles: roleItems,
       requestedAt: new Date(),
-    });
+    }).save();
 
-    return request.save();
+    return withOverallStatus(saved);
   }
 
   /**
@@ -147,17 +156,23 @@ export class PermissionRequestsService {
    */
   async findAll(
     requesterRoles: Role[],
-    status?: OverallRequestStatus,
+    statuses?: OverallRequestStatus[],
     username?: string,
+    roles?: Role[],
+    sort?: 'asc' | 'desc',
   ): Promise<Array<PermissionRequestDocument & { overallStatus: OverallRequestStatus }>> {
-    const usernameFilter = username
-      ? { username: { $regex: username, $options: 'i' } }
-      : {};
+    const usernameFilter = username ? { username: { $regex: username, $options: 'i' } } : {};
+    const rolesFilter = roles?.length ? { 'roles.role': { $in: roles } } : {};
+    const sortOrder = sort === 'asc' ? 1 : -1;
 
     let docs: PermissionRequestDocument[];
 
     if (requesterRoles.includes(Role.ANOMALY_ADMIN)) {
-      docs = await this.permissionRequestModel.find(usernameFilter).limit(20).exec();
+      docs = await this.permissionRequestModel
+        .find({ ...usernameFilter, ...rolesFilter })
+        .sort({ createdAt: sortOrder })
+        .limit(20)
+        .exec();
     } else {
       const adminRoles = requesterRoles.filter(isAdminRole);
       if (adminRoles.length === 0) return [];
@@ -167,13 +182,14 @@ export class PermissionRequestsService {
         return flow ? getRolesForFlow(flow) : [];
       });
       docs = await this.permissionRequestModel
-        .find({ 'roles.role': { $in: flowRoles }, ...usernameFilter })
+        .find({ 'roles.role': { $in: flowRoles }, ...usernameFilter, ...rolesFilter })
+        .sort({ createdAt: sortOrder })
         .limit(20)
         .exec();
     }
 
     const withStatus = docs.map(withOverallStatus);
-    return status ? withStatus.filter((req) => req.overallStatus === status) : withStatus;
+    return statuses?.length ? withStatus.filter((req) => statuses.includes(req.overallStatus)) : withStatus;
   }
 
   /**
@@ -182,13 +198,21 @@ export class PermissionRequestsService {
    */
   async findMine(
     requesterUsername: string,
+    statuses?: OverallRequestStatus[],
+    roles?: Role[],
+    sort?: 'asc' | 'desc',
   ): Promise<Array<PermissionRequestDocument & { overallStatus: OverallRequestStatus }>> {
+    const rolesFilter = roles?.length ? { 'roles.role': { $in: roles } } : {};
+    const sortOrder = sort === 'asc' ? 1 : -1;
+
     const requests = await this.permissionRequestModel
-      .find({ username: requesterUsername })
+      .find({ username: requesterUsername, ...rolesFilter })
+      .sort({ createdAt: sortOrder })
       .limit(20)
       .exec();
 
-    return requests.map(withOverallStatus);
+    const withStatus = requests.map(withOverallStatus);
+    return statuses?.length ? withStatus.filter((req) => statuses.includes(req.overallStatus)) : withStatus;
   }
 
   /** Get a single permission request by ID, including computed overallStatus. */
@@ -247,7 +271,13 @@ export class PermissionRequestsService {
 
     const affectedRoles: Role[] = [];
     request.roles = request.roles.map((item) => {
-      if (dto.roles.includes(item.role) && item.status === RoleRequestStatus.PENDING) {
+      if (!dto.roles.includes(item.role)) return item;
+      // Approval overrides both PENDING and REJECTED; rejection only applies to PENDING
+      const isEligible =
+        targetStatus === RoleRequestStatus.APPROVED
+          ? item.status !== RoleRequestStatus.APPROVED
+          : item.status === RoleRequestStatus.PENDING;
+      if (isEligible) {
         affectedRoles.push(item.role);
         return { ...item, status: targetStatus };
       }

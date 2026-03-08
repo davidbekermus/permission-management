@@ -14,12 +14,13 @@ export class UsersService {
     @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
   ) {}
   
-  /** Return all users (up to 20), optionally filtered by username prefix. */
-  async findAll(username?: string): Promise<UserDocument[]> {
-    const filter = username
-      ? { username: { $regex: username, $options: 'i' } }
-      : {};
-    return this.userModel.find(filter).limit(20).exec();
+  /** Return all users (up to 20), optionally filtered by username, roles, and sorted by date. */
+  async findAll(username?: string, roles?: Role[], sort?: 'asc' | 'desc'): Promise<UserDocument[]> {
+    const filter: Record<string, unknown> = {};
+    if (username) filter.username = { $regex: username, $options: 'i' };
+    if (roles?.length) filter.roles = { $in: roles };
+    const sortOrder = sort === 'asc' ? 1 : -1;
+    return this.userModel.find(filter).sort({ createdAt: sortOrder }).limit(20).exec();
   }
 
   /** Find a user by username — throws NotFoundException if not found. */

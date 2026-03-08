@@ -14,6 +14,7 @@ import IconButton from '@mui/material/IconButton'
 import CircularProgress from '@mui/material/CircularProgress'
 import Alert from '@mui/material/Alert'
 import { styled } from '@mui/material/styles'
+import LockIcon from '@mui/icons-material/Lock'
 import DeleteIcon from '@mui/icons-material/Delete'
 import { useStoreItems, useCreateStoreItem, useDeleteStoreItem } from './useStores'
 import { useAuth } from '@/app/providers/AuthProvider'
@@ -31,8 +32,23 @@ const FormRow = styled(Box)(({ theme }) => ({
 }))
 
 export function StoresPage() {
-  const { isFlowAdmin } = useAuth()
+  const { roles, isFlowAdmin, isAnomalyAdmin } = useAuth()
+  const hasAccess = isAnomalyAdmin || isFlowAdmin('STORE') || roles.includes('STORE_USER')
   const isAdmin = isFlowAdmin('STORE')
+
+  if (!hasAccess) {
+    return (
+      <PageWrapper>
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 300, gap: 2 }}>
+          <LockIcon sx={{ fontSize: 48, color: 'text.disabled' }} />
+          <Typography variant="h6" color="text.secondary">Unauthorized</Typography>
+          <Typography variant="body2" color="text.disabled">
+            You don't have permission to access Store Management.
+          </Typography>
+        </Box>
+      </PageWrapper>
+    )
+  }
   const [name, setName] = useState('')
   const [price, setPrice] = useState('')
 

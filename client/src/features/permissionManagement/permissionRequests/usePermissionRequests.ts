@@ -1,18 +1,18 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { permissionRequestsApi } from './permissionRequestsApi'
+import { permissionRequestsApi, type RequestFilters } from './permissionRequestsApi'
 import type { Role } from '@/features/auth/types'
 
-export function useAllPermissionRequests() {
+export function useAllPermissionRequests(filters: RequestFilters = {}) {
   return useQuery({
-    queryKey: ['permissionRequests', 'all'],
-    queryFn: permissionRequestsApi.getAll,
+    queryKey: ['permissionRequests', 'all', filters],
+    queryFn: () => permissionRequestsApi.getAll(filters),
   })
 }
 
-export function useMyPermissionRequests() {
+export function useMyPermissionRequests(filters: RequestFilters = {}) {
   return useQuery({
-    queryKey: ['permissionRequests', 'mine'],
-    queryFn: permissionRequestsApi.getMine,
+    queryKey: ['permissionRequests', 'mine', filters],
+    queryFn: () => permissionRequestsApi.getMine(filters),
   })
 }
 

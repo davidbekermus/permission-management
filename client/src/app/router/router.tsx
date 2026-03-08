@@ -10,10 +10,9 @@ import { AppLayout } from '@/components/layout/AppLayout'
 import { PermissionManagementPage } from '@/features/permissionManagement'
 import { StoresPage } from '@/features/stores/StoresPage'
 import { ProductsPage } from '@/features/products/ProductsPage'
+import { HomePage } from '@/features/home/HomePage'
 
-const rootRoute = createRootRoute({
-  component: Outlet,
-})
+const rootRoute = createRootRoute({ component: Outlet })
 
 const loginRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -26,10 +25,14 @@ const appRoute = createRoute({
   path: '/app',
   component: AppLayout,
   beforeLoad: () => {
-    if (!localStorage.getItem('pm_token')) {
-      throw redirect({ to: '/login' })
-    }
+    if (!localStorage.getItem('pm_token')) throw redirect({ to: '/login' })
   },
+})
+
+const homeRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: '/home',
+  component: HomePage,
 })
 
 const settingsRoute = createRoute({
@@ -55,7 +58,7 @@ const indexRoute = createRoute({
   path: '/',
   beforeLoad: () => {
     throw redirect({
-      to: localStorage.getItem('pm_token') ? '/app/settings' : '/login',
+      to: localStorage.getItem('pm_token') ? '/app/home' : '/login',
     })
   },
 })
@@ -63,7 +66,7 @@ const indexRoute = createRoute({
 const routeTree = rootRoute.addChildren([
   indexRoute,
   loginRoute,
-  appRoute.addChildren([settingsRoute, storesRoute, productsRoute]),
+  appRoute.addChildren([homeRoute, settingsRoute, storesRoute, productsRoute]),
 ])
 
 export const router = createRouter({ routeTree })

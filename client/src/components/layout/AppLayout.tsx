@@ -1,87 +1,41 @@
-import Box from '@mui/material/Box'
-import Drawer from '@mui/material/Drawer'
-import List from '@mui/material/List'
-import ListItemButton from '@mui/material/ListItemButton'
-import ListItemIcon from '@mui/material/ListItemIcon'
-import ListItemText from '@mui/material/ListItemText'
-import Divider from '@mui/material/Divider'
+import AppBar from '@mui/material/AppBar'
+import Toolbar from '@mui/material/Toolbar'
 import Typography from '@mui/material/Typography'
 import Button from '@mui/material/Button'
+import Box from '@mui/material/Box'
+import Divider from '@mui/material/Divider'
 import { styled } from '@mui/material/styles'
-import StoreIcon from '@mui/icons-material/Store'
-import InventoryIcon from '@mui/icons-material/Inventory'
-import SettingsIcon from '@mui/icons-material/Settings'
+import HomeIcon from '@mui/icons-material/Home'
 import LogoutIcon from '@mui/icons-material/Logout'
 import { Outlet, useNavigate, useRouterState } from '@tanstack/react-router'
 import { useAuth } from '@/app/providers/AuthProvider'
 
-const DRAWER_WIDTH = 220
-
-const LayoutRoot = styled(Box)({
-  display: 'flex',
-  minHeight: '100vh',
-})
-
-const StyledDrawer = styled(Drawer)({
-  width: DRAWER_WIDTH,
-  flexShrink: 0,
-  '& .MuiDrawer-paper': {
-    width: DRAWER_WIDTH,
-    boxSizing: 'border-box',
-    display: 'flex',
-    flexDirection: 'column',
-  },
-})
-
 const MainContent = styled(Box)(({ theme }) => ({
-  flexGrow: 1,
   backgroundColor: theme.palette.background.default,
-  minHeight: '100vh',
+  minHeight: 'calc(100vh - 48px)',
 }))
 
-const NavBrand = styled(Box)(({ theme }) => ({
-  padding: theme.spacing(2, 2, 1),
+const StyledAppBar = styled(AppBar)(({ theme }) => ({
+  borderBottom: `1px solid ${theme.palette.divider}`,
 }))
 
-const NavFooter = styled(Box)(({ theme }) => ({
-  marginTop: 'auto',
-  padding: theme.spacing(2),
-  borderTop: `1px solid ${theme.palette.divider}`,
-}))
+const PAGE_TITLES: Record<string, string> = {
+  '/app/home': '',
+  '/app/stores': 'Store Management',
+  '/app/products': 'Product Management',
+  '/app/settings': 'Permission Settings',
+}
 
-interface NavItem {
-  label: string
-  path: string
-  icon: React.ReactNode
-  show: boolean
+function getPageTitle(path: string): string {
+  if (path.startsWith('/app/settings')) return 'Permission Settings'
+  return PAGE_TITLES[path] ?? ''
 }
 
 export function AppLayout() {
-  const { roles, isAnomalyAdmin, isFlowAdmin, username, logout } = useAuth()
+  const { username, logout } = useAuth()
   const navigate = useNavigate()
-  const routerState = useRouterState()
-  const currentPath = routerState.location.pathname
-
-  const navItems: NavItem[] = [
-    {
-      label: 'Stores',
-      path: '/app/stores',
-      icon: <StoreIcon fontSize="small" />,
-      show: isFlowAdmin('STORE') || roles.includes('STORE_USER') || isAnomalyAdmin,
-    },
-    {
-      label: 'Products',
-      path: '/app/products',
-      icon: <InventoryIcon fontSize="small" />,
-      show: isFlowAdmin('PRODUCT') || roles.includes('PRODUCT_USER') || isAnomalyAdmin,
-    },
-    {
-      label: 'Settings',
-      path: '/app/settings',
-      icon: <SettingsIcon fontSize="small" />,
-      show: true,
-    },
-  ]
+  const { location } = useRouterState()
+  const pageTitle = getPageTitle(location.pathname)
 
   const handleLogout = () => {
     logout()
@@ -89,50 +43,46 @@ export function AppLayout() {
   }
 
   return (
-    <LayoutRoot>
-      <StyledDrawer variant="permanent">
-        <NavBrand>
-          <Typography variant="subtitle1" fontWeight={700} color="primary">
-            PermManage
-          </Typography>
+    <>
+      <StyledAppBar position="static" elevation={0}>
+        <Toolbar variant="dense" disableGutters sx={{ px: 2, minHeight: 48 }}>
+          <Button
+            startIcon={<HomeIcon fontSize="small" />}
+            onClick={() => navigate({ to: '/app/home' })}
+            sx={{ textTransform: 'none', color: 'text.secondary', minWidth: 0 }}
+          >
+            Home
+          </Button>
+
+          {pageTitle && (
+            <>
+              <Divider orientation="vertical" flexItem sx={{ mx: 1.5, my: 1 }} />
+              <Typography variant="body2" fontWeight={600} color="text.primary">
+                {pageTitle}
+              </Typography>
+            </>
+          )}
+
+          <Box sx={{ flexGrow: 1 }} />
+
           {username && (
-            <Typography variant="caption" color="text.secondary" display="block">
+            <Typography variant="body2" color="text.secondary" sx={{ mr: 2 }}>
               {username}
             </Typography>
           )}
-        </NavBrand>
-        <Divider />
-        <List dense>
-          {navItems
-            .filter((item) => item.show)
-            .map((item) => (
-              <ListItemButton
-                key={item.path}
-                selected={currentPath === item.path}
-                onClick={() => navigate({ to: item.path })}
-                sx={{ borderRadius: 1, mx: 1, mb: 0.5 }}
-              >
-                <ListItemIcon sx={{ minWidth: 36 }}>{item.icon}</ListItemIcon>
-                <ListItemText primary={item.label} primaryTypographyProps={{ fontSize: '0.875rem' }} />
-              </ListItemButton>
-            ))}
-        </List>
-        <NavFooter>
           <Button
-            fullWidth
-            variant="text"
-            color="inherit"
             startIcon={<LogoutIcon fontSize="small" />}
             onClick={handleLogout}
-            sx={{ justifyContent: 'flex-start', color: 'text.secondary', textTransform: 'none' }}
+            sx={{ textTransform: 'none', color: 'text.secondary' }}
           >
             Logout
           </Button>
-        </NavFooter>
-      </StyledDrawer>
+        </Toolbar>
+      </StyledAppBar>
+
       <MainContent>
         <Outlet />
       </MainContent>
-    </LayoutRoot>
+    </>
   )
 }

@@ -9,7 +9,6 @@ import {
   UseGuards,
   Request,
   Query,
-  ParseEnumPipe,
 } from '@nestjs/common';
 import { PermissionRequestsService } from './permission-requests.service';
 import { CreatePermissionRequestDto } from './dto/create-permission-request.dto';
@@ -19,6 +18,7 @@ import { RolesGuard } from '../common/guards/roles.guard';
 import { AdminRoles } from '../common/decorators/roles.decorator';
 import { OverallRequestStatus } from './types/permission-request.types';
 import { AuthedRequest } from '../common/interfaces/authed-request.interface';
+import { Role } from '../common/utils/roles.util';
 
 @UseGuards(JwtAuthGuard)
 @Controller('permission-requests')
@@ -45,10 +45,14 @@ export class PermissionRequestsController {
   @AdminRoles()
   findAll(
     @Request() req: AuthedRequest,
-    @Query('status', new ParseEnumPipe(OverallRequestStatus, { optional: true })) status?: OverallRequestStatus,
+    @Query('statuses') statusesParam?: string,
     @Query('username') username?: string,
+    @Query('roles') rolesParam?: string,
+    @Query('sort') sort?: 'asc' | 'desc',
   ) {
-    return this.service.findAll(req.user.roles, status, username);
+    const statuses = statusesParam ? (statusesParam.split(',') as OverallRequestStatus[]) : undefined;
+    const roles = rolesParam ? (rolesParam.split(',') as Role[]) : undefined;
+    return this.service.findAll(req.user.roles, statuses, username, roles, sort);
   }
 
   /**
@@ -56,8 +60,15 @@ export class PermissionRequestsController {
    * No admin access — admins use GET /permission-requests?username= instead.
    */
   @Get('my-requests')
-  findMine(@Request() req: AuthedRequest) {
-    return this.service.findMine(req.user.username);
+  findMine(
+    @Request() req: AuthedRequest,
+    @Query('statuses') statusesParam?: string,
+    @Query('roles') rolesParam?: string,
+    @Query('sort') sort?: 'asc' | 'desc',
+  ) {
+    const statuses = statusesParam ? (statusesParam.split(',') as OverallRequestStatus[]) : undefined;
+    const roles = rolesParam ? (rolesParam.split(',') as Role[]) : undefined;
+    return this.service.findMine(req.user.username, statuses, roles, sort);
   }
 
   /**

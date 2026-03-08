@@ -30,8 +30,13 @@ export class UsersController {
    * Any authenticated user — list all users.
    */
   @Get()
-  findAll(@Query('username') username?: string) {
-    return this.usersService.findAll(username);
+  findAll(
+    @Query('username') username?: string,
+    @Query('roles') rolesParam?: string,
+    @Query('sort') sort?: 'asc' | 'desc',
+  ) {
+    const roles = rolesParam ? (rolesParam.split(',') as Role[]) : undefined;
+    return this.usersService.findAll(username, roles, sort);
   }
 
   /**

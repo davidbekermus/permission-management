@@ -1,15 +1,36 @@
 import { apiClient } from '@/app/api/axiosClient'
 import type { Role } from '@/features/auth/types'
-import type { PermissionRequest } from './types'
+import type { PermissionRequest, OverallStatus } from './types'
+
+export interface RequestFilters {
+  search?: string
+  statuses?: OverallStatus[]
+  roles?: Role[]
+  sort?: 'latest' | 'oldest'
+}
+
+function buildParams(filters: RequestFilters, includeSearch = true) {
+  const { search, statuses, roles, sort } = filters
+  return {
+    ...(includeSearch && search ? { username: search } : {}),
+    ...(statuses?.length ? { statuses: statuses.join(',') } : {}),
+    ...(roles?.length ? { roles: roles.join(',') } : {}),
+    ...(sort ? { sort: sort === 'oldest' ? 'asc' : 'desc' } : {}),
+  }
+}
 
 export const permissionRequestsApi = {
-  getAll: async (): Promise<PermissionRequest[]> => {
-    const { data } = await apiClient.get<PermissionRequest[]>('/permission-requests')
+  getAll: async (filters: RequestFilters = {}): Promise<PermissionRequest[]> => {
+    const { data } = await apiClient.get<PermissionRequest[]>('/permission-requests', {
+      params: buildParams(filters, true),
+    })
     return data
   },
 
-  getMine: async (): Promise<PermissionRequest[]> => {
-    const { data } = await apiClient.get<PermissionRequest[]>('/permission-requests/my-requests')
+  getMine: async (filters: RequestFilters = {}): Promise<PermissionRequest[]> => {
+    const { data } = await apiClient.get<PermissionRequest[]>('/permission-requests/my-requests', {
+      params: buildParams(filters, false),
+    })
     return data
   },
 

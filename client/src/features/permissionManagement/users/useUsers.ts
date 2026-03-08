@@ -1,11 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { usersApi } from './usersApi'
+import { usersApi, type UserFilters } from './usersApi'
 import type { Role } from '@/features/auth/types'
 
-export function useUsers(search?: string) {
+export function useUsers(filters: UserFilters = {}) {
   return useQuery({
-    queryKey: ['users', search ?? ''],
-    queryFn: () => usersApi.getUsers(search || undefined),
+    queryKey: ['users', filters],
+    queryFn: () => usersApi.getUsers(filters),
   })
 }
 
@@ -23,6 +23,15 @@ export function useRemoveRole() {
   return useMutation({
     mutationFn: ({ username, role }: { username: string; role: Role }) =>
       usersApi.removeRole(username, role),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['users'] }),
+  })
+}
+
+export function useCreateUser() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ username, roles }: { username: string; roles: Role[] }) =>
+      usersApi.createUser(username, roles),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['users'] }),
   })
 }
