@@ -56,7 +56,7 @@ export class UsersController {
   @UseGuards(RolesGuard)
   @AdminRoles()
   create(@Body() dto: CreateUserDto, @Request() req: AuthedRequest) {
-    return this.usersService.createUser(dto.username, dto.roles, req.user.roles);
+    return this.usersService.createUser(dto.username, dto.roles, req.user.roles, req.user.username);
   }
 
   /**
@@ -70,7 +70,7 @@ export class UsersController {
     @Body() dto: AssignRoleDto,
     @Request() req: AuthedRequest,
   ) {
-    return this.usersService.assignRole(username, dto.role, req.user.roles);
+    return this.usersService.assignRole(username, dto.role, req.user.roles, req.user.username);
   }
 
   /**

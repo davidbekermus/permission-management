@@ -1,92 +1,46 @@
-import { useState, useEffect } from 'react'
-import Box from '@mui/material/Box'
+import { useState } from 'react'
 import ToggleButton from '@mui/material/ToggleButton'
-import ToggleButtonGroup from '@mui/material/ToggleButtonGroup'
-import TextField from '@mui/material/TextField'
 import InputAdornment from '@mui/material/InputAdornment'
 import Button from '@mui/material/Button'
-import Badge from '@mui/material/Badge'
-import IconButton from '@mui/material/IconButton'
 import Divider from '@mui/material/Divider'
 import Tooltip from '@mui/material/Tooltip'
-import { styled } from '@mui/material/styles'
-import SearchIcon from '@mui/icons-material/Search'
 import FilterListIcon from '@mui/icons-material/FilterList'
 import PersonAddIcon from '@mui/icons-material/PersonAdd'
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline'
 import { UsersTable } from './users/UsersTable'
 import { PermissionRequestsTable } from './permissionRequests/PermissionRequestsTable'
 import { AddUserDialog } from './users/AddUserDialog'
-import { FilterDialog, type SortOrder } from './users/FilterDialog'
+import { FilterDialog } from './users/FilterDialog'
 import { CreateRequestDialog } from './permissionRequests/CreateRequestDialog'
 import { RequestsFilterDialog } from './permissionRequests/RequestsFilterDialog'
 import { useAuth } from '@/app/providers/AuthProvider'
+import { useDebounce } from './hooks/useDebounce'
 import type { Role } from '@/features/auth/types'
 import type { OverallStatus } from './permissionRequests/types'
+import type { SortOrder } from './shared/types'
+import {
+  PageWrapper,
+  Toolbar,
+  FlexSpacer,
+  ContentBox,
+  ScreenReaderOnly,
+  StyledToggleButtonGroup,
+  StyledFilterIconButton,
+  StyledBadge,
+  SearchField,
+  SearchAdornmentIcon,
+} from './PermissionManagementPage.style'
 
 type TabValue = 'users' | 'requests'
 
-const PageWrapper = styled(Box)(({ theme }) => ({
-  padding: theme.spacing(3),
-}))
-
-const Toolbar = styled(Box)(({ theme }) => ({
-  display: 'flex',
-  alignItems: 'center',
-  gap: theme.spacing(1.5),
-  paddingBottom: theme.spacing(2.5),
-  flexWrap: 'wrap',
-}))
-
-const StyledToggleButtonGroup = styled(ToggleButtonGroup)(({ theme }) => ({
-  '& .MuiToggleButton-root': {
-    textTransform: 'none',
-    fontWeight: 500,
-    fontSize: '0.875rem',
-    padding: theme.spacing(0.5, 2),
-    border: `1px solid ${theme.palette.divider}`,
-    color: theme.palette.text.secondary,
-    '&.Mui-selected': {
-      backgroundColor: theme.palette.primary.main,
-      color: '#fff',
-      '&:hover': { backgroundColor: theme.palette.primary.dark },
-    },
-  },
-}))
-
-function FilterIconButton({ count, onClick }: { count: number; onClick: () => void }) {
-  return (
-    <Tooltip title="Filter">
-      <IconButton
-        size="small"
-        onClick={onClick}
-        sx={{
-          border: '1px solid',
-          borderColor: count > 0 ? 'primary.main' : 'divider',
-          borderRadius: 1,
-          color: count > 0 ? 'primary.main' : 'text.secondary',
-          p: '5px',
-        }}
-      >
-        <Badge
-          badgeContent={count}
-          color="primary"
-          sx={{ '& .MuiBadge-badge': { fontSize: '0.6rem', minWidth: 16, height: 16 } }}
-        >
-          <FilterListIcon fontSize="small" />
-        </Badge>
-      </IconButton>
-    </Tooltip>
-  )
-}
-
+// Each tab has its own independent search + filter + dialog state.
+// State is kept at the page level so switching tabs preserves your in-progress filters.
 export function PermissionManagementPage() {
   const { isAdmin } = useAuth()
   const [tab, setTab] = useState<TabValue>('users')
 
   // Users tab state
   const [userSearch, setUserSearch] = useState('')
-  const [userDebouncedSearch, setUserDebouncedSearch] = useState('')
   const [userFilterOpen, setUserFilterOpen] = useState(false)
   const [userRoles, setUserRoles] = useState<Role[]>([])
   const [userSort, setUserSort] = useState<SortOrder>('latest')
@@ -94,25 +48,36 @@ export function PermissionManagementPage() {
 
   // Requests tab state
   const [reqSearch, setReqSearch] = useState('')
-  const [reqDebouncedSearch, setReqDebouncedSearch] = useState('')
   const [reqFilterOpen, setReqFilterOpen] = useState(false)
   const [reqStatuses, setReqStatuses] = useState<OverallStatus[]>([])
   const [reqRoles, setReqRoles] = useState<Role[]>([])
   const [reqSort, setReqSort] = useState<SortOrder>('latest')
   const [createReqOpen, setCreateReqOpen] = useState(false)
 
-  useEffect(() => {
-    const t = setTimeout(() => setUserDebouncedSearch(userSearch), 300)
-    return () => clearTimeout(t)
-  }, [userSearch])
+  // Debounce delays the API call until the user stops typing (300 ms).
+  // The raw search state updates immediately so the input feels responsive.
+  const userDebouncedSearch = useDebounce(userSearch, 300)
+  const reqDebouncedSearch = useDebounce(reqSearch, 300)
 
-  useEffect(() => {
-    const t = setTimeout(() => setReqDebouncedSearch(reqSearch), 300)
-    return () => clearTimeout(t)
-  }, [reqSearch])
-
+  // Each active filter beyond the default counts as 1 — drives the badge on the filter icon.
+  // Sort 'latest' is the default so it doesn't count; 'oldest' adds 1.
   const userFilterCount = userRoles.length + (userSort !== 'latest' ? 1 : 0)
   const reqFilterCount = reqStatuses.length + reqRoles.length + (reqSort !== 'latest' ? 1 : 0)
+
+  // Narrated by screen readers when the active tab or search/filter state changes.
+  // aria-live="polite" waits for the user to stop typing before reading aloud.
+  const announcement =
+    tab === 'users'
+      ? [
+          'Users tab',
+          userDebouncedSearch && `filtered by "${userDebouncedSearch}"`,
+          userRoles.length && `roles: ${userRoles.join(', ')}`,
+        ].filter(Boolean).join(', ')
+      : [
+          'Permission requests tab',
+          reqDebouncedSearch && `filtered by "${reqDebouncedSearch}"`,
+          reqStatuses.length && `status: ${reqStatuses.join(', ')}`,
+        ].filter(Boolean).join(', ')
 
   const onTabChange = (_: React.MouseEvent, value: TabValue | null) => {
     if (value) setTab(value)
@@ -126,11 +91,11 @@ export function PermissionManagementPage() {
           <ToggleButton value="requests">Permission Requests</ToggleButton>
         </StyledToggleButtonGroup>
 
-        <Box sx={{ flexGrow: 1 }} />
+        <FlexSpacer />
 
         {tab === 'users' && (
           <>
-            <TextField
+            <SearchField
               placeholder="Search by username…"
               size="small"
               value={userSearch}
@@ -138,13 +103,22 @@ export function PermissionManagementPage() {
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
-                    <SearchIcon fontSize="small" sx={{ color: 'text.disabled' }} />
+                    <SearchAdornmentIcon fontSize="small" />
                   </InputAdornment>
                 ),
               }}
-              sx={{ width: 260 }}
             />
-            <FilterIconButton count={userFilterCount} onClick={() => setUserFilterOpen(true)} />
+            <Tooltip title="Filter">
+              <StyledFilterIconButton
+                size="small"
+                $active={userFilterCount > 0}
+                onClick={() => setUserFilterOpen(true)}
+              >
+                <StyledBadge badgeContent={userFilterCount} color="primary">
+                  <FilterListIcon fontSize="small" />
+                </StyledBadge>
+              </StyledFilterIconButton>
+            </Tooltip>
             {isAdmin && (
               <Button
                 variant="contained"
@@ -160,7 +134,7 @@ export function PermissionManagementPage() {
 
         {tab === 'requests' && (
           <>
-            <TextField
+            <SearchField
               placeholder="Search by username…"
               size="small"
               value={reqSearch}
@@ -168,13 +142,22 @@ export function PermissionManagementPage() {
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
-                    <SearchIcon fontSize="small" sx={{ color: 'text.disabled' }} />
+                    <SearchAdornmentIcon fontSize="small" />
                   </InputAdornment>
                 ),
               }}
-              sx={{ width: 260 }}
             />
-            <FilterIconButton count={reqFilterCount} onClick={() => setReqFilterOpen(true)} />
+            <Tooltip title="Filter">
+              <StyledFilterIconButton
+                size="small"
+                $active={reqFilterCount > 0}
+                onClick={() => setReqFilterOpen(true)}
+              >
+                <StyledBadge badgeContent={reqFilterCount} color="primary">
+                  <FilterListIcon fontSize="small" />
+                </StyledBadge>
+              </StyledFilterIconButton>
+            </Tooltip>
             <Button
               variant="contained"
               size="small"
@@ -189,7 +172,11 @@ export function PermissionManagementPage() {
 
       <Divider />
 
-      <Box sx={{ pt: 2.5 }}>
+      <ScreenReaderOnly aria-live="polite" aria-atomic="true">
+        {announcement}
+      </ScreenReaderOnly>
+
+      <ContentBox>
         {tab === 'users' && (
           <UsersTable
             search={userDebouncedSearch}
@@ -205,7 +192,7 @@ export function PermissionManagementPage() {
             sort={reqSort}
           />
         )}
-      </Box>
+      </ContentBox>
 
       <AddUserDialog open={addUserOpen} onClose={() => setAddUserOpen(false)} />
 

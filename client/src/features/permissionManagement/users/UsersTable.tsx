@@ -1,49 +1,35 @@
 import { useState } from 'react'
-import Box from '@mui/material/Box'
 import Table from '@mui/material/Table'
 import TableBody from '@mui/material/TableBody'
 import TableCell from '@mui/material/TableCell'
-import TableContainer from '@mui/material/TableContainer'
 import TableHead from '@mui/material/TableHead'
 import TableRow from '@mui/material/TableRow'
 import Select from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
-import FormControl from '@mui/material/FormControl'
 import InputLabel from '@mui/material/InputLabel'
-import IconButton from '@mui/material/IconButton'
 import Button from '@mui/material/Button'
 import Typography from '@mui/material/Typography'
 import CircularProgress from '@mui/material/CircularProgress'
 import Collapse from '@mui/material/Collapse'
 import Alert from '@mui/material/Alert'
-import { styled } from '@mui/material/styles'
-import AddIcon from '@mui/icons-material/Add'
+import Snackbar from '@mui/material/Snackbar'
 import Tooltip from '@mui/material/Tooltip'
-import { useUsers, useAssignRole, useRemoveRole } from './useUsers'
+import AddIcon from '@mui/icons-material/Add'
+import { useUsers, useAssignRole, useRemoveRole } from './hooks/useUsers'
 import { UserRoleChip } from './UserRoleChip'
 import { useAuth } from '@/app/providers/AuthProvider'
-import { ALL_ROLES, type Role } from '@/features/auth/types'
-
-const AssignRow = styled(Box)(({ theme }) => ({
-  display: 'flex',
-  gap: theme.spacing(1),
-  alignItems: 'center',
-  marginTop: theme.spacing(1),
-}))
-
-const EmptyRow = styled(Box)(({ theme }) => ({
-  display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'center',
-  justifyContent: 'center',
-  padding: theme.spacing(6),
-  color: theme.palette.text.secondary,
-}))
-
-function getFlowFromRole(role: Role): string | null {
-  if (role === 'ANOMALY_ADMIN') return null
-  return role.split('_')[0]
-}
+import { ALL_ROLES, filterRequestableRoles, type Role } from '@/features/auth/types'
+import { useRoleManagement } from '../hooks/useRoleManagement'
+import {
+  AssignRow,
+  AssignRowWrap,
+  EmptyRow,
+  RoleChipsBox,
+  EmptyTableCell,
+  StyledTableContainer,
+  StyledFormControl,
+  ManageRolesIconButton,
+} from './UsersTable.style'
 
 interface UsersTableProps {
   search?: string
@@ -52,32 +38,24 @@ interface UsersTableProps {
 }
 
 export function UsersTable({ search, roleFilters = [], sort = 'latest' }: UsersTableProps) {
-  const { roles: myRoles, isAnomalyAdmin, isFlowAdmin } = useAuth()
+  const { isAdmin } = useAuth()
+  const { canManageRole } = useRoleManagement()
   const [assigningFor, setAssigningFor] = useState<string | null>(null)
   const [selectedRole, setSelectedRole] = useState<Role | ''>('')
+  const [snackMessage, setSnackMessage] = useState<string | null>(null)
 
   const { data: users = [], isLoading, isError } = useUsers({ search, roles: roleFilters, sort })
   const assignRole = useAssignRole()
   const removeRole = useRemoveRole()
 
-  const isAdminUser = isAnomalyAdmin || myRoles.some((r) => r.endsWith('_ADMIN'))
-
-  const canManageRole = (role: Role): boolean => {
-    if (isAnomalyAdmin) return true
-    const flow = getFlowFromRole(role)
-    if (!flow) return false
-    return isFlowAdmin(flow)
-  }
-
+  // The subset of ALL_ROLES this admin is allowed to assign — used to populate the dropdown
   const manageableRoles = ALL_ROLES.filter(canManageRole)
-
-  const visibleUsers = users
 
   const handleAssign = (username: string) => {
     if (!selectedRole) return
     assignRole.mutate(
       { username, role: selectedRole },
-      { onSuccess: () => { setAssigningFor(null); setSelectedRole('') } },
+      { onSuccess: () => { setAssigningFor(null); setSelectedRole(''); setSnackMessage('Role assigned') } },
     )
   }
 
@@ -85,119 +63,148 @@ export function UsersTable({ search, roleFilters = [], sort = 'latest' }: UsersT
   if (isError) return <Alert severity="error">Failed to load users.</Alert>
 
   return (
-    <TableContainer>
-      <Table>
-        <TableHead>
-          <TableRow>
-            <TableCell>Username</TableCell>
-            <TableCell>Roles</TableCell>
-            <TableCell>Date added</TableCell>
-            {isAdminUser && <TableCell align="right">Actions</TableCell>}
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {visibleUsers.length === 0 && (
+    <>
+      <StyledTableContainer>
+        <Table>
+          <TableHead>
             <TableRow>
-              <TableCell colSpan={4} sx={{ border: 0, p: 0 }}>
-                <EmptyRow>
-                  <Typography variant="body2">No users found</Typography>
-                </EmptyRow>
-              </TableCell>
+              <TableCell>Username</TableCell>
+              <TableCell>Roles</TableCell>
+              <TableCell>Date added</TableCell>
+              {isAdmin && <TableCell align="right">Actions</TableCell>}
             </TableRow>
-          )}
-          {visibleUsers.map((user) => (
-            <TableRow key={user._id}>
-              <TableCell>
-                <Typography variant="body2" fontWeight={500}>{user.username}</Typography>
-              </TableCell>
-              <TableCell>
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                  {user.roles.length === 0 && (
-                    <Typography variant="caption" color="text.disabled">No roles</Typography>
-                  )}
-                  {user.roles.map((role) => (
-                    <UserRoleChip key={role} role={role} />
-                  ))}
-                </Box>
-                <Collapse in={assigningFor === user.username}>
-                  {user.roles.filter(canManageRole).length > 0 && (
-                    <AssignRow sx={{ flexWrap: 'wrap' }}>
-                      {user.roles.filter(canManageRole).map((role) => (
-                        <UserRoleChip
-                          key={role}
-                          role={role}
-                          onDelete={() => removeRole.mutate({ username: user.username, role })}
-                        />
-                      ))}
-                    </AssignRow>
-                  )}
-                  <AssignRow>
-                    <FormControl size="small" sx={{ minWidth: 160 }}>
-                      <InputLabel>Role</InputLabel>
-                      <Select
-                        label="Role"
-                        value={selectedRole}
-                        onChange={(e) => setSelectedRole(e.target.value as Role)}
-                      >
-                        {manageableRoles
-                          .filter((r) => !user.roles.includes(r))
-                          .map((r) => (
-                            <MenuItem key={r} value={r}>
-                              {r.toLowerCase().replace(/_/g, '-')}
-                            </MenuItem>
-                          ))}
-                      </Select>
-                    </FormControl>
-                    <Button
-                      size="small"
-                      variant="contained"
-                      disabled={!selectedRole || assignRole.isPending}
-                      onClick={() => handleAssign(user.username)}
-                    >
-                      Add
-                    </Button>
-                    <Button
-                      size="small"
-                      color="inherit"
-                      onClick={() => { setAssigningFor(null); setSelectedRole('') }}
-                    >
-                      Cancel
-                    </Button>
-                  </AssignRow>
-                </Collapse>
-              </TableCell>
-              <TableCell>
-                <Typography variant="caption" color="text.secondary">
-                  {new Date(user.createdAt).toLocaleDateString()}
-                </Typography>
-              </TableCell>
-              {isAdminUser && (
-                <TableCell align="right">
-                  {assigningFor !== user.username && (() => {
-                    const canAdd = manageableRoles.some((r) => !user.roles.includes(r))
-                    const canRemove = user.roles.some(canManageRole)
-                    const canAct = canAdd || canRemove
-                    return (
-                      <Tooltip title={canAct ? 'Manage roles' : 'Nothing to manage'}>
-                        <span>
-                          <IconButton
-                            size="small"
-                            disabled={!canAct}
-                            onClick={() => { setAssigningFor(user.username); setSelectedRole('') }}
-                            sx={{ color: canAct ? 'text.secondary' : 'action.disabled' }}
-                          >
-                            <AddIcon fontSize="small" />
-                          </IconButton>
-                        </span>
-                      </Tooltip>
-                    )
-                  })()}
+          </TableHead>
+          <TableBody>
+            {users.length === 0 && (
+              <TableRow>
+                <EmptyTableCell colSpan={4}>
+                  <EmptyRow>
+                    <Typography variant="body2">No users found</Typography>
+                  </EmptyRow>
+                </EmptyTableCell>
+              </TableRow>
+            )}
+            {users.map((user) => (
+              <TableRow key={user._id}>
+                <TableCell>
+                  <Typography variant="body2" fontWeight={500}>{user.username}</Typography>
                 </TableCell>
-              )}
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </TableContainer>
+                <TableCell>
+                  <RoleChipsBox>
+                    {user.roles.length === 0 && (
+                      <Typography variant="caption" color="text.disabled">No roles</Typography>
+                    )}
+                    {user.roles.map((entry) => (
+                      <UserRoleChip key={entry.role} role={entry.role} />
+                    ))}
+                  </RoleChipsBox>
+                  {/* Expanded panel — only visible when this row's Manage button is clicked */}
+                  <Collapse in={assigningFor === user.username}>
+                    {/* Deletable chips for roles this admin can manage (scoped by canManageRole) */}
+                    {user.roles.filter((entry) => canManageRole(entry.role)).length > 0 && (
+                      <AssignRowWrap>
+                        {user.roles.filter((entry) => canManageRole(entry.role)).map((entry) => (
+                          <UserRoleChip
+                            key={entry.role}
+                            role={entry.role}
+                            onDelete={() => removeRole.mutate(
+                              { username: user.username, role: entry.role },
+                              { onSuccess: () => setSnackMessage('Role removed') },
+                            )}
+                          />
+                        ))}
+                      </AssignRowWrap>
+                    )}
+                    <AssignRow>
+                      {user.roles.some((e) => e.role === 'ANOMALY_ADMIN') ? (
+                        <Typography variant="caption" color="text.secondary" fontStyle="italic">
+                          This user already has the highest level of access.
+                        </Typography>
+                      ) : (
+                        <>
+                          <StyledFormControl size="small">
+                            <InputLabel>Role</InputLabel>
+                            <Select
+                              label="Role"
+                              value={selectedRole}
+                              onChange={(e) => setSelectedRole(e.target.value as Role)}
+                            >
+                              {/* filterRequestableRoles removes roles already held and
+                                  skips FLOW_USER if the user already has FLOW_ADMIN */}
+                              {filterRequestableRoles(manageableRoles, user.roles.map((e) => e.role))
+                                .map((r) => (
+                                  <MenuItem key={r} value={r}>
+                                    {r.toLowerCase().replace(/_/g, '-')}
+                                  </MenuItem>
+                                ))}
+                            </Select>
+                          </StyledFormControl>
+                          <Button
+                            size="small"
+                            variant="contained"
+                            disabled={!selectedRole || assignRole.isPending}
+                            onClick={() => handleAssign(user.username)}
+                          >
+                            Add
+                          </Button>
+                        </>
+                      )}
+                      <Button
+                        size="small"
+                        color="inherit"
+                        onClick={() => { setAssigningFor(null); setSelectedRole('') }}
+                      >
+                        Done
+                      </Button>
+                    </AssignRow>
+                  </Collapse>
+                </TableCell>
+                <TableCell>
+                  <Typography variant="caption" color="text.secondary">
+                    {new Date(user.createdAt).toLocaleDateString()}
+                  </Typography>
+                </TableCell>
+                {isAdmin && (
+                  <TableCell align="right">
+                    {/* IIFE computes canAct locally to avoid hoisting these vars to row scope.
+                        The button is disabled (and tooltip explains why) when there's nothing to do. */}
+                    {assigningFor !== user.username && (() => {
+                      const canAdd = filterRequestableRoles(manageableRoles, user.roles.map((e) => e.role)).length > 0
+                      const canRemove = user.roles.some((e) => canManageRole(e.role))
+                      const canAct = canAdd || canRemove
+                      return (
+                        <Tooltip title={canAct ? 'Manage roles' : 'Nothing to manage'}>
+                          <span>
+                            <ManageRolesIconButton
+                              size="small"
+                              $canAct={canAct}
+                              disabled={!canAct}
+                              aria-label={`Manage roles for ${user.username}`}
+                              aria-expanded={false}
+                              onClick={() => { setAssigningFor(user.username); setSelectedRole('') }}
+                            >
+                              <AddIcon fontSize="small" />
+                            </ManageRolesIconButton>
+                          </span>
+                        </Tooltip>
+                      )
+                    })()}
+                  </TableCell>
+                )}
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </StyledTableContainer>
+
+      {/* sx exception: MUI v5 Snackbar has no styled API for content background */}
+      <Snackbar
+        open={snackMessage !== null}
+        autoHideDuration={3000}
+        onClose={() => setSnackMessage(null)}
+        message={snackMessage}
+        ContentProps={{ sx: { backgroundColor: 'success.main' } }}
+      />
+    </>
   )
 }

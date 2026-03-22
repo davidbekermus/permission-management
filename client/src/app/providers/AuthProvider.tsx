@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react'
 import { jwtDecode } from 'jwt-decode'
 import type { Role, JwtPayload } from '@/features/auth/types'
+import { TOKEN_KEY } from '@/app/constants'
 
 interface AuthContextValue {
   username: string | null
@@ -14,8 +15,6 @@ interface AuthContextValue {
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
-
-const TOKEN_KEY = 'pm_token'
 
 function decodeToken(token: string): JwtPayload | null {
   try {

@@ -23,6 +23,8 @@ export class PermissionRequest {
           enum: Object.values(RoleRequestStatus),
           default: RoleRequestStatus.PENDING,
         },
+        reviewedBy: { type: String, default: null },
+        reviewedAt: { type: Date, default: null },
       },
     ],
     required: true,
@@ -31,12 +33,6 @@ export class PermissionRequest {
 
   @Prop({ default: () => new Date() })
   requestedAt: Date;
-
-  @Prop({ default: null })
-  reviewedBy?: string;
-
-  @Prop({ default: null })
-  reviewedAt?: Date;
 }
 
 export const PermissionRequestSchema =

@@ -10,10 +10,13 @@ export enum RoleRequestStatus {
 /**
  * Compact per-role status tracker.
  * Each requested role has its own lifecycle — allows partial approvals.
+ * reviewedBy and reviewedAt are set when an admin acts on the role.
  */
 export class RoleRequestItem {
   role: Role;
   status: RoleRequestStatus;
+  reviewedBy?: string;
+  reviewedAt?: Date;
 }
 
 /**

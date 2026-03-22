@@ -35,7 +35,7 @@ export class AuthService {
       payload = {
         sub: user.username,
         username: user.username,
-        roles: user.roles,
+        roles: user.roles.map((r) => r.role),
       };
     } catch (e) {
       if (!(e instanceof NotFoundException)) throw e;
@@ -65,7 +65,7 @@ export class AuthService {
       if (!(e instanceof NotFoundException)) throw e;
     }
 
-    await this.usersService.createUser(SEED_ADMIN_USERNAME, [Role.ANOMALY_ADMIN]);
+    await this.usersService.createUser(SEED_ADMIN_USERNAME, [Role.ANOMALY_ADMIN], undefined, 'system');
     return { message: `${SEED_ADMIN_USERNAME} created with ANOMALY_ADMIN role` };
   }
 }

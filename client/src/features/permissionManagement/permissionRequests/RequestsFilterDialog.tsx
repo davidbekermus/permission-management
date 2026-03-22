@@ -1,50 +1,27 @@
 import { useState, useEffect } from 'react'
-import Box from '@mui/material/Box'
 import Dialog from '@mui/material/Dialog'
-import DialogTitle from '@mui/material/DialogTitle'
 import DialogContent from '@mui/material/DialogContent'
-import DialogActions from '@mui/material/DialogActions'
 import Button from '@mui/material/Button'
-import ToggleButton from '@mui/material/ToggleButton'
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup'
 import Autocomplete from '@mui/material/Autocomplete'
 import TextField from '@mui/material/TextField'
 import Chip from '@mui/material/Chip'
-import Typography from '@mui/material/Typography'
 import Divider from '@mui/material/Divider'
-import { styled } from '@mui/material/styles'
 import { ALL_ROLES, type Role } from '@/features/auth/types'
 import type { OverallStatus } from './types'
-import type { SortOrder } from '../users/FilterDialog'
-
-const ALL_STATUSES: OverallStatus[] = ['PENDING', 'APPROVED', 'REJECTED', 'PARTIALLY_APPROVED']
-
-const STATUS_LABELS: Record<OverallStatus, string> = {
-  PENDING: 'Pending',
-  APPROVED: 'Approved',
-  REJECTED: 'Rejected',
-  PARTIALLY_APPROVED: 'Partial',
-}
-
-const Section = styled('div')(({ theme }) => ({
-  display: 'flex',
-  flexDirection: 'column',
-  gap: theme.spacing(1),
-  paddingTop: theme.spacing(0.5),
-}))
-
-const FieldStack = styled('div')(({ theme }) => ({
-  display: 'flex',
-  flexDirection: 'column',
-  gap: theme.spacing(2.5),
-  paddingTop: theme.spacing(1),
-}))
-
-const StatusChips = styled(Box)(({ theme }) => ({
-  display: 'flex',
-  flexWrap: 'wrap',
-  gap: theme.spacing(1),
-}))
+import type { SortOrder } from '../shared/types'
+import { ALL_STATUSES, STATUS_LABELS } from '../shared/types'
+import {
+  StyledDialogTitle,
+  StyledDivider,
+  StyledDialogActions,
+  FieldStack,
+  ButtonRow,
+  FilterSectionLabel,
+  Section,
+  StatusChips,
+  StyledSortToggleButton,
+} from './RequestsFilterDialog.style'
 
 interface RequestsFilterDialogProps {
   open: boolean
@@ -55,6 +32,7 @@ interface RequestsFilterDialogProps {
   onApply: (statuses: OverallStatus[], roles: Role[], sort: SortOrder) => void
 }
 
+// Same draft state pattern as FilterDialog — edits are local until Apply is clicked.
 export function RequestsFilterDialog({
   open, onClose, appliedStatuses, appliedRoles, appliedSort, onApply,
 }: RequestsFilterDialogProps) {
@@ -62,6 +40,7 @@ export function RequestsFilterDialog({
   const [draftRoles, setDraftRoles] = useState<Role[]>(appliedRoles)
   const [draftSort, setDraftSort] = useState<SortOrder>(appliedSort)
 
+  // Re-sync draft on open so stale state from a previous session is discarded
   useEffect(() => {
     if (open) {
       setDraftStatuses(appliedStatuses)
@@ -70,6 +49,7 @@ export function RequestsFilterDialog({
     }
   }, [open, appliedStatuses, appliedRoles, appliedSort])
 
+  // Click a status chip to add it; click again to remove — multi-select toggle
   const toggleStatus = (s: OverallStatus) => {
     setDraftStatuses((prev) =>
       prev.includes(s) ? prev.filter((x) => x !== s) : [...prev, s],
@@ -91,18 +71,14 @@ export function RequestsFilterDialog({
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="xs">
-      <DialogTitle sx={{ fontWeight: 600, pb: 0 }}>Filter Requests</DialogTitle>
-      <Divider sx={{ mt: 2 }} />
+      <StyledDialogTitle>Filter Requests</StyledDialogTitle>
+      <StyledDivider />
       <DialogContent>
         <FieldStack>
           <Section>
-            <Typography
-              variant="caption"
-              color="text.secondary"
-              sx={{ textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}
-            >
+            <FilterSectionLabel variant="caption" color="text.secondary">
               Sort by date
-            </Typography>
+            </FilterSectionLabel>
             <ToggleButtonGroup
               value={draftSort}
               exclusive
@@ -110,19 +86,15 @@ export function RequestsFilterDialog({
               size="small"
               fullWidth
             >
-              <ToggleButton value="latest" sx={{ textTransform: 'none', flex: 1 }}>Latest first</ToggleButton>
-              <ToggleButton value="oldest" sx={{ textTransform: 'none', flex: 1 }}>Oldest first</ToggleButton>
+              <StyledSortToggleButton value="latest">Latest first</StyledSortToggleButton>
+              <StyledSortToggleButton value="oldest">Oldest first</StyledSortToggleButton>
             </ToggleButtonGroup>
           </Section>
 
           <Section>
-            <Typography
-              variant="caption"
-              color="text.secondary"
-              sx={{ textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}
-            >
+            <FilterSectionLabel variant="caption" color="text.secondary">
               Status
-            </Typography>
+            </FilterSectionLabel>
             <StatusChips>
               {ALL_STATUSES.map((s) => (
                 <Chip
@@ -132,20 +104,16 @@ export function RequestsFilterDialog({
                   variant={draftStatuses.includes(s) ? 'filled' : 'outlined'}
                   color={draftStatuses.includes(s) ? 'primary' : 'default'}
                   size="small"
-                  sx={{ cursor: 'pointer' }}
+                  clickable
                 />
               ))}
             </StatusChips>
           </Section>
 
           <Section>
-            <Typography
-              variant="caption"
-              color="text.secondary"
-              sx={{ textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}
-            >
+            <FilterSectionLabel variant="caption" color="text.secondary">
               Requested roles
-            </Typography>
+            </FilterSectionLabel>
             <Autocomplete
               multiple
               options={ALL_ROLES}
@@ -165,15 +133,15 @@ export function RequestsFilterDialog({
         </FieldStack>
       </DialogContent>
       <Divider />
-      <DialogActions sx={{ px: 3, py: 1.5, justifyContent: 'space-between' }}>
+      <StyledDialogActions>
         <Button size="small" color="inherit" onClick={handleClear} disabled={!isDirty}>
           Clear all
         </Button>
-        <Box sx={{ display: 'flex', gap: 1 }}>
+        <ButtonRow>
           <Button color="inherit" onClick={onClose}>Cancel</Button>
           <Button variant="contained" onClick={handleApply}>Apply</Button>
-        </Box>
-      </DialogActions>
+        </ButtonRow>
+      </StyledDialogActions>
     </Dialog>
   )
 }

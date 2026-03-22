@@ -270,6 +270,7 @@ export class PermissionRequestsService {
     assertAdminCanManageRoles(reviewerRoles, dto.roles, targetStatus.toLowerCase());
 
     const affectedRoles: Role[] = [];
+    const reviewedAt = new Date();
     request.roles = request.roles.map((item) => {
       if (!dto.roles.includes(item.role)) return item;
       // Approval overrides both PENDING and REJECTED; rejection only applies to PENDING
@@ -279,16 +280,16 @@ export class PermissionRequestsService {
           : item.status === RoleRequestStatus.PENDING;
       if (isEligible) {
         affectedRoles.push(item.role);
-        return { ...item, status: targetStatus };
+        return { ...item, status: targetStatus, reviewedBy: reviewerUsername, reviewedAt };
       }
       return item;
     });
 
-    request.reviewedBy = reviewerUsername;
-    request.reviewedAt = new Date();
-
     if (targetStatus === RoleRequestStatus.APPROVED && affectedRoles.length > 0) {
-      await this.usersService.upsertUserWithRoles(request.username, affectedRoles);
+      await this.usersService.upsertUserWithRoles(
+        request.username,
+        affectedRoles.map((role) => ({ role, grantedBy: reviewerUsername })),
+      );
     }
 
     request.markModified('roles');

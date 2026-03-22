@@ -1,26 +1,24 @@
-import Chip from '@mui/material/Chip'
+// Two chip components are exported from this file:
+//   RoleStatusChip     — shows a single role name + its per-role review status (PENDING/APPROVED/REJECTED)
+//   OverallStatusChip  — shows the request-level rollup status (adds PARTIALLY_APPROVED)
+
 import type { ChipProps } from '@mui/material/Chip'
-import { styled } from '@mui/material/styles'
 import type { RoleRequestStatus, OverallStatus } from './types'
 import type { Role } from '@/features/auth/types'
-
-const StyledChip = styled(Chip)(({ theme }) => ({
-  borderRadius: 6,
-  fontSize: '0.75rem',
-  height: 24,
-  margin: theme.spacing(0.25),
-}))
+import { StyledChip, StyledOverallStatusChip } from './RequestRoleChip.style'
 
 function toChipLabel(role: string): string {
   return role.toLowerCase().replace(/_/g, '-')
 }
 
+// Maps each per-role status to an MUI chip color token
 const roleStatusColor: Record<RoleRequestStatus, ChipProps['color']> = {
   APPROVED: 'success',
   REJECTED: 'error',
   PENDING: 'default',
 }
 
+// Maps overall request status — same as above plus 'warning' for mixed results
 const overallStatusColor: Record<OverallStatus, ChipProps['color']> = {
   APPROVED: 'success',
   REJECTED: 'error',
@@ -33,6 +31,7 @@ interface RoleStatusChipProps {
   status: RoleRequestStatus
 }
 
+// Used in the Requested Roles column — one chip per role, color reflects review outcome
 export function RoleStatusChip({ role, status }: RoleStatusChipProps) {
   return (
     <StyledChip
@@ -47,14 +46,14 @@ interface OverallStatusChipProps {
   status: OverallStatus
 }
 
+// Used in the Status column — single chip summarising the whole request
 export function OverallStatusChip({ status }: OverallStatusChipProps) {
   const label = status.toLowerCase().replace(/_/g, ' ')
   return (
-    <Chip
+    <StyledOverallStatusChip
       label={label}
       size="small"
       color={overallStatusColor[status]}
-      sx={{ borderRadius: '6px', fontWeight: 500, textTransform: 'capitalize' }}
     />
   )
 }

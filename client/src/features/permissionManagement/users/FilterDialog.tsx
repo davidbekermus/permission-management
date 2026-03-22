@@ -1,34 +1,23 @@
 import { useState, useEffect } from 'react'
-import Box from '@mui/material/Box'
 import Dialog from '@mui/material/Dialog'
-import DialogTitle from '@mui/material/DialogTitle'
 import DialogContent from '@mui/material/DialogContent'
-import DialogActions from '@mui/material/DialogActions'
 import Button from '@mui/material/Button'
-import ToggleButton from '@mui/material/ToggleButton'
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup'
 import Autocomplete from '@mui/material/Autocomplete'
 import TextField from '@mui/material/TextField'
-import Typography from '@mui/material/Typography'
 import Divider from '@mui/material/Divider'
-import { styled } from '@mui/material/styles'
 import { ALL_ROLES, type Role } from '@/features/auth/types'
-
-export type SortOrder = 'latest' | 'oldest'
-
-const Section = styled('div')(({ theme }) => ({
-  display: 'flex',
-  flexDirection: 'column',
-  gap: theme.spacing(1),
-  paddingTop: theme.spacing(0.5),
-}))
-
-const FieldStack = styled('div')(({ theme }) => ({
-  display: 'flex',
-  flexDirection: 'column',
-  gap: theme.spacing(2.5),
-  paddingTop: theme.spacing(1),
-}))
+import type { SortOrder } from '../shared/types'
+import {
+  StyledDialogTitle,
+  StyledDivider,
+  StyledDialogActions,
+  FieldStack,
+  ButtonRow,
+  FilterSectionLabel,
+  Section,
+  StyledSortToggleButton,
+} from './FilterDialog.style'
 
 interface FilterDialogProps {
   open: boolean
@@ -38,10 +27,14 @@ interface FilterDialogProps {
   onApply: (roles: Role[], sort: SortOrder) => void
 }
 
+// Draft state pattern: edits live in local draft state and are only committed to the
+// parent when Apply is clicked. Cancelling or closing discards all in-progress changes.
 export function FilterDialog({ open, onClose, appliedRoles, appliedSort, onApply }: FilterDialogProps) {
   const [draftRoles, setDraftRoles] = useState<Role[]>(appliedRoles)
   const [draftSort, setDraftSort] = useState<SortOrder>(appliedSort)
 
+  // Re-sync draft with current applied values each time the dialog opens.
+  // Without this, stale draft state would show after the parent clears filters externally.
   useEffect(() => {
     if (open) {
       setDraftRoles(appliedRoles)
@@ -59,22 +52,19 @@ export function FilterDialog({ open, onClose, appliedRoles, appliedSort, onApply
     setDraftSort('latest')
   }
 
+  // isDirty gates the "Clear all" button — no point clearing when nothing is set
   const isDirty = draftRoles.length > 0 || draftSort !== 'latest'
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="xs">
-      <DialogTitle sx={{ fontWeight: 600, pb: 0 }}>Filter Users</DialogTitle>
-      <Divider sx={{ mt: 2 }} />
+      <StyledDialogTitle>Filter Users</StyledDialogTitle>
+      <StyledDivider />
       <DialogContent>
         <FieldStack>
           <Section>
-            <Typography
-              variant="caption"
-              color="text.secondary"
-              sx={{ textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}
-            >
+            <FilterSectionLabel variant="caption" color="text.secondary">
               Sort by date
-            </Typography>
+            </FilterSectionLabel>
             <ToggleButtonGroup
               value={draftSort}
               exclusive
@@ -82,19 +72,15 @@ export function FilterDialog({ open, onClose, appliedRoles, appliedSort, onApply
               size="small"
               fullWidth
             >
-              <ToggleButton value="latest" sx={{ textTransform: 'none', flex: 1 }}>Latest first</ToggleButton>
-              <ToggleButton value="oldest" sx={{ textTransform: 'none', flex: 1 }}>Oldest first</ToggleButton>
+              <StyledSortToggleButton value="latest">Latest first</StyledSortToggleButton>
+              <StyledSortToggleButton value="oldest">Oldest first</StyledSortToggleButton>
             </ToggleButtonGroup>
           </Section>
 
           <Section>
-            <Typography
-              variant="caption"
-              color="text.secondary"
-              sx={{ textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}
-            >
+            <FilterSectionLabel variant="caption" color="text.secondary">
               Roles
-            </Typography>
+            </FilterSectionLabel>
             <Autocomplete
               multiple
               options={ALL_ROLES}
@@ -114,15 +100,15 @@ export function FilterDialog({ open, onClose, appliedRoles, appliedSort, onApply
         </FieldStack>
       </DialogContent>
       <Divider />
-      <DialogActions sx={{ px: 3, py: 1.5, justifyContent: 'space-between' }}>
+      <StyledDialogActions>
         <Button size="small" color="inherit" onClick={handleClear} disabled={!isDirty}>
           Clear all
         </Button>
-        <Box sx={{ display: 'flex', gap: 1 }}>
+        <ButtonRow>
           <Button color="inherit" onClick={onClose}>Cancel</Button>
           <Button variant="contained" onClick={handleApply}>Apply</Button>
-        </Box>
-      </DialogActions>
+        </ButtonRow>
+      </StyledDialogActions>
     </Dialog>
   )
 }
