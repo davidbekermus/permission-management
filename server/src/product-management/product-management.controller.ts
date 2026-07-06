@@ -11,10 +11,9 @@ import {
 import { ProductManagementService } from './product-management.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
-import { RolesGuard } from '../common/guards/roles.guard';
 import { FlowRoles } from '../common/decorators/roles.decorator';
 
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard)
 @Controller('products')
 @FlowRoles('PRODUCT')
 export class ProductManagementController {

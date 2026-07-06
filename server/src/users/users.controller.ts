@@ -13,7 +13,6 @@ import {
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
-import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
 import { Role } from '../common/utils/roles.util';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -52,7 +51,6 @@ export class UsersController {
    * ANOMALY_ADMIN only.
    */
   @Post()
-  @UseGuards(RolesGuard)
   @Roles(Role.ANOMALY_ADMIN)
   create(@Body() dto: CreateUserDto, @Request() req: AuthedRequest) {
     return this.usersService.createUser(dto.username, dto.roles, req.user.roles, req.user.username);
@@ -62,7 +60,6 @@ export class UsersController {
    * ANOMALY_ADMIN only — assign a role to a user.
    */
   @Patch(':username/roles')
-  @UseGuards(RolesGuard)
   @Roles(Role.ANOMALY_ADMIN)
   assignRole(
     @Param('username') username: string,
@@ -76,7 +73,6 @@ export class UsersController {
    * ANOMALY_ADMIN only — remove a role from a user.
    */
   @Delete(':username/roles/:role')
-  @UseGuards(RolesGuard)
   @Roles(Role.ANOMALY_ADMIN)
   removeRole(
     @Param('username') username: string,

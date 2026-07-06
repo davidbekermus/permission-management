@@ -14,7 +14,6 @@ import { PermissionRequestsService } from './permission-requests.service';
 import { CreatePermissionRequestDto } from './dto/create-permission-request.dto';
 import { ReviewRolesDto } from './dto/review-roles.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
-import { RolesGuard } from '../common/guards/roles.guard';
 import { AdminRoles, Roles } from '../common/decorators/roles.decorator';
 import { OverallRequestStatus } from './types/permission-request.types';
 import { AuthedRequest } from '../common/interfaces/authed-request.interface';
@@ -29,7 +28,8 @@ export class PermissionRequestsController {
    * Any authenticated user (even with zero roles) can submit a request.
    * The requester's username is taken from the JWT payload — not from the body.
    *
-   * JwtAuthGuard only (no RolesGuard) so zero-role users can access this.
+   * No @Roles()/@AdminRoles()/@FlowRoles() metadata, so the global RolesGuard
+   * allows it through — zero-role users can still access this.
    */
   @Post()
   create(@Body() dto: CreatePermissionRequestDto, @Request() req: AuthedRequest) {
@@ -41,7 +41,6 @@ export class PermissionRequestsController {
    * ANOMALY_ADMIN sees all requests (via RolesGuard bypass).
    */
   @Get()
-  @UseGuards(RolesGuard)
   @AdminRoles()
   findAll(
     @Request() req: AuthedRequest,
@@ -75,7 +74,6 @@ export class PermissionRequestsController {
    * All flow admins — retrieve a single request by its MongoDB ID.
    */
   @Get(':id')
-  @UseGuards(RolesGuard)
   @AdminRoles()
   findOne(@Param('id') id: string) {
     return this.service.findById(id);
@@ -117,7 +115,6 @@ export class PermissionRequestsController {
    * On approval, the user's document is created/updated with the approved roles.
    */
   @Patch(':id/approve')
-  @UseGuards(RolesGuard)
   @Roles(Role.ANOMALY_ADMIN)
   approve(
     @Param('id') id: string,
@@ -132,7 +129,6 @@ export class PermissionRequestsController {
    * Same scope rules as approve — ANOMALY_ADMIN only.
    */
   @Patch(':id/reject')
-  @UseGuards(RolesGuard)
   @Roles(Role.ANOMALY_ADMIN)
   reject(
     @Param('id') id: string,
