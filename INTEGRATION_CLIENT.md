@@ -270,8 +270,8 @@ import { PermissionManagementPage } from '@/features/permissionManagement'
 
 The page self-adapts based on the logged-in user's roles:
 - **Non-admin users** — see only their own permission requests + a "Request permission" button
-- **Flow admins** — see all users/requests, can manage roles within their flow only
-- **ANOMALY_ADMIN** — full access to all users, roles, and requests
+- **Flow admins** — read-only visibility of all users and requests scoped to their flow; cannot add users, assign/remove roles, or approve/reject requests
+- **ANOMALY_ADMIN** — full access: can add users, assign/remove roles, and approve/reject requests
 
 No props needed — it reads from `useAuth()` internally.
 

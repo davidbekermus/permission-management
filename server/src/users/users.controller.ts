@@ -14,7 +14,7 @@ import {
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
-import { AdminRoles } from '../common/decorators/roles.decorator';
+import { Roles } from '../common/decorators/roles.decorator';
 import { Role } from '../common/utils/roles.util';
 import { CreateUserDto } from './dto/create-user.dto';
 import { AssignRoleDto } from './dto/assign-role.dto';
@@ -49,22 +49,21 @@ export class UsersController {
   }
 
   /**
-   * FLOW_ADMIN can only assign roles within their own flow.
-   * ANOMALY_ADMIN can assign any roles.
+   * ANOMALY_ADMIN only.
    */
   @Post()
   @UseGuards(RolesGuard)
-  @AdminRoles()
+  @Roles(Role.ANOMALY_ADMIN)
   create(@Body() dto: CreateUserDto, @Request() req: AuthedRequest) {
     return this.usersService.createUser(dto.username, dto.roles, req.user.roles, req.user.username);
   }
 
   /**
-   * ANOMALY_ADMIN or FLOW_ADMIN — assign a role to a user.
+   * ANOMALY_ADMIN only — assign a role to a user.
    */
   @Patch(':username/roles')
   @UseGuards(RolesGuard)
-  @AdminRoles()
+  @Roles(Role.ANOMALY_ADMIN)
   assignRole(
     @Param('username') username: string,
     @Body() dto: AssignRoleDto,
@@ -74,11 +73,11 @@ export class UsersController {
   }
 
   /**
-   * ANOMALY_ADMIN or FLOW_ADMIN — remove a role from a user.
+   * ANOMALY_ADMIN only — remove a role from a user.
    */
   @Delete(':username/roles/:role')
   @UseGuards(RolesGuard)
-  @AdminRoles()
+  @Roles(Role.ANOMALY_ADMIN)
   removeRole(
     @Param('username') username: string,
     @Param('role', new ParseEnumPipe(Role)) roleToRemove: Role,

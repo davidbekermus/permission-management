@@ -21,7 +21,7 @@ import { computeOverallStatus, withOverallStatus } from './utils/permission-requ
 import {
   Role,
   isAdminRole,
-  assertAdminCanManageRoles,
+  assertIsAnomalyAdmin,
   getFlowFromRole,
   getRolesForFlow,
 } from '../common/utils/roles.util';
@@ -223,7 +223,7 @@ export class PermissionRequestsService {
   }
 
   /**
-   * Approve one or more roles within a permission request.
+   * Approve one or more roles within a permission request. ANOMALY_ADMIN only.
    * Body: { roles: ["STORE_USER", "STORE_ADMIN"] } — all roles approved in one call.
    */
   async approveRoles(
@@ -237,7 +237,7 @@ export class PermissionRequestsService {
 
   /**
    * Reject one or more roles within a permission request.
-   * Same scope rules as approveRoles — FLOW_ADMIN only acts within their flow.
+   * Same scope rules as approveRoles — ANOMALY_ADMIN only.
    */
   async rejectRoles(
     requestId: string,
@@ -267,7 +267,7 @@ export class PermissionRequestsService {
   ): Promise<PermissionRequestDocument & { overallStatus: OverallRequestStatus }> {
     const request = await this.fetchDocument(requestId);
 
-    assertAdminCanManageRoles(reviewerRoles, dto.roles, targetStatus.toLowerCase());
+    assertIsAnomalyAdmin(reviewerRoles, targetStatus.toLowerCase());
 
     const affectedRoles: Role[] = [];
     const reviewedAt = new Date();

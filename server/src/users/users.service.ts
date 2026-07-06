@@ -6,7 +6,7 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User, UserDocument, UserRoleEntry } from './schemas/user.schema';
-import { Role, assertAdminCanManageRoles, isAdminRole, isAnomalyAdmin, getFlowFromRole } from '../common/utils/roles.util';
+import { Role, assertIsAnomalyAdmin, isAdminRole, isAnomalyAdmin, getFlowFromRole } from '../common/utils/roles.util';
 
 @Injectable()
 export class UsersService {
@@ -33,7 +33,7 @@ export class UsersService {
   /**
    * Create a new user with the given roles.
    *
-   * Pass requesterRoles to enforce flow-scope validation (admin API path).
+   * Pass requesterRoles to enforce that the requester is ANOMALY_ADMIN (admin API path).
    * Omit requesterRoles for trusted internal calls (seed, permission approval).
    * grantedBy identifies who is creating the user (defaults to 'system').
    */
@@ -44,7 +44,7 @@ export class UsersService {
     grantedBy = 'system',
   ): Promise<UserDocument> {
     if (requesterRoles) {
-      assertAdminCanManageRoles(requesterRoles, roles, 'assign');
+      assertIsAnomalyAdmin(requesterRoles, 'assign');
     }
     const existing = await this.userModel.findOne({ username }).exec();
     if (existing) {
@@ -64,7 +64,7 @@ export class UsersService {
    * This keeps the roles array free of duplicates while remaining idempotent on retry.
    *
    * Used by:
-   *  - assignRole (admin API) — after assertAdminCanManageRoles passes.
+   *  - assignRole (admin API) — after assertIsAnomalyAdmin passes.
    *  - PermissionRequestsService.approveRoles — after the approval guard passes.
    */
   async upsertUserWithRoles(
@@ -110,8 +110,7 @@ export class UsersService {
 
   /**
    * Admin API: assign a single role to a user.
-   * Validates that the requester has permission to manage the target role,
-   * then delegates to upsertUserWithRoles.
+   * Validates that the requester is ANOMALY_ADMIN, then delegates to upsertUserWithRoles.
    */
   async assignRole(
     targetUsername: string,
@@ -119,7 +118,7 @@ export class UsersService {
     requesterRoles: Role[],
     requesterUsername: string,
   ): Promise<UserDocument> {
-    assertAdminCanManageRoles(requesterRoles, [roleToAssign], 'assign');
+    assertIsAnomalyAdmin(requesterRoles, 'assign');
     return this.upsertUserWithRoles(targetUsername, [{ role: roleToAssign, grantedBy: requesterUsername }]);
   }
 
@@ -133,7 +132,7 @@ export class UsersService {
     roleToRemove: Role,
     requesterRoles: Role[],
   ): Promise<UserDocument> {
-    assertAdminCanManageRoles(requesterRoles, [roleToRemove], 'remove');
+    assertIsAnomalyAdmin(requesterRoles, 'remove');
     const target = await this.findByUsername(targetUsername);
     target.roles = target.roles.filter((r) => r.role !== roleToRemove);
     target.markModified('roles');

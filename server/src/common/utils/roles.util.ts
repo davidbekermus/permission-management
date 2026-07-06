@@ -90,65 +90,13 @@ export function getAllFlowAdminRoles(): Role[] {
 }
 
 /**
- * Checks whether a target role belongs to the same flow as the requester's
- * admin role. Used to validate FLOW_ADMIN scope.
+ * Asserts that the requester is ANOMALY_ADMIN.
+ * Used on endpoints that are no longer open to FLOW_ADMIN, even within their own flow.
  *
- * e.g. canAdminManageRole(Role.STORE_ADMIN, Role.STORE_USER) → true
- *      canAdminManageRole(Role.STORE_ADMIN, Role.PRODUCT_USER) → false
- *      canAdminManageRole(Role.STORE_ADMIN, Role.ANOMALY_ADMIN) → false
+ * Throws ForbiddenException if the requester lacks ANOMALY_ADMIN.
  */
-export function canAdminManageRole(
-  adminRole: Role,
-  targetRole: Role,
-): boolean {
-  if (isAnomalyAdmin(adminRole)) return true;
-
-  return getFlowFromRole(adminRole) === getFlowFromRole(targetRole);
-}
-
-/**
- * Asserts that the requester has permission to act on all the given target roles.
- *
- * Rules:
- *  1. ANOMALY_ADMIN can act on anything.
- *  2. Only ANOMALY_ADMIN can act on the ANOMALY_ADMIN role.
- *  3. FLOW_ADMIN can only act on roles within their own flow.
- *  4. Non-admins cannot act at all.
- *
- * Throws ForbiddenException if any rule is violated.
- * Used by both UsersService and PermissionRequestsService to avoid duplication.
- */
-export function assertAdminCanManageRoles(
-  requesterRoles: Role[],
-  targetRoles: Role[],
-  action: string,
-): void {
-  if (requesterRoles.includes(Role.ANOMALY_ADMIN)) return;
-
-  const adminRoles = requesterRoles.filter(
-    (r) => isAdminRole(r) && !isAnomalyAdmin(r),
-  );
-
-  if (adminRoles.length === 0) {
-    throw new ForbiddenException(`You must be an admin to ${action} roles`);
-  }
-
-  for (const targetRole of targetRoles) {
-    if (isAnomalyAdmin(targetRole)) {
-      throw new ForbiddenException(
-        `Only ANOMALY_ADMIN can ${action} the ANOMALY_ADMIN role`,
-      );
-    }
-
-    const canAct = adminRoles.some((adminRole) =>
-      canAdminManageRole(adminRole, targetRole),
-    );
-
-    if (!canAct) {
-      const targetFlow = getFlowFromRole(targetRole);
-      throw new ForbiddenException(
-        `You do not have admin access to the ${targetFlow} flow`,
-      );
-    }
+export function assertIsAnomalyAdmin(requesterRoles: Role[], action: string): void {
+  if (!requesterRoles.includes(Role.ANOMALY_ADMIN)) {
+    throw new ForbiddenException(`Only ANOMALY_ADMIN can ${action}`);
   }
 }

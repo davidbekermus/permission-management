@@ -319,14 +319,14 @@ Once integrated, these endpoints are available:
 | POST | `/auth/login` | No | Anyone (OSS username exchange) |
 | POST | `/auth/seed` | No | One-time bootstrap only |
 | GET | `/users` | JWT | Any authenticated user |
-| POST | `/users` | JWT + any `*_ADMIN` | Flow admins (service enforces flow scope) |
-| PATCH | `/users/:username/roles` | JWT + any `*_ADMIN` | Flow admins |
-| DELETE | `/users/:username/roles/:role` | JWT + any `*_ADMIN` | Flow admins |
-| GET | `/permission-requests` | JWT + any `*_ADMIN` | Admins see all; scoped by flow |
+| POST | `/users` | JWT + `ANOMALY_ADMIN` | ANOMALY_ADMIN only |
+| PATCH | `/users/:username/roles` | JWT + `ANOMALY_ADMIN` | ANOMALY_ADMIN only |
+| DELETE | `/users/:username/roles/:role` | JWT + `ANOMALY_ADMIN` | ANOMALY_ADMIN only |
+| GET | `/permission-requests` | JWT + any `*_ADMIN` | Admins see all (read-only for flow admins); scoped by flow |
 | GET | `/permission-requests/my-requests` | JWT | Any user — sees only their own |
 | POST | `/permission-requests` | JWT | Any authenticated user |
-| PATCH | `/permission-requests/:id/approve` | JWT + any `*_ADMIN` | Flow admins |
-| PATCH | `/permission-requests/:id/reject` | JWT + any `*_ADMIN` | Flow admins |
+| PATCH | `/permission-requests/:id/approve` | JWT + `ANOMALY_ADMIN` | ANOMALY_ADMIN only |
+| PATCH | `/permission-requests/:id/reject` | JWT + `ANOMALY_ADMIN` | ANOMALY_ADMIN only |
 
 ---
 

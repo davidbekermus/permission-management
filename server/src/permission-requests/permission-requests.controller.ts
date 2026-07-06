@@ -15,7 +15,7 @@ import { CreatePermissionRequestDto } from './dto/create-permission-request.dto'
 import { ReviewRolesDto } from './dto/review-roles.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
-import { AdminRoles } from '../common/decorators/roles.decorator';
+import { AdminRoles, Roles } from '../common/decorators/roles.decorator';
 import { OverallRequestStatus } from './types/permission-request.types';
 import { AuthedRequest } from '../common/interfaces/authed-request.interface';
 import { Role } from '../common/utils/roles.util';
@@ -112,14 +112,13 @@ export class PermissionRequestsController {
    * Approve specific roles within a request.
    * Body: { roles: ["STORE_USER"] } — list of roles to approve.
    *
-   * - ANOMALY_ADMIN: can approve any roles (via guard bypass).
-   * - FLOW_ADMIN: can only approve roles within their own flow.
+   * ANOMALY_ADMIN only.
    *
    * On approval, the user's document is created/updated with the approved roles.
    */
   @Patch(':id/approve')
   @UseGuards(RolesGuard)
-  @AdminRoles()
+  @Roles(Role.ANOMALY_ADMIN)
   approve(
     @Param('id') id: string,
     @Body() dto: ReviewRolesDto,
@@ -130,11 +129,11 @@ export class PermissionRequestsController {
 
   /**
    * Reject specific roles within a request.
-   * Same scope rules as approve.
+   * Same scope rules as approve — ANOMALY_ADMIN only.
    */
   @Patch(':id/reject')
   @UseGuards(RolesGuard)
-  @AdminRoles()
+  @Roles(Role.ANOMALY_ADMIN)
   reject(
     @Param('id') id: string,
     @Body() dto: ReviewRolesDto,

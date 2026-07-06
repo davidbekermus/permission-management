@@ -36,7 +36,7 @@ type TabValue = 'users' | 'requests'
 // Each tab has its own independent search + filter + dialog state.
 // State is kept at the page level so switching tabs preserves your in-progress filters.
 export function PermissionManagementPage() {
-  const { isAdmin } = useAuth()
+  const { isAnomalyAdmin } = useAuth()
   const [tab, setTab] = useState<TabValue>('users')
 
   // Users tab state
@@ -119,7 +119,7 @@ export function PermissionManagementPage() {
                 </StyledBadge>
               </StyledFilterIconButton>
             </Tooltip>
-            {isAdmin && (
+            {isAnomalyAdmin && (
               <Button
                 variant="contained"
                 size="small"

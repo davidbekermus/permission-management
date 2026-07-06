@@ -48,12 +48,13 @@ function getActionableEntries(roles: RoleEntry[]): RoleEntry[] {
 interface RequestRowProps {
   request: PermissionRequest
   isAdmin: boolean
+  isAnomalyAdmin: boolean
   canManageRole: (role: Role) => boolean
   reviewingFor: string | null
   setReviewingFor: (id: string | null) => void
 }
 
-function RequestRow({ request, isAdmin, canManageRole, reviewingFor, setReviewingFor }: RequestRowProps) {
+function RequestRow({ request, isAdmin, isAnomalyAdmin, canManageRole, reviewingFor, setReviewingFor }: RequestRowProps) {
   const approve = useApproveRequest()
   const reject = useRejectRequest()
 
@@ -61,7 +62,8 @@ function RequestRow({ request, isAdmin, canManageRole, reviewingFor, setReviewin
   // Further scoped to roles this specific admin can manage (flow isolation)
   const manageableEntries = actionableEntries.filter((e) => canManageRole(e.role))
   const isExpanded = reviewingFor === request._id
-  const canAct = isAdmin && manageableEntries.length > 0
+  // Only ANOMALY_ADMIN can approve/reject; flow admins keep read-only visibility (isAdmin) below.
+  const canAct = isAnomalyAdmin && manageableEntries.length > 0
 
   return (
     <TableRow>
@@ -168,7 +170,7 @@ export function PermissionRequestsTable({
   roleFilters = [],
   sort = 'latest',
 }: PermissionRequestsTableProps) {
-  const { isAdmin } = useAuth()
+  const { isAdmin, isAnomalyAdmin } = useAuth()
   const { canManageRole } = useRoleManagement()
   const [reviewingFor, setReviewingFor] = useState<string | null>(null)
 
@@ -216,6 +218,7 @@ export function PermissionRequestsTable({
                   key={req._id}
                   request={req}
                   isAdmin={isAdmin}
+                  isAnomalyAdmin={isAnomalyAdmin}
                   canManageRole={canManageRole}
                   reviewingFor={reviewingFor}
                   setReviewingFor={setReviewingFor}

@@ -38,7 +38,7 @@ interface UsersTableProps {
 }
 
 export function UsersTable({ search, roleFilters = [], sort = 'latest' }: UsersTableProps) {
-  const { isAdmin } = useAuth()
+  const { isAnomalyAdmin } = useAuth()
   const { canManageRole } = useRoleManagement()
   const [assigningFor, setAssigningFor] = useState<string | null>(null)
   const [selectedRole, setSelectedRole] = useState<Role | ''>('')
@@ -71,7 +71,7 @@ export function UsersTable({ search, roleFilters = [], sort = 'latest' }: UsersT
               <TableCell>Username</TableCell>
               <TableCell>Roles</TableCell>
               <TableCell>Date added</TableCell>
-              {isAdmin && <TableCell align="right">Actions</TableCell>}
+              {isAnomalyAdmin && <TableCell align="right">Actions</TableCell>}
             </TableRow>
           </TableHead>
           <TableBody>
@@ -164,7 +164,7 @@ export function UsersTable({ search, roleFilters = [], sort = 'latest' }: UsersT
                     {new Date(user.createdAt).toLocaleDateString()}
                   </Typography>
                 </TableCell>
-                {isAdmin && (
+                {isAnomalyAdmin && (
                   <TableCell align="right">
                     {/* IIFE computes canAct locally to avoid hoisting these vars to row scope.
                         The button is disabled (and tooltip explains why) when there's nothing to do. */}
