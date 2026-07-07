@@ -15,6 +15,8 @@ export interface JwtPayload {
 }
 
 /**
+ * this file is not needed to imported in to the app hwere entagrated thsi repo
+ * 
  * JwtStrategy — validates incoming Bearer tokens and attaches the decoded
  * payload to request.user.
  *

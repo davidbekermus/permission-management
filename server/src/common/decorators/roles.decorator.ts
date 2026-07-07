@@ -7,10 +7,15 @@ export const ROLES_KEY = 'roles';
  * @Roles() decorator — attach required roles to a route handler or controller.
  * 
  * usage: @Roles(Role.STORE_ADMIN, Role.PRODUCT_USER) means that both STORE_ADMIN and
+ * 
+ * currently only anomaly_admin is passed to this function but its kept generic for future end points
  */
 export const Roles = (...roles: Role[]) => SetMetadata(ROLES_KEY, roles);
 
 /**
+ * curently this decorator is not needed in our app since only permissions end points are restricted
+ * to only anomaly_admins, barak said that flow_admins is for future use
+ * 
  * @AdminRoles() decorator — grants access to ALL flow-level admins automatically.
  *
  * Reads admin roles dynamically from the Role enum at startup, so adding a new
@@ -23,6 +28,7 @@ export const Roles = (...roles: Role[]) => SetMetadata(ROLES_KEY, roles);
  * will NOT reflect those changes without a restart.
  * 
  * Usage: simply add @AdminRoles() to any route handler or controller that should be
+ * accessed by all flow admins
  */
 export const AdminRoles = () => SetMetadata(ROLES_KEY, getAllFlowAdminRoles());
 

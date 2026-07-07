@@ -15,6 +15,8 @@ export class AuthService {
   /**
    * Simulates an OSS (external single sign-on) login.
    * will be changed when intergrated to the app 
+   * in the app theres already a service for recreateing the token
+   * i just need to add the request to the user db to update howthe token is recreated
    *
    * Flow:
    *  1. Accept the username as if it was already validated by an external OSS.
@@ -54,6 +56,8 @@ export class AuthService {
   }
 
   /**
+   * this is not really needed it could be added manually for the first time
+   * 
    * Dev-only seed: creates a ANOMALY_ADMIN user named "superadmin" if none exists.
    * Call POST /auth/seed once to bootstrap the system.
    */
