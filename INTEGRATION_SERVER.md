@@ -252,6 +252,13 @@ Registered globally via `APP_GUARD` in step 5, so it runs on every route without
 export class YourAdminController {}
 ```
 
+Lookup order: handler decorator → controller decorator → **the decorator on
+the Nest module that owns the controller** (e.g. a flow module — see step
+10's "Module-level" section) → if none of those exist anywhere, any
+authenticated user is allowed. This means you can declare a default once on
+a module that imports several controllers, and still override it on a
+specific controller or handler when needed.
+
 ---
 
 ## 10. Decorators — controlling access per endpoint
@@ -303,6 +310,35 @@ findOrderItems() { ... }
 // Allows ORDERS_ADMIN and ORDERS_USER (and ANOMALY_ADMIN)
 ```
 
+### Module-level — declare a default for every controller a module imports
+All three decorators (`@Roles`, `@AdminRoles`, `@FlowRoles`) are just
+`SetMetadata(ROLES_KEY, roles)` — they don't care what kind of class they're
+applied to. If your project groups feature modules under a parent "flow"
+module, you can put the decorator directly on that module instead of on
+every controller it imports:
+
+```ts
+@FlowRoles('ORDERS')
+@Module({
+  imports: [OrdersModule, OrderItemsModule],
+})
+export class OrdersFlowModule {}
+```
+
+Every controller inside `OrdersModule`/`OrderItemsModule` now defaults to
+`ORDERS_ADMIN`/`ORDERS_USER` unless it declares its own `@Roles()` /
+`@FlowRoles()` / `@AdminRoles()` — a controller's own decorator (or a
+handler's) always wins over the module's, per the lookup order in step 9.
+Use this for a flow module that owns many controllers needing the same
+default; keep decorating individual controllers directly (as shown above)
+when a flow module would be overkill for one or two controllers, or when a
+specific controller needs to diverge from its flow's default.
+
+See `server/src/flows/store-flow.module.ts` and
+`server/src/flows/product-flow.module.ts` in this repo for a working
+example (not part of the "files to copy" list in step 3 — they're demo
+flow modules for the throwaway `STORE`/`PRODUCT` test flows).
+
 ---
 
 ## 11. Two separate permission layers — don't conflate them
@@ -310,12 +346,14 @@ findOrderItems() { ... }
 This system has two independent layers, and it's easy to assume they work the same way. They don't:
 
 1. **Feature/resource access** — gated by `@FlowRoles(flow)` / `@AdminRoles()` / `@Roles(...)` on
-   **your own controllers**, exactly as shown in steps 9, 10, and 12. This is what "flows" are
-   for, and it applies broadly: every real feature area in your destination project should be
-   wrapped in the roles for its own flow (e.g. `@FlowRoles('ORDERS')` on your orders controller,
-   `@FlowRoles('INVENTORY')` on your inventory controller, and so on for every feature you have —
-   not just one or two). `ORDERS_USER`/`ORDERS_ADMIN` reaching your `orders` endpoints is a normal,
-   expected, self-service flow — no special approval logic needed beyond the decorator.
+   **your own controllers, or on the flow module that imports them**, exactly as shown in steps 9,
+   10, and 12. This is what "flows" are for, and it applies broadly: every real feature area in
+   your destination project should end up guarded by the roles for its own flow (e.g.
+   `@FlowRoles('ORDERS')` on your orders controller — or on the flow module that imports your
+   orders/order-items controllers together — `@FlowRoles('INVENTORY')` likewise for inventory, and
+   so on for every feature you have — not just one or two). `ORDERS_USER`/`ORDERS_ADMIN` reaching
+   your `orders` endpoints is a normal, expected, self-service flow — no special approval logic
+   needed beyond the decorator.
 
    This reference repo's `store-management`/`product-management` controllers are only a demo of
    that pattern for the throwaway `STORE`/`PRODUCT` test flows — that's why they're deliberately
@@ -387,6 +425,12 @@ export class AdminReportsController {}
 @Roles(Role.ORDERS_ADMIN)
 @Post('orders/override')
 forceClose() {}
+
+// Or declare the default once for every controller a flow module imports,
+// instead of repeating the decorator on each one:
+@FlowRoles('ORDERS')
+@Module({ imports: [OrdersModule, OrderItemsModule] })
+export class OrdersFlowModule {}
 ```
 
 The `ANOMALY_ADMIN` role bypasses all `RolesGuard` checks — it always passes.
@@ -436,6 +480,6 @@ Once integrated, these endpoints are available:
 - [ ] `enableCors` and `ValidationPipe` set up in `main.ts`
 - [ ] Superadmin seeded via `POST /auth/seed`
 - [ ] Existing controllers protected with `@UseGuards(JwtAuthGuard)` where needed
-- [ ] Flow-scoped controllers use `@FlowRoles('YOUR_FLOW')` (no need to add `RolesGuard` per-controller — it's global)
+- [ ] Flow-scoped controllers use `@FlowRoles('YOUR_FLOW')` (no need to add `RolesGuard` per-controller — it's global) — or declare it once on the flow module that imports them, if your project structures features that way
 - [ ] OSS login flow calls `POST /auth/login { username }` and forwards the JWT to the client
 - [ ] **OR** (if you already have your own auth): skipped the `auth/` module + `JwtAuthGuard`, wired a roles lookup into your own token-minting step instead (see step 7b), and ported the ANOMALY_ADMIN seed logic separately

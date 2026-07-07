@@ -11,11 +11,12 @@ import {
 import { ProductManagementService } from './product-management.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
-import { FlowRoles } from '../common/decorators/roles.decorator';
 
+// Default roles for this controller come from its owning flow module
+// (see flows/product-flow.module.ts) — add @Roles()/@FlowRoles() here only
+// if this controller needs to diverge from that default.
 @UseGuards(JwtAuthGuard)
 @Controller('products')
-@FlowRoles('PRODUCT')
 export class ProductManagementController {
   constructor(private readonly service: ProductManagementService) {}
 

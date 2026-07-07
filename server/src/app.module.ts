@@ -4,8 +4,8 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { PermissionRequestsModule } from './permission-requests/permission-requests.module';
-import { StoreManagementModule } from './store-management/store-management.module';
-import { ProductManagementModule } from './product-management/product-management.module';
+import { StoreFlowModule } from './flows/store-flow.module';
+import { ProductFlowModule } from './flows/product-flow.module';
 import { RolesGuard } from './common/guards/roles.guard';
 
 @Module({
@@ -15,12 +15,14 @@ import { RolesGuard } from './common/guards/roles.guard';
       process.env.MONGO_URI ?? 'mongodb://localhost:27017/permission-management',
     ),
 
-    // Feature modules
     AuthModule,
     UsersModule,
     PermissionRequestsModule,
-    StoreManagementModule,
-    ProductManagementModule,
+
+    // Flow modules — each declares its default roles via @FlowRoles() on
+    // itself and wraps the feature module(s) that belong to that flow.
+    StoreFlowModule,
+    ProductFlowModule,
   ],
   providers: [
     // Applies to every route. Still relies on JwtAuthGuard (applied per-controller)
