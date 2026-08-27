@@ -8,6 +8,6 @@ export const StyledChip = styled(Chip)(({ theme }) => ({
   margin: theme.spacing(0.25),
 }))
 
-export const StyledOverallStatusChip = styled(Chip)({
+export const StyledStatusChip = styled(Chip)({
   textTransform: 'capitalize',
 })

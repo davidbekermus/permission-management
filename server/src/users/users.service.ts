@@ -7,11 +7,18 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User, UserDocument, UserRoleEntry } from './schemas/user.schema';
 import { Role, assertIsAnomalyAdmin, isAdminRole, isAnomalyAdmin, getFlowFromRole } from '../common/utils/roles.util';
+import {
+  RoleSubmission,
+  RoleSubmissionDocument,
+} from '../role-submissions/schemas/role-submission.schema';
+import { RoleSubmissionStatus } from '../role-submissions/types/role-submission.types';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
+    @InjectModel(RoleSubmission.name)
+    private readonly roleSubmissionModel: Model<RoleSubmissionDocument>,
   ) {}
 
   /** Return all users (up to 20), optionally filtered by username, roles, and sorted by date. */
@@ -54,7 +61,15 @@ export class UsersService {
     const grantedAt = new Date();
     const roleEntries: UserRoleEntry[] = roles.map((role) => ({ role, grantedBy, grantedAt }));
     const user = new this.userModel({ username, roles: roleEntries });
-    return user.save();
+    const saved = await user.save();
+    await this.recordRoleSubmissions(
+      username,
+      roles,
+      RoleSubmissionStatus.APPROVED,
+      grantedBy,
+      grantedAt,
+    );
+    return saved;
   }
 
   /**
@@ -66,11 +81,12 @@ export class UsersService {
    *
    * Used by:
    *  - assignRole (admin API) — after assertIsAnomalyAdmin passes.
-   *  - PermissionRequestsService.approveRoles — after the approval guard passes.
+   *  - RoleSubmissionsService.approve — after the approval guard passes.
    */
   async upsertUserWithRoles(
     username: string,
     rolesToAdd: { role: Role; grantedBy: string }[],
+    recordApprovedSubmissions = true,
   ): Promise<UserDocument> {
     const grantedAt = new Date();
     const incomingRoleNames = rolesToAdd.map((r) => r.role);
@@ -106,7 +122,19 @@ export class UsersService {
       ...rolesToAdd.map(({ role, grantedBy }) => ({ role, grantedBy, grantedAt })),
     ];
     doc!.markModified('roles');
-    return doc!.save();
+    const saved = await doc!.save();
+
+    if (recordApprovedSubmissions) {
+      await this.recordRoleSubmissions(
+        username,
+        rolesToAdd.map(({ role }) => role),
+        RoleSubmissionStatus.APPROVED,
+        rolesToAdd[0]?.grantedBy ?? 'system',
+        grantedAt,
+      );
+    }
+
+    return saved;
   }
 
   /**
@@ -132,11 +160,45 @@ export class UsersService {
     targetUsername: string,
     roleToRemove: Role,
     requesterRoles: Role[],
+    requesterUsername: string,
   ): Promise<UserDocument> {
     assertIsAnomalyAdmin(requesterRoles, 'remove');
     const target = await this.findByUsername(targetUsername);
+    const hadRole = target.roles.some((r) => r.role === roleToRemove);
     target.roles = target.roles.filter((r) => r.role !== roleToRemove);
     target.markModified('roles');
-    return target.save();
+    const saved = await target.save();
+
+    if (hadRole) {
+      await this.recordRoleSubmissions(
+        targetUsername,
+        [roleToRemove],
+        RoleSubmissionStatus.DELETED,
+        requesterUsername,
+        new Date(),
+      );
+    }
+
+    return saved;
+  }
+
+  private async recordRoleSubmissions(
+    username: string,
+    roles: Role[],
+    status: RoleSubmissionStatus.APPROVED | RoleSubmissionStatus.DELETED,
+    grantedBy: string,
+    grantedAt: Date,
+  ): Promise<void> {
+    if (roles.length === 0) return;
+
+    await this.roleSubmissionModel.insertMany(
+      roles.map((role) => ({
+        username,
+        role,
+        status,
+        grantedBy,
+        grantedAt,
+      })),
+    );
   }
 }

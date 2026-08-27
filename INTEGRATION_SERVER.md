@@ -41,12 +41,12 @@ Copy these directories into your `src/` verbatim:
 server/src/common/          → your-project/src/common/
 server/src/auth/            → your-project/src/auth/
 server/src/users/           → your-project/src/users/
-server/src/permission-requests/ → your-project/src/permission-requests/
+server/src/role-submissions/ → your-project/src/role-submissions/
 ```
 
 After copying, the only file you need to edit is `roles.util.ts` (see step 4). Everything else wires together automatically once modules are registered.
 
-> **Already have your own auth (SSO, JWT minting, guard)?** Skip `server/src/auth/` entirely (`auth.controller.ts`, `auth.service.ts`, `auth.module.ts`, `jwt.strategy.ts`, `auth.constants.ts`, `dto/login.dto.ts`), and skip `common/guards/jwt-auth.guard.ts`. Everything else in the table above — `common/` (minus that one guard), `users/`, `permission-requests/` — has no dependency on the `auth/` module and copies over unchanged. See step 7b for exactly what to wire up instead.
+> **Already have your own auth (SSO, JWT minting, guard)?** Skip `server/src/auth/` entirely (`auth.controller.ts`, `auth.service.ts`, `auth.module.ts`, `jwt.strategy.ts`, `auth.constants.ts`, `dto/login.dto.ts`), and skip `common/guards/jwt-auth.guard.ts`. Everything else in the table above — `common/` (minus that one guard), `users/`, `role-submissions/` — has no dependency on the `auth/` module and copies over unchanged. See step 7b for exactly what to wire up instead.
 
 ---
 
@@ -97,7 +97,7 @@ import { APP_GUARD } from '@nestjs/core'
 import { MongooseModule } from '@nestjs/mongoose'
 import { AuthModule } from './auth/auth.module'
 import { UsersModule } from './users/users.module'
-import { PermissionRequestsModule } from './permission-requests/permission-requests.module'
+import { RoleSubmissionsModule } from './role-submissions/role-submissions.module'
 import { RolesGuard } from './common/guards/roles.guard'
 
 @Module({
@@ -105,7 +105,7 @@ import { RolesGuard } from './common/guards/roles.guard'
     MongooseModule.forRoot(process.env.MONGO_URI ?? 'mongodb://localhost:27017/your-db'),
     AuthModule,
     UsersModule,
-    PermissionRequestsModule,
+    RoleSubmissionsModule,
     // ... your existing modules
   ],
   providers: [
@@ -190,7 +190,7 @@ The one thing you must port over is the "look up the user's stored roles and emb
      const user = await usersService.findByUsername(username)
      roles = user.roles.map((r) => r.role)
    } catch {
-     roles = [] // not in the users collection yet — still lets them hit POST /permission-requests
+     roles = [] // not in the users collection yet — still lets them hit POST /role-submissions
    }
 
    const payload = { sub: username, username, roles }
@@ -202,7 +202,7 @@ The one thing you must port over is the "look up the user's stored roles and emb
 
 3. **Adapt `common/interfaces/authed-request.interface.ts`** — it currently types `user` as this feature's own `JwtPayload` (imported from `auth/jwt.strategy.ts`, which you're skipping). Point it at your own decoded-token type instead; it just needs a `roles: Role[]` field for `RolesGuard` to read.
 
-4. **Swap the guard in the copied controllers** — replace every `@UseGuards(JwtAuthGuard, ...)` / `@UseGuards(JwtAuthGuard)` in `users.controller.ts` and `permission-requests.controller.ts` with `@UseGuards(YourExistingGuard, ...)`.
+4. **Swap the guard in the copied controllers** — replace every `@UseGuards(JwtAuthGuard, ...)` / `@UseGuards(JwtAuthGuard)` in `users.controller.ts` and `role-submissions.controller.ts` with `@UseGuards(YourExistingGuard, ...)`.
 
 5. **Still bootstrap the first ANOMALY_ADMIN somehow.** `POST /auth/seed` normally does this, but it lives in the `auth/` module you're skipping. It only depends on `UsersService` (`usersService.createUser(username, [Role.ANOMALY_ADMIN])`) — no JWT/login logic — so port just that one endpoint (or an equivalent one-off script) into your own project.
 
@@ -217,7 +217,7 @@ curl -X POST http://localhost:3000/auth/seed
 # → { "message": "superadmin created with ANOMALY_ADMIN role" }
 ```
 
-Then log in as `superadmin` to get a JWT with `ANOMALY_ADMIN` — this is the only role that can approve/reject permission requests or assign/remove roles on other users (see step 11); flow admins cannot do this even within their own flow.
+Then log in as `superadmin` to get a JWT with `ANOMALY_ADMIN` — this is the only role that can approve/reject role submissions or assign/remove roles on other users (see step 11); flow admins cannot do this even within their own flow.
 
 You can change the seed username in `src/auth/auth.constants.ts`:
 ```ts
@@ -284,7 +284,7 @@ findAll() { ... }
 ### `@AdminRoles()` — any flow admin
 Allows any `*_ADMIN` role (but not `*_USER`). Used on cross-flow write endpoints that any
 admin should reach, e.g. listing/reviewing resources across flows — see `findAll`/`findOne`
-in `permission-requests.controller.ts`, which use it for viewing (not managing) requests.
+in `role-submissions.controller.ts`, which use it for viewing (not managing) role submissions.
 
 ```ts
 @Post('reports')
@@ -363,12 +363,12 @@ This system has two independent layers, and it's easy to assume they work the sa
 
 2. **Role management** — i.e. deciding *who gets which role* — is intentionally **not**
    flow-scoped, and is **restricted to `ANOMALY_ADMIN` only**. Creating a user with roles,
-   assigning a role, removing a role, and approving/rejecting a permission request all call
+   assigning a role, removing a role, and approving/rejecting a role submission all call
    `assertIsAnomalyAdmin` (`common/utils/roles.util.ts`), which throws `ForbiddenException`
    for anyone else. An `ORDERS_ADMIN` cannot assign `ORDERS_USER` to a teammate, even within
    their own flow — only `ANOMALY_ADMIN` can. (The one exception is read-only: flow admins can
-   still list permission requests scoped to their own flow via `GET /permission-requests`,
-   which filters by `getFlowFromRole`/`getRolesForFlow` in `permission-requests.service.ts` —
+   still list role submissions scoped to their own flow via `GET /role-submissions`,
+   which filters by `getFlowFromRole`/`getRolesForFlow` in `role-submissions.service.ts` —
    they just can't act on them.)
 
    Use `assertIsAnomalyAdmin` from `roles.util.ts` in any new service method that mutates roles
@@ -384,7 +384,7 @@ This system has two independent layers, and it's easy to assume they work the sa
    }
    ```
 
-   This is already implemented inside `UsersService` and `PermissionRequestsService` — you only
+   This is already implemented inside `UsersService` and `RoleSubmissionsService` — you only
    need to call it if you add new service methods that touch roles.
 
 In short: flow roles are for reaching your own project's features; only `ANOMALY_ADMIN` decides
@@ -449,11 +449,11 @@ Once integrated, these endpoints are available:
 | POST | `/users` | JWT + `ANOMALY_ADMIN` | ANOMALY_ADMIN only |
 | PATCH | `/users/:username/roles` | JWT + `ANOMALY_ADMIN` | ANOMALY_ADMIN only |
 | DELETE | `/users/:username/roles/:role` | JWT + `ANOMALY_ADMIN` | ANOMALY_ADMIN only |
-| GET | `/permission-requests` | JWT + any `*_ADMIN` | Admins see all (read-only for flow admins); scoped by flow |
-| GET | `/permission-requests/my-requests` | JWT | Any user — sees only their own |
-| POST | `/permission-requests` | JWT | Any authenticated user |
-| PATCH | `/permission-requests/:id/approve` | JWT + `ANOMALY_ADMIN` | ANOMALY_ADMIN only |
-| PATCH | `/permission-requests/:id/reject` | JWT + `ANOMALY_ADMIN` | ANOMALY_ADMIN only |
+| GET | `/role-submissions` | JWT + any `*_ADMIN` | Admins see all (read-only for flow admins); scoped by flow |
+| GET | `/role-submissions/my-submissions` | JWT | Any user — sees only their own |
+| POST | `/role-submissions` | JWT | Any authenticated user |
+| PATCH | `/role-submissions/:id/approve` | JWT + `ANOMALY_ADMIN` | ANOMALY_ADMIN only |
+| PATCH | `/role-submissions/:id/reject` | JWT + `ANOMALY_ADMIN` | ANOMALY_ADMIN only |
 
 ---
 
@@ -474,7 +474,7 @@ Once integrated, these endpoints are available:
 - [ ] Dependencies installed
 - [ ] `.env` has `JWT_SECRET`, `MONGO_URI`, `CLIENT_URL`
 - [ ] Role enum updated in `roles.util.ts` to match your flows
-- [ ] `AuthModule`, `UsersModule`, `PermissionRequestsModule` registered in `AppModule`
+- [ ] `AuthModule`, `UsersModule`, `RoleSubmissionsModule` registered in `AppModule`
 - [ ] `RolesGuard` registered globally via `APP_GUARD` in `AppModule`
 - [ ] `MongooseModule.forRoot(...)` configured
 - [ ] `enableCors` and `ValidationPipe` set up in `main.ts`
@@ -483,3 +483,4 @@ Once integrated, these endpoints are available:
 - [ ] Flow-scoped controllers use `@FlowRoles('YOUR_FLOW')` (no need to add `RolesGuard` per-controller — it's global) — or declare it once on the flow module that imports them, if your project structures features that way
 - [ ] OSS login flow calls `POST /auth/login { username }` and forwards the JWT to the client
 - [ ] **OR** (if you already have your own auth): skipped the `auth/` module + `JwtAuthGuard`, wired a roles lookup into your own token-minting step instead (see step 7b), and ported the ANOMALY_ADMIN seed logic separately
+

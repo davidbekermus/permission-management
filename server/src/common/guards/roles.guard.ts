@@ -48,10 +48,18 @@ export class RolesGuard implements CanActivate {
     }
 
     const request = context.switchToHttp().getRequest();
-    const user = request.user as { roles: Role[] };
+    const user = request.user as { username?: string; roles?: Role[] };
 
     // user.roles comes from the JWT payload (stateless — no DB lookup)
     const userRoles: Role[] = user?.roles ?? [];
+
+    console.debug('[RolesGuard]', {
+      method: request.method,
+      path: request.originalUrl,
+      username: user?.username,
+      requiredRoles,
+      userRoles,
+    });
 
     // ANOMALY_ADMIN overrides all role checks
     if (userRoles.includes(Role.ANOMALY_ADMIN)) {

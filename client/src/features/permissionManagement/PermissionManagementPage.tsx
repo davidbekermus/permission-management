@@ -8,15 +8,15 @@ import FilterListIcon from '@mui/icons-material/FilterList'
 import PersonAddIcon from '@mui/icons-material/PersonAdd'
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline'
 import { UsersTable } from './users/UsersTable'
-import { PermissionRequestsTable } from './permissionRequests/PermissionRequestsTable'
+import { RoleSubmissionsTable } from './permissionRequests/RoleSubmissionsTable'
 import { AddUserDialog } from './users/AddUserDialog'
 import { FilterDialog } from './users/FilterDialog'
-import { CreateRequestDialog } from './permissionRequests/CreateRequestDialog'
-import { RequestsFilterDialog } from './permissionRequests/RequestsFilterDialog'
+import { CreateRoleSubmissionDialog } from './permissionRequests/CreateRoleSubmissionDialog'
+import { RoleSubmissionsFilterDialog } from './permissionRequests/RoleSubmissionsFilterDialog'
 import { useAuth } from '@/app/providers/AuthProvider'
 import { useDebounce } from './hooks/useDebounce'
 import type { Role } from '@/features/auth/types'
-import type { OverallStatus } from './permissionRequests/types'
+import type { RoleSubmissionStatus } from './permissionRequests/types'
 import type { SortOrder } from './shared/types'
 import {
   PageWrapper,
@@ -31,41 +31,32 @@ import {
   SearchAdornmentIcon,
 } from './PermissionManagementPage.style'
 
-type TabValue = 'users' | 'requests'
+type TabValue = 'users' | 'submissions'
 
-// Each tab has its own independent search + filter + dialog state.
-// State is kept at the page level so switching tabs preserves your in-progress filters.
 export function PermissionManagementPage() {
   const { isAnomalyAdmin } = useAuth()
   const [tab, setTab] = useState<TabValue>('users')
 
-  // Users tab state
   const [userSearch, setUserSearch] = useState('')
   const [userFilterOpen, setUserFilterOpen] = useState(false)
   const [userRoles, setUserRoles] = useState<Role[]>([])
   const [userSort, setUserSort] = useState<SortOrder>('latest')
   const [addUserOpen, setAddUserOpen] = useState(false)
 
-  // Requests tab state
-  const [reqSearch, setReqSearch] = useState('')
-  const [reqFilterOpen, setReqFilterOpen] = useState(false)
-  const [reqStatuses, setReqStatuses] = useState<OverallStatus[]>([])
-  const [reqRoles, setReqRoles] = useState<Role[]>([])
-  const [reqSort, setReqSort] = useState<SortOrder>('latest')
-  const [createReqOpen, setCreateReqOpen] = useState(false)
+  const [submissionSearch, setSubmissionSearch] = useState('')
+  const [submissionFilterOpen, setSubmissionFilterOpen] = useState(false)
+  const [submissionStatuses, setSubmissionStatuses] = useState<RoleSubmissionStatus[]>([])
+  const [submissionRoles, setSubmissionRoles] = useState<Role[]>([])
+  const [submissionSort, setSubmissionSort] = useState<SortOrder>('latest')
+  const [createSubmissionOpen, setCreateSubmissionOpen] = useState(false)
 
-  // Debounce delays the API call until the user stops typing (300 ms).
-  // The raw search state updates immediately so the input feels responsive.
   const userDebouncedSearch = useDebounce(userSearch, 300)
-  const reqDebouncedSearch = useDebounce(reqSearch, 300)
+  const submissionDebouncedSearch = useDebounce(submissionSearch, 300)
 
-  // Each active filter beyond the default counts as 1 — drives the badge on the filter icon.
-  // Sort 'latest' is the default so it doesn't count; 'oldest' adds 1.
   const userFilterCount = userRoles.length + (userSort !== 'latest' ? 1 : 0)
-  const reqFilterCount = reqStatuses.length + reqRoles.length + (reqSort !== 'latest' ? 1 : 0)
+  const submissionFilterCount =
+    submissionStatuses.length + submissionRoles.length + (submissionSort !== 'latest' ? 1 : 0)
 
-  // Narrated by screen readers when the active tab or search/filter state changes.
-  // aria-live="polite" waits for the user to stop typing before reading aloud.
   const announcement =
     tab === 'users'
       ? [
@@ -75,8 +66,8 @@ export function PermissionManagementPage() {
         ].filter(Boolean).join(', ')
       : [
           'Permission requests tab',
-          reqDebouncedSearch && `filtered by "${reqDebouncedSearch}"`,
-          reqStatuses.length && `status: ${reqStatuses.join(', ')}`,
+          submissionDebouncedSearch && `filtered by "${submissionDebouncedSearch}"`,
+          submissionStatuses.length && `status: ${submissionStatuses.join(', ')}`,
         ].filter(Boolean).join(', ')
 
   const onTabChange = (_: React.MouseEvent, value: TabValue | null) => {
@@ -88,7 +79,7 @@ export function PermissionManagementPage() {
       <Toolbar>
         <StyledToggleButtonGroup value={tab} exclusive onChange={onTabChange} size="small">
           <ToggleButton value="users">Users</ToggleButton>
-          <ToggleButton value="requests">Permission Requests</ToggleButton>
+          <ToggleButton value="submissions">Permission Requests</ToggleButton>
         </StyledToggleButtonGroup>
 
         <FlexSpacer />
@@ -96,7 +87,7 @@ export function PermissionManagementPage() {
         {tab === 'users' && (
           <>
             <SearchField
-              placeholder="Search by username…"
+              placeholder="Search by username..."
               size="small"
               value={userSearch}
               onChange={(e) => setUserSearch(e.target.value)}
@@ -132,13 +123,13 @@ export function PermissionManagementPage() {
           </>
         )}
 
-        {tab === 'requests' && (
+        {tab === 'submissions' && (
           <>
             <SearchField
-              placeholder="Search by username…"
+              placeholder="Search by username..."
               size="small"
-              value={reqSearch}
-              onChange={(e) => setReqSearch(e.target.value)}
+              value={submissionSearch}
+              onChange={(e) => setSubmissionSearch(e.target.value)}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
@@ -150,10 +141,10 @@ export function PermissionManagementPage() {
             <Tooltip title="Filter">
               <StyledFilterIconButton
                 size="small"
-                $active={reqFilterCount > 0}
-                onClick={() => setReqFilterOpen(true)}
+                $active={submissionFilterCount > 0}
+                onClick={() => setSubmissionFilterOpen(true)}
               >
-                <StyledBadge badgeContent={reqFilterCount} color="primary">
+                <StyledBadge badgeContent={submissionFilterCount} color="primary">
                   <FilterListIcon fontSize="small" />
                 </StyledBadge>
               </StyledFilterIconButton>
@@ -162,7 +153,7 @@ export function PermissionManagementPage() {
               variant="contained"
               size="small"
               startIcon={<AddCircleOutlineIcon fontSize="small" />}
-              onClick={() => setCreateReqOpen(true)}
+              onClick={() => setCreateSubmissionOpen(true)}
             >
               Request permission
             </Button>
@@ -184,12 +175,12 @@ export function PermissionManagementPage() {
             sort={userSort}
           />
         )}
-        {tab === 'requests' && (
-          <PermissionRequestsTable
-            search={reqDebouncedSearch}
-            statusFilters={reqStatuses}
-            roleFilters={reqRoles}
-            sort={reqSort}
+        {tab === 'submissions' && (
+          <RoleSubmissionsTable
+            search={submissionDebouncedSearch}
+            statusFilters={submissionStatuses}
+            roleFilters={submissionRoles}
+            sort={submissionSort}
           />
         )}
       </ContentBox>
@@ -204,16 +195,23 @@ export function PermissionManagementPage() {
         onApply={(roles, sort) => { setUserRoles(roles); setUserSort(sort) }}
       />
 
-      <RequestsFilterDialog
-        open={reqFilterOpen}
-        onClose={() => setReqFilterOpen(false)}
-        appliedStatuses={reqStatuses}
-        appliedRoles={reqRoles}
-        appliedSort={reqSort}
-        onApply={(statuses, roles, sort) => { setReqStatuses(statuses); setReqRoles(roles); setReqSort(sort) }}
+      <RoleSubmissionsFilterDialog
+        open={submissionFilterOpen}
+        onClose={() => setSubmissionFilterOpen(false)}
+        appliedStatuses={submissionStatuses}
+        appliedRoles={submissionRoles}
+        appliedSort={submissionSort}
+        onApply={(statuses, roles, sort) => {
+          setSubmissionStatuses(statuses)
+          setSubmissionRoles(roles)
+          setSubmissionSort(sort)
+        }}
       />
 
-      <CreateRequestDialog open={createReqOpen} onClose={() => setCreateReqOpen(false)} />
+      <CreateRoleSubmissionDialog
+        open={createSubmissionOpen}
+        onClose={() => setCreateSubmissionOpen(false)}
+      />
     </PageWrapper>
   )
 }

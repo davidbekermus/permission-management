@@ -1,5 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, ExecutionContext } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
 import { AuthGuard } from '@nestjs/passport';
+import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 
 /**
  * JwtAuthGuard — validates the Bearer JWT on every protected route.
@@ -9,4 +11,17 @@ import { AuthGuard } from '@nestjs/passport';
  * Usage: @UseGuards(JwtAuthGuard)
  */
 @Injectable()
-export class JwtAuthGuard extends AuthGuard('jwt') {}
+export class JwtAuthGuard extends AuthGuard('jwt') {
+  constructor(private readonly reflector: Reflector) {
+    super();
+  }
+
+  canActivate(context: ExecutionContext) {
+    const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
+      context.getHandler(),
+      context.getClass(),
+    ]);
+
+    return isPublic || super.canActivate(context);
+  }
+}

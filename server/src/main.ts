@@ -28,8 +28,8 @@ async function bootstrap() {
   console.log(`\n📋  Quick start:`);
   console.log(`    POST /auth/seed          — create superadmin (ANOMALY_ADMIN)`);
   console.log(`    POST /auth/login         — { "username": "superadmin" }`);
-  console.log(`    POST /permission-requests — request roles (any JWT holder)`);
-  console.log(`    PATCH /permission-requests/:id/approve — approve roles\n`);
+  console.log(`    POST /role-submissions — submit roles (any JWT holder)`);
+  console.log(`    PATCH /role-submissions/:id/approve — approve a role submission\n`);
 }
 
 bootstrap();

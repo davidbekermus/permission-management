@@ -8,7 +8,7 @@ import TextField from '@mui/material/TextField'
 import Chip from '@mui/material/Chip'
 import Divider from '@mui/material/Divider'
 import { ALL_ROLES, type Role } from '@/features/auth/types'
-import type { OverallStatus } from './types'
+import type { RoleSubmissionStatus } from './types'
 import type { SortOrder } from '../shared/types'
 import { ALL_STATUSES, STATUS_LABELS } from '../shared/types'
 import {
@@ -21,26 +21,24 @@ import {
   Section,
   StatusChips,
   StyledSortToggleButton,
-} from './RequestsFilterDialog.style'
+} from './RoleSubmissionsFilterDialog.style'
 
-interface RequestsFilterDialogProps {
+interface RoleSubmissionsFilterDialogProps {
   open: boolean
   onClose: () => void
-  appliedStatuses: OverallStatus[]
+  appliedStatuses: RoleSubmissionStatus[]
   appliedRoles: Role[]
   appliedSort: SortOrder
-  onApply: (statuses: OverallStatus[], roles: Role[], sort: SortOrder) => void
+  onApply: (statuses: RoleSubmissionStatus[], roles: Role[], sort: SortOrder) => void
 }
 
-// Same draft state pattern as FilterDialog — edits are local until Apply is clicked.
-export function RequestsFilterDialog({
+export function RoleSubmissionsFilterDialog({
   open, onClose, appliedStatuses, appliedRoles, appliedSort, onApply,
-}: RequestsFilterDialogProps) {
-  const [draftStatuses, setDraftStatuses] = useState<OverallStatus[]>(appliedStatuses)
+}: RoleSubmissionsFilterDialogProps) {
+  const [draftStatuses, setDraftStatuses] = useState<RoleSubmissionStatus[]>(appliedStatuses)
   const [draftRoles, setDraftRoles] = useState<Role[]>(appliedRoles)
   const [draftSort, setDraftSort] = useState<SortOrder>(appliedSort)
 
-  // Re-sync draft on open so stale state from a previous session is discarded
   useEffect(() => {
     if (open) {
       setDraftStatuses(appliedStatuses)
@@ -49,10 +47,9 @@ export function RequestsFilterDialog({
     }
   }, [open, appliedStatuses, appliedRoles, appliedSort])
 
-  // Click a status chip to add it; click again to remove — multi-select toggle
-  const toggleStatus = (s: OverallStatus) => {
+  const toggleStatus = (status: RoleSubmissionStatus) => {
     setDraftStatuses((prev) =>
-      prev.includes(s) ? prev.filter((x) => x !== s) : [...prev, s],
+      prev.includes(status) ? prev.filter((item) => item !== status) : [...prev, status],
     )
   }
 
@@ -71,7 +68,7 @@ export function RequestsFilterDialog({
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="xs">
-      <StyledDialogTitle>Filter Requests</StyledDialogTitle>
+      <StyledDialogTitle>Filter Permission Requests</StyledDialogTitle>
       <StyledDivider />
       <DialogContent>
         <FieldStack>
@@ -82,7 +79,7 @@ export function RequestsFilterDialog({
             <ToggleButtonGroup
               value={draftSort}
               exclusive
-              onChange={(_, v) => { if (v) setDraftSort(v) }}
+              onChange={(_, value) => { if (value) setDraftSort(value) }}
               size="small"
               fullWidth
             >
@@ -96,13 +93,13 @@ export function RequestsFilterDialog({
               Status
             </FilterSectionLabel>
             <StatusChips>
-              {ALL_STATUSES.map((s) => (
+              {ALL_STATUSES.map((status) => (
                 <Chip
-                  key={s}
-                  label={STATUS_LABELS[s]}
-                  onClick={() => toggleStatus(s)}
-                  variant={draftStatuses.includes(s) ? 'filled' : 'outlined'}
-                  color={draftStatuses.includes(s) ? 'primary' : 'default'}
+                  key={status}
+                  label={STATUS_LABELS[status]}
+                  onClick={() => toggleStatus(status)}
+                  variant={draftStatuses.includes(status) ? 'filled' : 'outlined'}
+                  color={draftStatuses.includes(status) ? 'primary' : 'default'}
                   size="small"
                   clickable
                 />
@@ -112,18 +109,18 @@ export function RequestsFilterDialog({
 
           <Section>
             <FilterSectionLabel variant="caption" color="text.secondary">
-              Requested roles
+              Roles
             </FilterSectionLabel>
             <Autocomplete
               multiple
               options={ALL_ROLES}
               value={draftRoles}
-              onChange={(_, val) => setDraftRoles(val)}
-              getOptionLabel={(r) => r.toLowerCase().replace(/_/g, '-')}
+              onChange={(_, value) => setDraftRoles(value)}
+              getOptionLabel={(role) => role.toLowerCase().replace(/_/g, '-')}
               renderInput={(params) => (
                 <TextField
                   {...params}
-                  placeholder={draftRoles.length === 0 ? 'Any role…' : ''}
+                  placeholder={draftRoles.length === 0 ? 'Any role...' : ''}
                   size="small"
                 />
               )}

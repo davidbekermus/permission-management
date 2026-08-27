@@ -1,6 +1,7 @@
 import { Controller, Post, Body, HttpCode, HttpStatus } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
+import { Public } from '../common/decorators/public.decorator';
 
 @Controller('auth')
 export class AuthController {
@@ -19,6 +20,7 @@ export class AuthController {
    * The user document is created only when a permission request is approved.
    */
   @Post('login')
+  @Public()
   @HttpCode(HttpStatus.OK)
   login(@Body() dto: LoginDto) {
     return this.authService.login(dto.username);
@@ -34,6 +36,7 @@ export class AuthController {
    * No authentication required — intended for initial setup only.
    */
   @Post('seed')
+  @Public()
   @HttpCode(HttpStatus.OK)
   seed() {
     return this.authService.seedSuperAdmin();

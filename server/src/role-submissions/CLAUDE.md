@@ -1,6 +1,6 @@
 # Permission Management — Backend Modules
 
-Three interdependent NestJS modules that implement RBAC with a permission request approval flow.
+Three interdependent NestJS modules that implement RBAC with a role submission approval flow.
 
 ## Modules to copy
 
@@ -10,7 +10,7 @@ All three must be copied together — they reference each other:
 src/
 ├── auth/               # JWT login, seed superadmin endpoint
 ├── users/              # User CRUD, role assignment
-├── permission-requests/ # Request creation and approval flow
+├── role-submissions/ # Role submission creation and approval flow
 └── common/             # Guards, decorators, role utils — MUST also be copied
     ├── guards/
     │   ├── jwt-auth.guard.ts
@@ -73,8 +73,8 @@ JWT is **stateless** — users must re-login after their roles change.
 
 1. `POST /auth/seed` — create superadmin
 2. `POST /auth/login { username: "alice" }` → JWT with no roles
-3. `POST /permission-requests { roles: ["STORE_USER"] }` (alice's JWT)
-4. `PATCH /permission-requests/:id/approve { roles: ["STORE_USER"] }` (superadmin JWT)
+3. `POST /role-submissions { roles: ["STORE_USER"] }` (alice's JWT)
+4. `PATCH /role-submissions/:id/approve` (superadmin JWT)
 5. Alice re-logins → JWT now includes `STORE_USER`
 
 User documents are **only created in MongoDB on approval** — not on login.
@@ -86,3 +86,4 @@ User documents are **only created in MongoDB on approval** — not on login.
 | GET | /users | JWT + admin role | List users, supports `?username=` search |
 | POST | /users | JWT + admin role | Add user directly with roles |
 | PATCH | /users/:id/roles | JWT + admin role | Assign or remove roles from a user |
+

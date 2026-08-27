@@ -19,7 +19,7 @@ export class User {
    * Array of roles assigned to the user.
    * Each entry records who granted the role and when.
    * Default is empty — a user with no roles can still log in and request
-   * roles via the permission-request flow.
+   * roles via the role-submission flow.
    */
   @Prop({
     type: [

@@ -27,7 +27,7 @@ export class AuthService {
    *
    * sub is always the username string — consistent regardless of DB state.
    * The user document is NOT created here. It is created only when a
-   * permission request is approved (see PermissionRequestsService).
+   * role submission is approved (see RoleSubmissionsService).
    */
   async login(username: string): Promise<{ access_token: string }> {
     let payload: JwtPayload;
@@ -42,7 +42,7 @@ export class AuthService {
     } catch (e) {
       if (!(e instanceof NotFoundException)) throw e;
       // User not in DB yet — issue token with empty roles so they can
-      // access permission-request endpoints.
+      // access role-submission endpoints.
       payload = {
         sub: username,
         username,

@@ -127,7 +127,7 @@ If your project already has an axios instance, merge these two interceptors into
 
 The `permissionManagement` services import `apiClient` from `@/app/api/axiosClient`. If you use a different export name or path, do a find-and-replace in the two service files:
 - `permissionManagement/users/services/usersApi.ts`
-- `permissionManagement/permissionRequests/services/permissionRequestsApi.ts`
+- `permissionManagement/roleSubmissions/services/roleSubmissionsApi.ts`
 
 ---
 
@@ -269,7 +269,7 @@ import { PermissionManagementPage } from '@/features/permissionManagement'
 ```
 
 The page self-adapts based on the logged-in user's roles:
-- **Non-admin users** — see only their own permission requests + a "Request permission" button
+- **Non-admin users** — see only their own role submissions + a "Submit role" button
 - **Flow admins** — read-only visibility of all users and requests scoped to their flow; cannot add users, assign/remove roles, or approve/reject requests
 - **ANOMALY_ADMIN** — full access: can add users, assign/remove roles, and approve/reject requests
 
@@ -302,3 +302,4 @@ If you want seamless role updates without re-login, that requires server-side se
 - [ ] OSS login calls `login(access_token)` after getting the JWT
 - [ ] Routes protected via `useAuth()` checks
 - [ ] `PermissionManagementPage` mounted on an admin-accessible route
+

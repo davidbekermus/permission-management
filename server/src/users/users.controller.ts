@@ -79,6 +79,6 @@ export class UsersController {
     @Param('role', new ParseEnumPipe(Role)) roleToRemove: Role,
     @Request() req: AuthedRequest,
   ) {
-    return this.usersService.removeRole(username, roleToRemove, req.user.roles);
+    return this.usersService.removeRole(username, roleToRemove, req.user.roles, req.user.username);
   }
 }

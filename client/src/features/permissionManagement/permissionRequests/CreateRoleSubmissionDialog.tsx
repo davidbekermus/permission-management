@@ -7,35 +7,31 @@ import Button from '@mui/material/Button'
 import Alert from '@mui/material/Alert'
 import Divider from '@mui/material/Divider'
 import CircularProgress from '@mui/material/CircularProgress'
-import { useCreatePermissionRequest } from './hooks/usePermissionRequests'
+import { useCreateRoleSubmission } from './hooks/useRoleSubmissions'
 import { useAuth } from '@/app/providers/AuthProvider'
 import { ALL_ROLES, filterRequestableRoles, type Role } from '@/features/auth/types'
 import { StyledDialogTitle, StyledDivider, StyledDialogActions, FieldStack } from '../shared/DialogStyles.style'
 
-interface CreateRequestDialogProps {
+interface CreateRoleSubmissionDialogProps {
   open: boolean
   onClose: () => void
 }
 
-export function CreateRequestDialog({ open, onClose }: CreateRequestDialogProps) {
+export function CreateRoleSubmissionDialog({ open, onClose }: CreateRoleSubmissionDialogProps) {
   const { roles: myRoles, isAnomalyAdmin } = useAuth()
   const [selected, setSelected] = useState<Role[]>([])
-  const createRequest = useCreatePermissionRequest()
-
-  // filterRequestableRoles strips roles the user already holds, plus FLOW_USER
-  // if they already have FLOW_ADMIN (redundant — admin implies user privileges)
+  const createSubmission = useCreateRoleSubmission()
   const availableRoles = filterRequestableRoles(ALL_ROLES, myRoles)
 
   const handleClose = () => {
     setSelected([])
-    // Reset clears error state so re-opening shows a clean form
-    createRequest.reset()
+    createSubmission.reset()
     onClose()
   }
 
   const handleSubmit = () => {
     if (selected.length === 0) return
-    createRequest.mutate(selected, { onSuccess: handleClose })
+    createSubmission.mutate(selected, { onSuccess: handleClose })
   }
 
   return (
@@ -44,10 +40,9 @@ export function CreateRequestDialog({ open, onClose }: CreateRequestDialogProps)
       <StyledDivider />
       <DialogContent>
         <FieldStack>
-          {createRequest.isError && (
+          {createSubmission.isError && (
             <Alert severity="error">Failed to submit request. Please try again.</Alert>
           )}
-          {/* ANOMALY_ADMIN already has full access — no roles left to request */}
           {isAnomalyAdmin ? (
             <Alert severity="info">
               You already have the highest level of access. No additional roles can be requested.
@@ -57,33 +52,33 @@ export function CreateRequestDialog({ open, onClose }: CreateRequestDialogProps)
               multiple
               options={availableRoles}
               value={selected}
-              onChange={(_, val) => setSelected(val)}
-              getOptionLabel={(r) => r.toLowerCase().replace(/_/g, '-')}
+              onChange={(_, value) => setSelected(value)}
+              getOptionLabel={(role) => role.toLowerCase().replace(/_/g, '-')}
               renderInput={(params) => (
                 <TextField
                   {...params}
                   label="Roles to request"
                   size="small"
-                  helperText="At least one role required"
+                  helperText="Each selected role creates one submission"
                 />
               )}
-              disabled={createRequest.isPending}
+              disabled={createSubmission.isPending}
             />
           )}
         </FieldStack>
       </DialogContent>
       <Divider />
       <StyledDialogActions>
-        <Button onClick={handleClose} color="inherit" disabled={createRequest.isPending}>
+        <Button onClick={handleClose} color="inherit" disabled={createSubmission.isPending}>
           Cancel
         </Button>
         <Button
           variant="contained"
           onClick={handleSubmit}
-          disabled={selected.length === 0 || createRequest.isPending}
-          startIcon={createRequest.isPending ? <CircularProgress size={14} color="inherit" /> : null}
+          disabled={selected.length === 0 || createSubmission.isPending}
+          startIcon={createSubmission.isPending ? <CircularProgress size={14} color="inherit" /> : null}
         >
-          {createRequest.isPending ? 'Submitting…' : 'Submit request'}
+          {createSubmission.isPending ? 'Submitting...' : 'Submit request'}
         </Button>
       </StyledDialogActions>
     </Dialog>

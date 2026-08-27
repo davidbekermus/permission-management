@@ -1,7 +1,7 @@
 import { useAuth } from '@/app/providers/AuthProvider'
 import { getFlowFromRole, type Role } from '@/features/auth/types'
 
-// Shared hook used by UsersTable, PermissionRequestsTable, and AddUserDialog.
+// Shared hook used by UsersTable, RoleSubmissionsTable, and AddUserDialog.
 // ANOMALY_ADMIN can manage every role; flow admins only manage roles within their flow.
 export function useRoleManagement() {
   const { isAnomalyAdmin, isFlowAdmin } = useAuth()
