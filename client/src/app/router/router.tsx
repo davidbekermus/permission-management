@@ -11,6 +11,8 @@ import { PermissionManagementPage } from '@/features/permissionManagement'
 import { StoresPage } from '@/features/stores/StoresPage'
 import { ProductsPage } from '@/features/products/ProductsPage'
 import { HomePage } from '@/features/home/HomePage'
+import { jwtDecode } from 'jwt-decode'
+import type { JwtPayload } from '@/features/auth/types'
 
 const rootRoute = createRootRoute({ component: Outlet })
 
@@ -35,10 +37,50 @@ const homeRoute = createRoute({
   component: HomePage,
 })
 
+function tokenBelongsToAdmin(): boolean {
+  const token = localStorage.getItem('pm_token')
+  if (!token) return false
+  try {
+    const { roles } = jwtDecode<JwtPayload>(token)
+    return roles.some((role) => role === 'ANOMALY_ADMIN' || role.endsWith('_ADMIN'))
+  } catch {
+    return false
+  }
+}
+
 const settingsRoute = createRoute({
   getParentRoute: () => appRoute,
   path: '/settings',
-  component: PermissionManagementPage,
+  component: Outlet,
+})
+
+const settingsIndexRoute = createRoute({
+  getParentRoute: () => settingsRoute,
+  path: '/',
+  beforeLoad: () => {
+    throw redirect({
+      to: tokenBelongsToAdmin()
+        ? '/app/settings/users'
+        : '/app/settings/permission-requests',
+    })
+  },
+})
+
+const settingsUsersRoute = createRoute({
+  getParentRoute: () => settingsRoute,
+  path: '/users',
+  beforeLoad: () => {
+    if (!tokenBelongsToAdmin()) {
+      throw redirect({ to: '/app/settings/permission-requests' })
+    }
+  },
+  component: () => <PermissionManagementPage view="users" />,
+})
+
+const settingsPermissionRequestsRoute = createRoute({
+  getParentRoute: () => settingsRoute,
+  path: '/permission-requests',
+  component: () => <PermissionManagementPage view="submissions" />,
 })
 
 const storesRoute = createRoute({
@@ -66,7 +108,16 @@ const indexRoute = createRoute({
 const routeTree = rootRoute.addChildren([
   indexRoute,
   loginRoute,
-  appRoute.addChildren([homeRoute, settingsRoute, storesRoute, productsRoute]),
+  appRoute.addChildren([
+    homeRoute,
+    settingsRoute.addChildren([
+      settingsIndexRoute,
+      settingsUsersRoute,
+      settingsPermissionRequestsRoute,
+    ]),
+    storesRoute,
+    productsRoute,
+  ]),
 ])
 
 export const router = createRouter({ routeTree })

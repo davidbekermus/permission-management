@@ -1,6 +1,6 @@
 import { styled } from '@mui/material/styles'
 import Box from '@mui/material/Box'
-import ToggleButtonGroup from '@mui/material/ToggleButtonGroup'
+import Tabs from '@mui/material/Tabs'
 import IconButton from '@mui/material/IconButton'
 import Badge from '@mui/material/Badge'
 import TextField from '@mui/material/TextField'
@@ -35,19 +35,23 @@ export const ScreenReaderOnly = styled(Box)({
   whiteSpace: 'nowrap',
 })
 
-export const StyledToggleButtonGroup = styled(ToggleButtonGroup)(({ theme }) => ({
-  '& .MuiToggleButton-root': {
+export const StyledTabs = styled(Tabs)(({ theme }) => ({
+  minHeight: 40,
+  '& .MuiTabs-indicator': {
+    height: 3,
+    borderRadius: '3px 3px 0 0',
+  },
+  '& .MuiTab-root': {
+    minHeight: 40,
     textTransform: 'none',
     fontWeight: 500,
     fontSize: '0.875rem',
-    padding: theme.spacing(0.5, 2),
-    border: `1px solid ${theme.palette.divider}`,
+    padding: theme.spacing(0.75, 2),
     color: theme.palette.text.secondary,
-    '&.Mui-selected': {
-      backgroundColor: theme.palette.primary.main,
-      color: theme.palette.common.white,
-      '&:hover': { backgroundColor: theme.palette.primary.dark },
-    },
+  },
+  '& .MuiTab-root.Mui-selected': {
+    color: theme.palette.primary.main,
+    fontWeight: 700,
   },
 }))
 

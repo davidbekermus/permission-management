@@ -16,6 +16,7 @@ import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { Roles } from '../common/decorators/roles.decorator';
 import { Role } from '../common/utils/roles.util';
 import { CreateUserDto } from './dto/create-user.dto';
+import { CreateUsersDto } from './dto/create-users.dto';
 import { AssignRoleDto } from './dto/assign-role.dto';
 import { AuthedRequest } from '../common/interfaces/authed-request.interface';
 
@@ -54,6 +55,12 @@ export class UsersController {
   @Roles(Role.ANOMALY_ADMIN)
   create(@Body() dto: CreateUserDto, @Request() req: AuthedRequest) {
     return this.usersService.createUser(dto.username, dto.roles, req.user.roles, req.user.username);
+  }
+
+  @Post('bulk')
+  @Roles(Role.ANOMALY_ADMIN)
+  createMany(@Body() dto: CreateUsersDto, @Request() req: AuthedRequest) {
+    return this.usersService.createUsers(dto.usernames, dto.roles, req.user.roles, req.user.username);
   }
 
   /**

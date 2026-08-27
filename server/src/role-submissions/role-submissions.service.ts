@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   ConflictException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -139,6 +140,25 @@ export class RoleSubmissionsService {
     submission.grantedBy = reviewerUsername;
     submission.grantedAt = new Date();
     return submission.save();
+  }
+
+  async deleteMine(submissionId: string, requesterUsername: string): Promise<void> {
+    const submission = await this.fetchOwnedPendingDocument(submissionId, requesterUsername);
+    await submission.deleteOne();
+  }
+
+  private async fetchOwnedPendingDocument(
+    submissionId: string,
+    requesterUsername: string,
+  ): Promise<RoleSubmissionDocument> {
+    const submission = await this.fetchDocument(submissionId);
+    if (submission.username !== requesterUsername) {
+      throw new ForbiddenException('You can only modify your own role submissions');
+    }
+    if (submission.status !== RoleSubmissionStatus.PENDING) {
+      throw new ConflictException('Only pending role submissions can be modified');
+    }
+    return submission;
   }
 
   private async fetchDocument(id: string): Promise<RoleSubmissionDocument> {

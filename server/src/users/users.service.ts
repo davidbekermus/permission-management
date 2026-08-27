@@ -72,6 +72,45 @@ export class UsersService {
     return saved;
   }
 
+  async createUsers(
+    usernames: string[],
+    roles: Role[],
+    requesterRoles: Role[],
+    grantedBy: string,
+  ): Promise<UserDocument[]> {
+    assertIsAnomalyAdmin(requesterRoles, 'assign');
+    const normalizedUsernames = usernames.map((username) => username.trim());
+    const existing = await this.userModel
+      .find({ username: { $in: normalizedUsernames } }, { username: 1 })
+      .exec();
+    const existingUsernames = new Set(existing.map((user) => user.username));
+    const newUsernames = normalizedUsernames.filter(
+      (username) => !existingUsernames.has(username),
+    );
+
+    if (newUsernames.length === 0) return [];
+
+    const grantedAt = new Date();
+    const roleEntries: UserRoleEntry[] = roles.map((role) => ({ role, grantedBy, grantedAt }));
+    const users = await this.userModel.insertMany(
+      newUsernames.map((username) => ({ username, roles: roleEntries })),
+    );
+
+    await Promise.all(
+      newUsernames.map((username) =>
+        this.recordRoleSubmissions(
+          username,
+          roles,
+          RoleSubmissionStatus.APPROVED,
+          grantedBy,
+          grantedAt,
+        ),
+      ),
+    );
+
+    return users;
+  }
+
   /**
    * Internal-only: adds roles to a user, creating the document if needed.
    * No permission check — callers are responsible for validating access before calling this.

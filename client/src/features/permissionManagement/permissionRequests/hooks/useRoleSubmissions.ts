@@ -49,3 +49,13 @@ export function useRejectRoleSubmission() {
     },
   })
 }
+
+export function useDeleteRoleSubmission() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => roleSubmissionsApi.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [roleSubmissionsKey] })
+    },
+  })
+}

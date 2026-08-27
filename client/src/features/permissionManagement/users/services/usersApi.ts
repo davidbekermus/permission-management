@@ -37,4 +37,9 @@ export const usersApi = {
     const { data } = await apiClient.post<User>(BASE, { username, roles })
     return data
   },
+
+  createUsers: async (usernames: string[], roles: Role[]): Promise<User[]> => {
+    const { data } = await apiClient.post<User[]>(`${BASE}/bulk`, { usernames, roles })
+    return data
+  },
 }

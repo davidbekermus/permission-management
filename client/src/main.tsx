@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import { ThemeProvider } from '@mui/material/styles'
 import CssBaseline from '@mui/material/CssBaseline'
 import { RouterProvider } from '@tanstack/react-router'
+import { SnackbarProvider } from 'notistack'
 import { router } from '@/app/router/router'
 import { QueryProvider } from '@/app/providers/QueryProvider'
 import { AuthProvider } from '@/app/providers/AuthProvider'
@@ -13,9 +14,11 @@ createRoot(document.getElementById('root')!).render(
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <QueryProvider>
-        <AuthProvider>
-          <RouterProvider router={router} />
-        </AuthProvider>
+        <SnackbarProvider maxSnack={3} autoHideDuration={3000}>
+          <AuthProvider>
+            <RouterProvider router={router} />
+          </AuthProvider>
+        </SnackbarProvider>
       </QueryProvider>
     </ThemeProvider>
   </StrictMode>,

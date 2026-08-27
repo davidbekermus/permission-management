@@ -50,4 +50,8 @@ export const roleSubmissionsApi = {
     const { data } = await apiClient.patch<RoleSubmission>(`${BASE}/${id}/reject`)
     return data
   },
+
+  delete: async (id: string): Promise<void> => {
+    await apiClient.delete(`${BASE}/${id}`)
+  },
 }

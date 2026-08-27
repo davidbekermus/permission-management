@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import ToggleButton from '@mui/material/ToggleButton'
+import Tab from '@mui/material/Tab'
 import InputAdornment from '@mui/material/InputAdornment'
 import Button from '@mui/material/Button'
 import Divider from '@mui/material/Divider'
@@ -14,6 +14,7 @@ import { FilterDialog } from './users/FilterDialog'
 import { CreateRoleSubmissionDialog } from './permissionRequests/CreateRoleSubmissionDialog'
 import { RoleSubmissionsFilterDialog } from './permissionRequests/RoleSubmissionsFilterDialog'
 import { useAuth } from '@/app/providers/AuthProvider'
+import { useNavigate } from '@tanstack/react-router'
 import { useDebounce } from './hooks/useDebounce'
 import type { Role } from '@/features/auth/types'
 import type { RoleSubmissionStatus } from './permissionRequests/types'
@@ -24,7 +25,7 @@ import {
   FlexSpacer,
   ContentBox,
   ScreenReaderOnly,
-  StyledToggleButtonGroup,
+  StyledTabs,
   StyledFilterIconButton,
   StyledBadge,
   SearchField,
@@ -33,9 +34,14 @@ import {
 
 type TabValue = 'users' | 'submissions'
 
-export function PermissionManagementPage() {
-  const { isAnomalyAdmin } = useAuth()
-  const [tab, setTab] = useState<TabValue>('users')
+interface PermissionManagementPageProps {
+  view: TabValue
+}
+
+export function PermissionManagementPage({ view }: PermissionManagementPageProps) {
+  const { isAdmin, isAnomalyAdmin } = useAuth()
+  const navigate = useNavigate()
+  const activeTab: TabValue = isAdmin ? view : 'submissions'
 
   const [userSearch, setUserSearch] = useState('')
   const [userFilterOpen, setUserFilterOpen] = useState(false)
@@ -45,7 +51,7 @@ export function PermissionManagementPage() {
 
   const [submissionSearch, setSubmissionSearch] = useState('')
   const [submissionFilterOpen, setSubmissionFilterOpen] = useState(false)
-  const [submissionStatuses, setSubmissionStatuses] = useState<RoleSubmissionStatus[]>([])
+  const [submissionStatuses, setSubmissionStatuses] = useState<RoleSubmissionStatus[]>(['PENDING'])
   const [submissionRoles, setSubmissionRoles] = useState<Role[]>([])
   const [submissionSort, setSubmissionSort] = useState<SortOrder>('latest')
   const [createSubmissionOpen, setCreateSubmissionOpen] = useState(false)
@@ -58,7 +64,7 @@ export function PermissionManagementPage() {
     submissionStatuses.length + submissionRoles.length + (submissionSort !== 'latest' ? 1 : 0)
 
   const announcement =
-    tab === 'users'
+    activeTab === 'users'
       ? [
           'Users tab',
           userDebouncedSearch && `filtered by "${userDebouncedSearch}"`,
@@ -70,21 +76,25 @@ export function PermissionManagementPage() {
           submissionStatuses.length && `status: ${submissionStatuses.join(', ')}`,
         ].filter(Boolean).join(', ')
 
-  const onTabChange = (_: React.MouseEvent, value: TabValue | null) => {
-    if (value) setTab(value)
+  const onTabChange = (_: React.SyntheticEvent, value: TabValue) => {
+    navigate({
+      to: value === 'users'
+        ? '/app/settings/users'
+        : '/app/settings/permission-requests',
+    })
   }
 
   return (
     <PageWrapper>
       <Toolbar>
-        <StyledToggleButtonGroup value={tab} exclusive onChange={onTabChange} size="small">
-          <ToggleButton value="users">Users</ToggleButton>
-          <ToggleButton value="submissions">Permission Requests</ToggleButton>
-        </StyledToggleButtonGroup>
+        <StyledTabs value={activeTab} onChange={onTabChange} aria-label="Permission management views">
+          {isAdmin && <Tab value="users" label="Users" />}
+          <Tab value="submissions" label="Permission Requests" />
+        </StyledTabs>
 
         <FlexSpacer />
 
-        {tab === 'users' && (
+        {activeTab === 'users' && (
           <>
             <SearchField
               placeholder="Search by username..."
@@ -123,7 +133,7 @@ export function PermissionManagementPage() {
           </>
         )}
 
-        {tab === 'submissions' && (
+        {activeTab === 'submissions' && (
           <>
             <SearchField
               placeholder="Search by username..."
@@ -168,14 +178,14 @@ export function PermissionManagementPage() {
       </ScreenReaderOnly>
 
       <ContentBox>
-        {tab === 'users' && (
+        {activeTab === 'users' && (
           <UsersTable
             search={userDebouncedSearch}
             roleFilters={userRoles}
             sort={userSort}
           />
         )}
-        {tab === 'submissions' && (
+        {activeTab === 'submissions' && (
           <RoleSubmissionsTable
             search={submissionDebouncedSearch}
             statusFilters={submissionStatuses}

@@ -37,3 +37,12 @@ export function useCreateUser() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: [usersKey] }),
   })
 }
+
+export function useCreateUsers() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ usernames, roles }: { usernames: string[]; roles: Role[] }) =>
+      usersApi.createUsers(usernames, roles),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: [usersKey] }),
+  })
+}

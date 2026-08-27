@@ -3,6 +3,7 @@ import {
   Get,
   Post,
   Patch,
+  Delete,
   Param,
   Body,
   UseGuards,
@@ -69,5 +70,10 @@ export class RoleSubmissionsController {
   @Roles(Role.ANOMALY_ADMIN)
   reject(@Param('id') id: string, @Request() req: AuthedRequest) {
     return this.service.reject(id, req.user.username, req.user.roles);
+  }
+
+  @Delete(':id')
+  deleteMine(@Param('id') id: string, @Request() req: AuthedRequest) {
+    return this.service.deleteMine(id, req.user.username);
   }
 }
