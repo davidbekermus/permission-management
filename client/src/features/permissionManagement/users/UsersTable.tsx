@@ -15,7 +15,7 @@ import Alert from '@mui/material/Alert'
 import Snackbar from '@mui/material/Snackbar'
 import Tooltip from '@mui/material/Tooltip'
 import AddIcon from '@mui/icons-material/Add'
-import { useUsers, useAssignRole, useRemoveRole } from './hooks/useUsers'
+import { useGetUsers, useAssignRole, useRemoveRole } from './hooks/useUsers'
 import { UserRoleChip } from './UserRoleChip'
 import { canManagePermissions, isRoleInAdminScope } from '@/app/auth/auth.utils'
 import { ALL_ROLES, filterRequestableRoles, type Role } from '@/features/auth/types'
@@ -41,11 +41,12 @@ export function UsersTable({ search, roleFilters = [], sort = 'latest' }: UsersT
   const [selectedRole, setSelectedRole] = useState<Role | ''>('')
   const [snackMessage, setSnackMessage] = useState<string | null>(null)
 
-  const { data: users = [], isLoading, isError } = useUsers({ search, roles: roleFilters, sort })
+  const { data: users = [], isLoading, isError } = useGetUsers({ search, roles: roleFilters, sort })
   const assignRole = useAssignRole()
   const removeRole = useRemoveRole()
 
   // The subset of ALL_ROLES this admin is allowed to assign — used to populate the dropdown
+  // this has to change in the real app to the generated type
   const manageableRoles = ALL_ROLES.filter(isRoleInAdminScope)
 
   const handleAssign = (username: string) => {

@@ -4,7 +4,7 @@ import type { Role } from '@/features/auth/types'
 
 const usersKey = 'users'
 
-export function useUsers(filters: UserFilters = {}) {
+export function useGetUsers(filters: UserFilters = {}) {
   return useQuery({
     queryKey: [usersKey, filters],
     queryFn: () => usersApi.getUsers(filters),
