@@ -8,14 +8,14 @@ import InputLabel from '@mui/material/InputLabel'
 import Button from '@mui/material/Button'
 import { useAssignRole, useRemoveRole } from './hooks/useUsers'
 import { UserRoleChip } from './UserRoleChip'
-import { Roles, type Role } from '../shared/roles.types'
+import { Roles } from '../shared/types'
 import { filterRequestableRoles } from '../shared/role.utils'
 import { AssignRoleRow, RoleChipsBox, StyledFormControl } from './UsersTable.style'
 import type { User } from './types'
 
 interface UserRolesCellProps {
   user: User
-  manageableRoles: Role[]
+  manageableRoles: Roles[]
   isEditing: boolean
   canManage: boolean
   onDone: () => void
@@ -30,7 +30,7 @@ export function UserRolesCell({
   onDone,
   onMessage,
 }: UserRolesCellProps) {
-  const [selectedRole, setSelectedRole] = useState<Role | ''>('')
+  const [selectedRole, setSelectedRole] = useState<Roles | ''>('')
   const assignRole = useAssignRole()
   const removeRole = useRemoveRole()
   const existingRoles = user.roles.map((entry) => entry.role)
@@ -92,7 +92,7 @@ export function UserRolesCell({
                 <Select
                   label="Role"
                   value={selectedRole}
-                  onChange={(event) => setSelectedRole(event.target.value as Role)}
+                  onChange={(event) => setSelectedRole(event.target.value as Roles)}
                 >
                   {availableRoles.map((role) => (
                     <MenuItem key={role} value={role}>

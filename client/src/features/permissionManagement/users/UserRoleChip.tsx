@@ -6,7 +6,7 @@
 
 import { useState } from 'react'
 import Typography from '@mui/material/Typography'
-import type { Role } from '../shared/roles.types'
+import type { Roles } from '../shared/types'
 import { StyledChip, ConfirmBox, ConfirmButton } from './UserRoleChip.style'
 
 // STORE_ADMIN → store-admin
@@ -15,7 +15,7 @@ function toChipLabel(role: string): string {
 }
 
 interface UserRoleChipProps {
-  role: Role
+  role: Roles
   onDelete?: () => void // omit to render as display-only (no × icon)
 }
 

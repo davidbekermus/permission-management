@@ -31,9 +31,8 @@ import {
   canReadPermissionManagement,
   getCurrentUsername,
 } from '@/app/auth/auth.utils'
-import type { Role } from '../shared/roles.types'
+import type { Roles, SortOrder } from '../shared/types'
 import type { RoleSubmission, RoleSubmissionStatus } from './types'
-import type { SortOrder } from '../shared/types'
 import {
   ActionButton,
 } from './RoleSubmissionsTable.style'
@@ -164,7 +163,7 @@ function RoleSubmissionRow({
 interface RoleSubmissionsTableProps {
   search?: string
   statusFilters?: RoleSubmissionStatus[]
-  roleFilters?: Role[]
+  roleFilters?: Roles[]
   sort?: SortOrder
 }
 

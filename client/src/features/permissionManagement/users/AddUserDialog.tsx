@@ -8,7 +8,7 @@ import Divider from '@mui/material/Divider'
 import CircularProgress from '@mui/material/CircularProgress'
 import { useSnackbar } from 'notistack'
 import { useCreateUsers } from './hooks/useUsers'
-import { ALL_ROLES, type Role } from '../shared/roles.types'
+import { ALL_ROLES, type Roles } from '../shared/types'
 import { isRoleInAdminScope } from '@/app/auth/auth.utils'
 import { StyledDialogTitle, StyledDivider, StyledDialogActions, FieldStack } from '../shared/DialogStyles.style'
 
@@ -17,18 +17,27 @@ interface AddUserDialogProps {
   onClose: () => void
 }
 
+interface AddUserForm {
+  usernames: string[]
+  usernameInput: string
+  selectedRoles: Roles[]
+}
+
+const INITIAL_FORM: AddUserForm = {
+  usernames: [],
+  usernameInput: '',
+  selectedRoles: [],
+}
+
 export function AddUserDialog({ open, onClose }: AddUserDialogProps) {
   const { enqueueSnackbar } = useSnackbar()
-  const [usernames, setUsernames] = useState<string[]>([])
-  const [usernameInput, setUsernameInput] = useState('')
-  const [selectedRoles, setSelectedRoles] = useState<Role[]>([])
+  const [form, setForm] = useState<AddUserForm>(INITIAL_FORM)
+  const { usernames, usernameInput, selectedRoles } = form
   const createUsers = useCreateUsers()
   const availableRoles = ALL_ROLES.filter(isRoleInAdminScope)
 
   const handleClose = () => {
-    setUsernames([])
-    setUsernameInput('')
-    setSelectedRoles([])
+    setForm(INITIAL_FORM)
     createUsers.reset()
     onClose()
   }
@@ -63,8 +72,11 @@ export function AddUserDialog({ open, onClose }: AddUserDialogProps) {
 
   const commitUsernameInput = () => {
     if (!usernameInput.trim()) return
-    setUsernames((current) => normalizeUsernames([...current, usernameInput]))
-    setUsernameInput('')
+    setForm((current) => ({
+      ...current,
+      usernames: normalizeUsernames([...current.usernames, current.usernameInput]),
+      usernameInput: '',
+    }))
   }
 
   const isValid =
@@ -84,10 +96,16 @@ export function AddUserDialog({ open, onClose }: AddUserDialogProps) {
             options={[] as string[]}
             value={usernames}
             inputValue={usernameInput}
-            onInputChange={(_, value) => setUsernameInput(value)}
+            onInputChange={(_, value) => setForm((current) => ({
+              ...current,
+              usernameInput: value,
+            }))}
             onChange={(_, values) => {
-              setUsernames(normalizeUsernames(values))
-              setUsernameInput('')
+              setForm((current) => ({
+                ...current,
+                usernames: normalizeUsernames(values),
+                usernameInput: '',
+              }))
             }}
             renderInput={(params) => (
               <TextField
@@ -105,7 +123,10 @@ export function AddUserDialog({ open, onClose }: AddUserDialogProps) {
             multiple
             options={availableRoles}
             value={selectedRoles}
-            onChange={(_, roles) => setSelectedRoles(roles)}
+            onChange={(_, roles) => setForm((current) => ({
+              ...current,
+              selectedRoles: roles,
+            }))}
             getOptionLabel={(role) => role.toLowerCase().replace(/_/g, '-')}
             renderInput={(params) => (
               <TextField {...params} label="Roles" size="small" helperText="Applied to every username" />

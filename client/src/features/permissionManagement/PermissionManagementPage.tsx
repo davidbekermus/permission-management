@@ -10,9 +10,8 @@ import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline'
 import { UsersTable } from './users/UsersTable'
 import { RoleSubmissionsTable } from './permissionRequests/RoleSubmissionsTable'
 import { AddUserDialog } from './users/AddUserDialog'
-import { FilterDialog } from './users/FilterDialog'
+import { FilterDialog } from './shared/FilterDialog'
 import { CreateRoleSubmissionDialog } from './permissionRequests/CreateRoleSubmissionDialog'
-import { RoleSubmissionsFilterDialog } from './permissionRequests/RoleSubmissionsFilterDialog'
 import {
   canManagePermissions,
   canReadPermissionManagement,
@@ -20,9 +19,12 @@ import {
 } from '@/app/auth/auth.utils'
 import { useNavigate } from '@tanstack/react-router'
 import { useDebounce } from './hooks/useDebounce'
-import { ALL_ROLES, type Role } from './shared/roles.types'
-import type { RoleSubmissionStatus } from './permissionRequests/types'
-import type { SortOrder } from './shared/types'
+import { ALL_ROLES, type Roles, type SortOrder } from './shared/types'
+import {
+  ALL_STATUSES,
+  STATUS_LABELS,
+  type RoleSubmissionStatus,
+} from './permissionRequests/types'
 import {
   PageWrapper,
   Toolbar,
@@ -38,6 +40,11 @@ import {
 
 type TabValue = 'users' | 'submissions'
 
+const STATUS_FILTER_OPTIONS = ALL_STATUSES.map((status) => ({
+  value: status,
+  label: STATUS_LABELS[status],
+}))
+
 interface PermissionManagementPageProps {
   view: TabValue
 }
@@ -51,14 +58,14 @@ export function PermissionManagementPage({ view }: PermissionManagementPageProps
 
   const [userSearch, setUserSearch] = useState('')
   const [userFilterOpen, setUserFilterOpen] = useState(false)
-  const [userRoles, setUserRoles] = useState<Role[]>([])
+  const [userRoles, setUserRoles] = useState<Roles[]>([])
   const [userSort, setUserSort] = useState<SortOrder>('latest')
   const [addUserOpen, setAddUserOpen] = useState(false)
 
   const [submissionSearch, setSubmissionSearch] = useState('')
   const [submissionFilterOpen, setSubmissionFilterOpen] = useState(false)
   const [submissionStatuses, setSubmissionStatuses] = useState<RoleSubmissionStatus[]>(['PENDING'])
-  const [submissionRoles, setSubmissionRoles] = useState<Role[]>([])
+  const [submissionRoles, setSubmissionRoles] = useState<Roles[]>([])
   const [submissionSort, setSubmissionSort] = useState<SortOrder>('latest')
   const [createSubmissionOpen, setCreateSubmissionOpen] = useState(false)
 
@@ -204,6 +211,7 @@ export function PermissionManagementPage({ view }: PermissionManagementPageProps
       <AddUserDialog open={addUserOpen} onClose={() => setAddUserOpen(false)} />
 
       <FilterDialog
+        title="Filter Users"
         open={userFilterOpen}
         onClose={() => setUserFilterOpen(false)}
         appliedRoles={userRoles}
@@ -212,14 +220,16 @@ export function PermissionManagementPage({ view }: PermissionManagementPageProps
         onApply={(roles, sort) => { setUserRoles(roles); setUserSort(sort) }}
       />
 
-      <RoleSubmissionsFilterDialog
+      <FilterDialog
+        title="Filter Permission Requests"
         open={submissionFilterOpen}
         onClose={() => setSubmissionFilterOpen(false)}
-        appliedStatuses={submissionStatuses}
         appliedRoles={submissionRoles}
         appliedSort={submissionSort}
         roleOptions={filterRoleOptions}
-        onApply={(statuses, roles, sort) => {
+        statusOptions={STATUS_FILTER_OPTIONS}
+        appliedStatuses={submissionStatuses}
+        onApply={(roles, sort, statuses) => {
           setSubmissionStatuses(statuses)
           setSubmissionRoles(roles)
           setSubmissionSort(sort)

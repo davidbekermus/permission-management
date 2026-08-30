@@ -18,7 +18,7 @@ import LockIcon from '@mui/icons-material/Lock'
 import DeleteIcon from '@mui/icons-material/Delete'
 import { useStoreItems, useCreateStoreItem, useDeleteStoreItem } from './useStores'
 import { getCurrentRoles, isFlowAdmin } from '@/app/auth/auth.utils'
-import { Roles } from '@/features/permissionManagement/shared/roles.types'
+import { Roles } from '@/features/permissionManagement/shared/types'
 
 const PageWrapper = styled(Box)(({ theme }) => ({
   padding: theme.spacing(3),

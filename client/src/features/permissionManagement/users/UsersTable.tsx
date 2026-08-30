@@ -13,12 +13,12 @@ import { useGetUsers } from './hooks/useUsers'
 import { UserActionsCell } from './UserActionsCell'
 import { UserRolesCell } from './UserRolesCell'
 import { canManagePermissions, isRoleInAdminScope } from '@/app/auth/auth.utils'
-import { ALL_ROLES, type Role } from '../shared/roles.types'
+import { ALL_ROLES, type Roles } from '../shared/types'
 import { EmptyRow, EmptyTableCell } from '../shared/TableStyles.style'
 
 interface UsersTableProps {
   search?: string
-  roleFilters?: Role[]
+  roleFilters?: Roles[]
   sort?: 'latest' | 'oldest'
 }
 

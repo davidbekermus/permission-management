@@ -1,6 +1,6 @@
 import type { ChipProps } from '@mui/material/Chip'
 import type { RoleSubmissionStatus } from './types'
-import type { Role } from '../shared/roles.types'
+import type { Roles } from '../shared/types'
 import { StyledChip, StyledStatusChip } from './RoleSubmissionChip.style'
 
 function toChipLabel(value: string): string {
@@ -14,7 +14,7 @@ const statusColor: Record<RoleSubmissionStatus, ChipProps['color']> = {
   DELETED: 'warning',
 }
 
-export function RoleChip({ role }: { role: Role }) {
+export function RoleChip({ role }: { role: Roles }) {
   return <StyledChip label={toChipLabel(role)} size="small" />
 }
 

@@ -1,9 +1,9 @@
-import type { Role } from '@/features/permissionManagement/shared/roles.types'
+import type { Roles } from '@/features/permissionManagement/shared/types'
 
 export interface JwtPayload {
   sub: string
   username: string
-  roles: Role[]
+  roles: Roles[]
   iat: number
   exp: number
 }

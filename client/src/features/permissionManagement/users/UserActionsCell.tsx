@@ -2,13 +2,13 @@ import TableCell from '@mui/material/TableCell'
 import Tooltip from '@mui/material/Tooltip'
 import IconButton from '@mui/material/IconButton'
 import AddIcon from '@mui/icons-material/Add'
-import type { Role } from '../shared/roles.types'
+import type { Roles } from '../shared/types'
 import { filterRequestableRoles } from '../shared/role.utils'
 import type { User } from './types'
 
 interface UserActionsCellProps {
   user: User
-  manageableRoles: Role[]
+  manageableRoles: Roles[]
   isEditing: boolean
   onManage: (username: string) => void
 }

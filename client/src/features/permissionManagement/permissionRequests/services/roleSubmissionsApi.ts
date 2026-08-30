@@ -1,11 +1,11 @@
 import { apiClient } from '@/app/api/axiosClient'
-import type { Role } from '../../shared/roles.types'
+import type { Roles } from '../../shared/types'
 import type { RoleSubmission, RoleSubmissionStatus } from '../types'
 
 export interface RoleSubmissionFilters {
   search?: string
   statuses?: RoleSubmissionStatus[]
-  roles?: Role[]
+  roles?: Roles[]
   sort?: 'latest' | 'oldest'
 }
 
@@ -36,7 +36,7 @@ export const roleSubmissionsApi = {
     return data
   },
 
-  create: async (roles: Role[]): Promise<RoleSubmission[]> => {
+  create: async (roles: Roles[]): Promise<RoleSubmission[]> => {
     const { data } = await apiClient.post<RoleSubmission[]>(BASE, { roles })
     return data
   },

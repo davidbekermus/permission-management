@@ -1,8 +1,8 @@
-import type { Role } from '../shared/roles.types'
+import type { Roles } from '../shared/types'
 
 // Tracks who granted each role and when (audit trail)
 export interface UserRoleEntry {
-  role: Role
+  role: Roles
   grantedBy: string  // username of the admin who assigned it
   grantedAt: string
 }

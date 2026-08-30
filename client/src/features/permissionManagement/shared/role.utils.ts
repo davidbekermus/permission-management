@@ -1,6 +1,6 @@
-import { Roles, type Role } from './roles.types'
+import { Roles } from './types'
 
-export function getFlowFromRole(role: Role): string | null {
+export function getFlowFromRole(role: Roles): string | null {
   if (role === Roles.ANOMALY_ADMIN) return null
   const parts = role.split('_')
   return parts.slice(0, -1).join('_')
@@ -16,12 +16,12 @@ export function getFlowFromRole(role: Role): string | null {
  *  - Roles the user already has
  *  - FLOW_USER when the user already has FLOW_ADMIN for that flow
  */
-export function filterRequestableRoles(candidateRoles: Role[], existingRoles: Role[]): Role[] {
+export function filterRequestableRoles(candidateRoles: Roles[], existingRoles: Roles[]): Roles[] {
   if (existingRoles.includes(Roles.ANOMALY_ADMIN)) return []
   return candidateRoles.filter((role) => {
     if (existingRoles.includes(role)) return false
     const flow = getFlowFromRole(role)
-    if (flow && role.endsWith('_USER') && existingRoles.includes(`${flow}_ADMIN` as Role)) return false
+    if (flow && role.endsWith('_USER') && existingRoles.includes(`${flow}_ADMIN` as Roles)) return false
     return true
   })
 }
