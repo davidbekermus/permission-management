@@ -8,7 +8,7 @@ import Divider from '@mui/material/Divider'
 import CircularProgress from '@mui/material/CircularProgress'
 import { useSnackbar } from 'notistack'
 import { useCreateUsers } from './hooks/useUsers'
-import { ALL_ROLES, type Role } from '@/features/auth/types'
+import { ALL_ROLES, type Role } from '../shared/roles.types'
 import { isRoleInAdminScope } from '@/app/auth/auth.utils'
 import { StyledDialogTitle, StyledDivider, StyledDialogActions, FieldStack } from '../shared/DialogStyles.style'
 

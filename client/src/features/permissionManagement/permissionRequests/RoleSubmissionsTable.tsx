@@ -4,6 +4,7 @@ import TableBody from '@mui/material/TableBody'
 import TableCell from '@mui/material/TableCell'
 import TableHead from '@mui/material/TableHead'
 import TableRow from '@mui/material/TableRow'
+import TableContainer from '@mui/material/TableContainer'
 import Typography from '@mui/material/Typography'
 import CircularProgress from '@mui/material/CircularProgress'
 import Alert from '@mui/material/Alert'
@@ -30,15 +31,13 @@ import {
   canReadPermissionManagement,
   getCurrentUsername,
 } from '@/app/auth/auth.utils'
-import { type Role } from '@/features/auth/types'
+import type { Role } from '../shared/roles.types'
 import type { RoleSubmission, RoleSubmissionStatus } from './types'
 import type { SortOrder } from '../shared/types'
 import {
-  EmptyRow,
-  EmptyTableCell,
-  StyledTableContainer,
   ActionButton,
 } from './RoleSubmissionsTable.style'
+import { EmptyRow, EmptyTableCell } from '../shared/TableStyles.style'
 
 interface RoleSubmissionRowProps {
   submission: RoleSubmission
@@ -192,7 +191,7 @@ export function RoleSubmissionsTable({
       {isError && <Alert severity="error">Failed to load permission requests.</Alert>}
 
       {!isLoading && !isError && (
-        <StyledTableContainer>
+        <TableContainer>
           <Table>
             <TableHead>
               <TableRow>
@@ -225,7 +224,7 @@ export function RoleSubmissionsTable({
               ))}
             </TableBody>
           </Table>
-        </StyledTableContainer>
+        </TableContainer>
       )}
     </>
   )

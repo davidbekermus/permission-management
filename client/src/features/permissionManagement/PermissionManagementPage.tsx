@@ -20,7 +20,7 @@ import {
 } from '@/app/auth/auth.utils'
 import { useNavigate } from '@tanstack/react-router'
 import { useDebounce } from './hooks/useDebounce'
-import { ALL_ROLES, type Role } from '@/features/auth/types'
+import { ALL_ROLES, type Role } from './shared/roles.types'
 import type { RoleSubmissionStatus } from './permissionRequests/types'
 import type { SortOrder } from './shared/types'
 import {

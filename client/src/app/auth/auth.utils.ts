@@ -1,6 +1,8 @@
 import { jwtDecode } from 'jwt-decode'
 import { TOKEN_KEY } from '@/app/constants'
-import { ALL_ROLES, getFlowFromRole, type JwtPayload, type Role } from '@/features/auth/types'
+import type { JwtPayload } from '@/features/auth/types'
+import { ALL_ROLES, Roles, type Role } from '@/features/permissionManagement/shared/roles.types'
+import { getFlowFromRole } from '@/features/permissionManagement/shared/role.utils'
 
 export function getUserToken(): string | null {
   return localStorage.getItem(TOKEN_KEY)
@@ -44,7 +46,7 @@ export function isAuthenticated(): boolean {
 }
 
 export function isAnomalyAdmin(): boolean {
-  return getCurrentRoles().includes('ANOMALY_ADMIN')
+  return getCurrentRoles().includes(Roles.ANOMALY_ADMIN)
 }
 
 export function isAdmin(): boolean {
@@ -53,7 +55,7 @@ export function isAdmin(): boolean {
 
 export function isFlowAdmin(flow: string): boolean {
   const roles = getCurrentRoles()
-  return roles.includes('ANOMALY_ADMIN') || roles.includes(`${flow}_ADMIN` as Role)
+  return roles.includes(Roles.ANOMALY_ADMIN) || roles.includes(`${flow}_ADMIN` as Role)
 }
 
 export function canReadPermissionManagement(): boolean {

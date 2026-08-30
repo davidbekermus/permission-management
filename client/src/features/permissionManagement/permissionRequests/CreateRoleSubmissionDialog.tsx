@@ -9,7 +9,8 @@ import Divider from '@mui/material/Divider'
 import CircularProgress from '@mui/material/CircularProgress'
 import { useCreateRoleSubmission } from './hooks/useRoleSubmissions'
 import { getCurrentRoles, isAnomalyAdmin } from '@/app/auth/auth.utils'
-import { ALL_ROLES, filterRequestableRoles, type Role } from '@/features/auth/types'
+import { ALL_ROLES, type Role } from '../shared/roles.types'
+import { filterRequestableRoles } from '../shared/role.utils'
 import { StyledDialogTitle, StyledDivider, StyledDialogActions, FieldStack } from '../shared/DialogStyles.style'
 
 interface CreateRoleSubmissionDialogProps {

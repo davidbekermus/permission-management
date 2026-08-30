@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { usersApi, type UserFilters } from '../services/usersApi'
-import type { Role } from '@/features/auth/types'
+import type { Role } from '../../shared/roles.types'
 
 const usersKey = 'users'
 

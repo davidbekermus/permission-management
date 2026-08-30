@@ -1,4 +1,4 @@
-import type { Role } from '@/features/auth/types'
+import type { Role } from '../shared/roles.types'
 
 // Tracks who granted each role and when (audit trail)
 export interface UserRoleEntry {

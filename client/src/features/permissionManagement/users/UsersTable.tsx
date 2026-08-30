@@ -4,6 +4,7 @@ import TableBody from '@mui/material/TableBody'
 import TableCell from '@mui/material/TableCell'
 import TableHead from '@mui/material/TableHead'
 import TableRow from '@mui/material/TableRow'
+import TableContainer from '@mui/material/TableContainer'
 import Select from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
 import InputLabel from '@mui/material/InputLabel'
@@ -14,20 +15,19 @@ import Collapse from '@mui/material/Collapse'
 import Alert from '@mui/material/Alert'
 import Snackbar from '@mui/material/Snackbar'
 import Tooltip from '@mui/material/Tooltip'
+import IconButton from '@mui/material/IconButton'
 import AddIcon from '@mui/icons-material/Add'
 import { useGetUsers, useAssignRole, useRemoveRole } from './hooks/useUsers'
 import { UserRoleChip } from './UserRoleChip'
 import { canManagePermissions, isRoleInAdminScope } from '@/app/auth/auth.utils'
-import { ALL_ROLES, filterRequestableRoles, type Role } from '@/features/auth/types'
+import { ALL_ROLES, Roles, type Role } from '../shared/roles.types'
+import { filterRequestableRoles } from '../shared/role.utils'
 import {
-  AssignRow,
-  EmptyRow,
+  AssignRoleRow,
   RoleChipsBox,
-  EmptyTableCell,
-  StyledTableContainer,
   StyledFormControl,
-  ManageRolesIconButton,
 } from './UsersTable.style'
+import { EmptyRow, EmptyTableCell } from '../shared/TableStyles.style'
 
 interface UsersTableProps {
   search?: string
@@ -62,7 +62,7 @@ export function UsersTable({ search, roleFilters = [], sort = 'latest' }: UsersT
 
   return (
     <>
-      <StyledTableContainer>
+      <TableContainer>
         <Table>
           <TableHead>
             <TableRow>
@@ -75,7 +75,7 @@ export function UsersTable({ search, roleFilters = [], sort = 'latest' }: UsersT
           <TableBody>
             {users.length === 0 && (
               <TableRow>
-                <EmptyTableCell colSpan={4}>
+                <EmptyTableCell colSpan={isAnomalyAdmin ? 4 : 3}>
                   <EmptyRow>
                     <Typography variant="body2">No users found</Typography>
                   </EmptyRow>
@@ -93,7 +93,10 @@ export function UsersTable({ search, roleFilters = [], sort = 'latest' }: UsersT
                       <Typography variant="caption" color="text.disabled">No roles</Typography>
                     )}
                     {user.roles.map((entry) => {
-                      const canRemove = assigningFor === user.username && isRoleInAdminScope(entry.role)
+                      const canRemove =
+                        isAnomalyAdmin &&
+                        assigningFor === user.username &&
+                        isRoleInAdminScope(entry.role)
 
                       return (
                         <UserRoleChip
@@ -109,10 +112,10 @@ export function UsersTable({ search, roleFilters = [], sort = 'latest' }: UsersT
                       )
                     })}
                   </RoleChipsBox>
-                  {/* Expanded panel — only visible when this row's Manage button is clicked */}
+                  {/* Expanded panel — only visible when this row's Manage action button is clicked */}
                   <Collapse in={assigningFor === user.username}>
-                    <AssignRow>
-                      {user.roles.some((e) => e.role === 'ANOMALY_ADMIN') ? (
+                    <AssignRoleRow>
+                      {user.roles.some((e) => e.role === Roles.ANOMALY_ADMIN) ? (
                         <Typography variant="caption" color="text.secondary" fontStyle="italic">
                           This user already has the highest level of access.
                         </Typography>
@@ -128,9 +131,9 @@ export function UsersTable({ search, roleFilters = [], sort = 'latest' }: UsersT
                               {/* filterRequestableRoles removes roles already held and
                                   skips FLOW_USER if the user already has FLOW_ADMIN */}
                               {filterRequestableRoles(manageableRoles, user.roles.map((e) => e.role))
-                                .map((r) => (
-                                  <MenuItem key={r} value={r}>
-                                    {r.toLowerCase().replace(/_/g, '-')}
+                                .map((role) => (
+                                  <MenuItem key={role} value={role}>
+                                    {role.toLowerCase().replace(/_/g, '-')}
                                   </MenuItem>
                                 ))}
                             </Select>
@@ -152,7 +155,7 @@ export function UsersTable({ search, roleFilters = [], sort = 'latest' }: UsersT
                       >
                         Done
                       </Button>
-                    </AssignRow>
+                    </AssignRoleRow>
                   </Collapse>
                 </TableCell>
                 <TableCell>
@@ -171,16 +174,15 @@ export function UsersTable({ search, roleFilters = [], sort = 'latest' }: UsersT
                       return (
                         <Tooltip title={canAct ? 'Manage roles' : 'Nothing to manage'}>
                           <span>
-                            <ManageRolesIconButton
+                            <IconButton
                               size="small"
-                              $canAct={canAct}
                               disabled={!canAct}
                               aria-label={`Manage roles for ${user.username}`}
                               aria-expanded={false}
                               onClick={() => { setAssigningFor(user.username); setSelectedRole('') }}
                             >
                               <AddIcon fontSize="small" />
-                            </ManageRolesIconButton>
+                            </IconButton>
                           </span>
                         </Tooltip>
                       )
@@ -191,7 +193,7 @@ export function UsersTable({ search, roleFilters = [], sort = 'latest' }: UsersT
             ))}
           </TableBody>
         </Table>
-      </StyledTableContainer>
+      </TableContainer>
 
       {/* sx exception: MUI v5 Snackbar has no styled API for content background */}
       <Snackbar

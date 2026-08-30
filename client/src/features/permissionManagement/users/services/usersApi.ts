@@ -1,5 +1,5 @@
 import { apiClient } from '@/app/api/axiosClient'
-import type { Role } from '@/features/auth/types'
+import type { Role } from '../../shared/roles.types'
 import type { User } from '../types'
 
 export interface UserFilters {

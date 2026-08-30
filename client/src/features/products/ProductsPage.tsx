@@ -18,6 +18,7 @@ import LockIcon from '@mui/icons-material/Lock'
 import DeleteIcon from '@mui/icons-material/Delete'
 import { useProducts, useCreateProduct, useDeleteProduct } from './useProducts'
 import { getCurrentRoles, isFlowAdmin } from '@/app/auth/auth.utils'
+import { Roles } from '@/features/permissionManagement/shared/roles.types'
 
 const PageWrapper = styled(Box)(({ theme }) => ({
   padding: theme.spacing(3),
@@ -33,7 +34,7 @@ const FormRow = styled(Box)(({ theme }) => ({
 
 export function ProductsPage() {
   const roles = getCurrentRoles()
-  const hasAccess = isFlowAdmin('PRODUCT') || roles.includes('PRODUCT_USER')
+  const hasAccess = isFlowAdmin('PRODUCT') || roles.includes(Roles.PRODUCT_USER)
   const isAdmin = isFlowAdmin('PRODUCT')
 
   if (!hasAccess) {

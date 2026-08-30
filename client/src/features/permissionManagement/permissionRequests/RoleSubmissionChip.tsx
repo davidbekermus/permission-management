@@ -1,6 +1,6 @@
 import type { ChipProps } from '@mui/material/Chip'
 import type { RoleSubmissionStatus } from './types'
-import type { Role } from '@/features/auth/types'
+import type { Role } from '../shared/roles.types'
 import { StyledChip, StyledStatusChip } from './RoleSubmissionChip.style'
 
 function toChipLabel(value: string): string {

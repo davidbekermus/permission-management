@@ -6,7 +6,7 @@
 
 import { useState } from 'react'
 import Typography from '@mui/material/Typography'
-import type { Role } from '@/features/auth/types'
+import type { Role } from '../shared/roles.types'
 import { StyledChip, ConfirmBox, ConfirmButton } from './UserRoleChip.style'
 
 // STORE_ADMIN → store-admin

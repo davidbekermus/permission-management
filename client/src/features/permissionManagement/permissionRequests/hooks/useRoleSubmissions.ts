@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { roleSubmissionsApi, type RoleSubmissionFilters } from '../services/roleSubmissionsApi'
-import type { Role } from '@/features/auth/types'
+import type { Role } from '../../shared/roles.types'
 
 const roleSubmissionsKey = 'roleSubmissions'
 

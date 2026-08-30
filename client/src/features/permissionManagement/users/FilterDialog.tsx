@@ -6,7 +6,7 @@ import ToggleButtonGroup from '@mui/material/ToggleButtonGroup'
 import Autocomplete from '@mui/material/Autocomplete'
 import TextField from '@mui/material/TextField'
 import Divider from '@mui/material/Divider'
-import type { Role } from '@/features/auth/types'
+import type { Role } from '../shared/roles.types'
 import type { SortOrder } from '../shared/types'
 import {
   StyledDialogTitle,
