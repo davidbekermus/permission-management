@@ -6,7 +6,14 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User, UserDocument, UserRoleEntry } from './schemas/user.schema';
-import { Role, assertIsAnomalyAdmin, isAdminRole, isAnomalyAdmin, getFlowFromRole } from '../common/utils/roles.util';
+import {
+  Role,
+  assertIsAnomalyAdmin,
+  isAdminRole,
+  isAnomalyAdmin,
+  getFlowFromRole,
+  getRolesForFlow,
+} from '../common/utils/roles.util';
 import {
   RoleSubmission,
   RoleSubmissionDocument,
@@ -22,18 +29,39 @@ export class UsersService {
   ) {}
 
   /** Return all users (up to 20), optionally filtered by username, roles, and sorted by date. */
-  async findAll(username?: string, roles?: Role[], sort?: 'asc' | 'desc'): Promise<UserDocument[]> {
+  async findAll(
+    requesterRoles: Role[],
+    username?: string,
+    roles?: Role[],
+    sort?: 'asc' | 'desc',
+  ): Promise<UserDocument[]> {
     const filter: Record<string, unknown> = {};
     if (username) filter.username = { $regex: username, $options: 'i' };
-    if (roles?.length) filter['roles.role'] = { $in: roles };
+
+    if (requesterRoles.includes(Role.ANOMALY_ADMIN)) {
+      if (roles?.length) filter['roles.role'] = { $in: roles };
+    } else {
+      const scopedRoles = this.getRolesInAdminScope(requesterRoles);
+      const effectiveRoles = roles?.length
+        ? roles.filter((role) => scopedRoles.includes(role))
+        : scopedRoles;
+      if (effectiveRoles.length === 0) return [];
+      filter['roles.role'] = { $in: effectiveRoles };
+    }
     const sortOrder = sort === 'asc' ? 1 : -1;
     return this.userModel.find(filter).sort({ createdAt: sortOrder }).limit(20).exec();
   }
 
   /** Find a user by username — throws NotFoundException if not found. */
-  async findByUsername(username: string): Promise<UserDocument> {
+  async findByUsername(username: string, requesterRoles?: Role[]): Promise<UserDocument> {
     const user = await this.userModel.findOne({ username }).exec();
     if (!user) throw new NotFoundException(`User "${username}" not found`);
+
+    if (requesterRoles && !requesterRoles.includes(Role.ANOMALY_ADMIN)) {
+      const scopedRoles = this.getRolesInAdminScope(requesterRoles);
+      const isVisible = user.roles.some((entry) => scopedRoles.includes(entry.role));
+      if (!isVisible) throw new NotFoundException(`User "${username}" not found`);
+    }
     
     return user;
   }
@@ -219,6 +247,15 @@ export class UsersService {
     }
 
     return saved;
+  }
+
+  private getRolesInAdminScope(requesterRoles: Role[]): Role[] {
+    return requesterRoles
+      .filter((role) => isAdminRole(role) && !isAnomalyAdmin(role))
+      .flatMap((role) => {
+        const flow = getFlowFromRole(role);
+        return flow ? getRolesForFlow(flow) : [];
+      });
   }
 
   private async recordRoleSubmissions(

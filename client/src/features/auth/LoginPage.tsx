@@ -9,9 +9,9 @@ import Typography from '@mui/material/Typography'
 import Alert from '@mui/material/Alert'
 import CircularProgress from '@mui/material/CircularProgress'
 import { styled } from '@mui/material/styles'
-import { useNavigate } from '@tanstack/react-router'
+import { useNavigate, useRouter } from '@tanstack/react-router'
 import { authApi } from './authApi'
-import { useAuth } from '@/app/providers/AuthProvider'
+import { setUserToken } from '@/app/auth/auth.utils'
 
 const PageWrapper = styled(Box)(({ theme }) => ({
   minHeight: '100vh',
@@ -35,14 +35,15 @@ const Form = styled('form')(({ theme }) => ({
 
 export function LoginPage() {
   const [username, setUsername] = useState('')
-  const { login } = useAuth()
   const navigate = useNavigate()
+  const router = useRouter()
 
   const mutation = useMutation({
     mutationFn: () => authApi.login(username),
-    onSuccess: (data) => {
-      login(data.access_token)
-      navigate({ to: '/app/settings' })
+    onSuccess: async (data) => {
+      setUserToken(data.access_token)
+      await router.invalidate()
+      await navigate({ to: '/app/settings' })
     },
   })
 

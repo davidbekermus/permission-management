@@ -56,8 +56,8 @@ export class RoleSubmissionsController {
 
   @Get(':id')
   @AdminRoles()
-  findOne(@Param('id') id: string) {
-    return this.service.findById(id);
+  findOne(@Param('id') id: string, @Request() req: AuthedRequest) {
+    return this.service.findById(id, req.user.roles);
   }
 
   @Patch(':id/approve')

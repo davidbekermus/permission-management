@@ -17,12 +17,10 @@ import Tooltip from '@mui/material/Tooltip'
 import AddIcon from '@mui/icons-material/Add'
 import { useUsers, useAssignRole, useRemoveRole } from './hooks/useUsers'
 import { UserRoleChip } from './UserRoleChip'
-import { useAuth } from '@/app/providers/AuthProvider'
+import { canManagePermissions, isRoleInAdminScope } from '@/app/auth/auth.utils'
 import { ALL_ROLES, filterRequestableRoles, type Role } from '@/features/auth/types'
-import { useRoleManagement } from '../hooks/useRoleManagement'
 import {
   AssignRow,
-  AssignRowWrap,
   EmptyRow,
   RoleChipsBox,
   EmptyTableCell,
@@ -38,8 +36,7 @@ interface UsersTableProps {
 }
 
 export function UsersTable({ search, roleFilters = [], sort = 'latest' }: UsersTableProps) {
-  const { isAnomalyAdmin } = useAuth()
-  const { canManageRole } = useRoleManagement()
+  const isAnomalyAdmin = canManagePermissions()
   const [assigningFor, setAssigningFor] = useState<string | null>(null)
   const [selectedRole, setSelectedRole] = useState<Role | ''>('')
   const [snackMessage, setSnackMessage] = useState<string | null>(null)
@@ -49,7 +46,7 @@ export function UsersTable({ search, roleFilters = [], sort = 'latest' }: UsersT
   const removeRole = useRemoveRole()
 
   // The subset of ALL_ROLES this admin is allowed to assign — used to populate the dropdown
-  const manageableRoles = ALL_ROLES.filter(canManageRole)
+  const manageableRoles = ALL_ROLES.filter(isRoleInAdminScope)
 
   const handleAssign = (username: string) => {
     if (!selectedRole) return
@@ -94,27 +91,25 @@ export function UsersTable({ search, roleFilters = [], sort = 'latest' }: UsersT
                     {user.roles.length === 0 && (
                       <Typography variant="caption" color="text.disabled">No roles</Typography>
                     )}
-                    {user.roles.map((entry) => (
-                      <UserRoleChip key={entry.role} role={entry.role} />
-                    ))}
+                    {user.roles.map((entry) => {
+                      const canRemove = assigningFor === user.username && isRoleInAdminScope(entry.role)
+
+                      return (
+                        <UserRoleChip
+                          key={entry.role}
+                          role={entry.role}
+                          onDelete={canRemove
+                            ? () => removeRole.mutate(
+                              { username: user.username, role: entry.role },
+                              { onSuccess: () => setSnackMessage('Role removed') },
+                            )
+                            : undefined}
+                        />
+                      )
+                    })}
                   </RoleChipsBox>
                   {/* Expanded panel — only visible when this row's Manage button is clicked */}
                   <Collapse in={assigningFor === user.username}>
-                    {/* Deletable chips for roles this admin can manage (scoped by canManageRole) */}
-                    {user.roles.filter((entry) => canManageRole(entry.role)).length > 0 && (
-                      <AssignRowWrap>
-                        {user.roles.filter((entry) => canManageRole(entry.role)).map((entry) => (
-                          <UserRoleChip
-                            key={entry.role}
-                            role={entry.role}
-                            onDelete={() => removeRole.mutate(
-                              { username: user.username, role: entry.role },
-                              { onSuccess: () => setSnackMessage('Role removed') },
-                            )}
-                          />
-                        ))}
-                      </AssignRowWrap>
-                    )}
                     <AssignRow>
                       {user.roles.some((e) => e.role === 'ANOMALY_ADMIN') ? (
                         <Typography variant="caption" color="text.secondary" fontStyle="italic">
@@ -170,7 +165,7 @@ export function UsersTable({ search, roleFilters = [], sort = 'latest' }: UsersT
                         The button is disabled (and tooltip explains why) when there's nothing to do. */}
                     {assigningFor !== user.username && (() => {
                       const canAdd = filterRequestableRoles(manageableRoles, user.roles.map((e) => e.role)).length > 0
-                      const canRemove = user.roles.some((e) => canManageRole(e.role))
+                      const canRemove = user.roles.some((e) => isRoleInAdminScope(e.role))
                       const canAct = canAdd || canRemove
                       return (
                         <Tooltip title={canAct ? 'Manage roles' : 'Nothing to manage'}>

@@ -8,7 +8,7 @@ import Alert from '@mui/material/Alert'
 import Divider from '@mui/material/Divider'
 import CircularProgress from '@mui/material/CircularProgress'
 import { useCreateRoleSubmission } from './hooks/useRoleSubmissions'
-import { useAuth } from '@/app/providers/AuthProvider'
+import { getCurrentRoles, isAnomalyAdmin } from '@/app/auth/auth.utils'
 import { ALL_ROLES, filterRequestableRoles, type Role } from '@/features/auth/types'
 import { StyledDialogTitle, StyledDivider, StyledDialogActions, FieldStack } from '../shared/DialogStyles.style'
 
@@ -18,7 +18,8 @@ interface CreateRoleSubmissionDialogProps {
 }
 
 export function CreateRoleSubmissionDialog({ open, onClose }: CreateRoleSubmissionDialogProps) {
-  const { roles: myRoles, isAnomalyAdmin } = useAuth()
+  const myRoles = getCurrentRoles()
+  const userIsAnomalyAdmin = isAnomalyAdmin()
   const [selected, setSelected] = useState<Role[]>([])
   const createSubmission = useCreateRoleSubmission()
   const availableRoles = filterRequestableRoles(ALL_ROLES, myRoles)
@@ -43,7 +44,7 @@ export function CreateRoleSubmissionDialog({ open, onClose }: CreateRoleSubmissi
           {createSubmission.isError && (
             <Alert severity="error">Failed to submit request. Please try again.</Alert>
           )}
-          {isAnomalyAdmin ? (
+          {userIsAnomalyAdmin ? (
             <Alert severity="info">
               You already have the highest level of access. No additional roles can be requested.
             </Alert>

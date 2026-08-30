@@ -13,10 +13,14 @@ import { AddUserDialog } from './users/AddUserDialog'
 import { FilterDialog } from './users/FilterDialog'
 import { CreateRoleSubmissionDialog } from './permissionRequests/CreateRoleSubmissionDialog'
 import { RoleSubmissionsFilterDialog } from './permissionRequests/RoleSubmissionsFilterDialog'
-import { useAuth } from '@/app/providers/AuthProvider'
+import {
+  canManagePermissions,
+  canReadPermissionManagement,
+  getRolesInAdminScope,
+} from '@/app/auth/auth.utils'
 import { useNavigate } from '@tanstack/react-router'
 import { useDebounce } from './hooks/useDebounce'
-import type { Role } from '@/features/auth/types'
+import { ALL_ROLES, type Role } from '@/features/auth/types'
 import type { RoleSubmissionStatus } from './permissionRequests/types'
 import type { SortOrder } from './shared/types'
 import {
@@ -39,7 +43,9 @@ interface PermissionManagementPageProps {
 }
 
 export function PermissionManagementPage({ view }: PermissionManagementPageProps) {
-  const { isAdmin, isAnomalyAdmin } = useAuth()
+  const isAdmin = canReadPermissionManagement()
+  const isAnomalyAdmin = canManagePermissions()
+  const filterRoleOptions = isAdmin ? getRolesInAdminScope() : ALL_ROLES
   const navigate = useNavigate()
   const activeTab: TabValue = isAdmin ? view : 'submissions'
 
@@ -202,6 +208,7 @@ export function PermissionManagementPage({ view }: PermissionManagementPageProps
         onClose={() => setUserFilterOpen(false)}
         appliedRoles={userRoles}
         appliedSort={userSort}
+        roleOptions={filterRoleOptions}
         onApply={(roles, sort) => { setUserRoles(roles); setUserSort(sort) }}
       />
 
@@ -211,6 +218,7 @@ export function PermissionManagementPage({ view }: PermissionManagementPageProps
         appliedStatuses={submissionStatuses}
         appliedRoles={submissionRoles}
         appliedSort={submissionSort}
+        roleOptions={filterRoleOptions}
         onApply={(statuses, roles, sort) => {
           setSubmissionStatuses(statuses)
           setSubmissionRoles(roles)

@@ -13,7 +13,7 @@ import {
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
-import { Roles } from '../common/decorators/roles.decorator';
+import { AdminRoles, Roles } from '../common/decorators/roles.decorator';
 import { Role } from '../common/utils/roles.util';
 import { CreateUserDto } from './dto/create-user.dto';
 import { CreateUsersDto } from './dto/create-users.dto';
@@ -27,25 +27,28 @@ export class UsersController {
 
   /**
    * GET /users
-   * Any authenticated user — list all users.
+   * Admins only. Flow admins receive users belonging to their own flows.
    */
   @Get()
+  @AdminRoles()
   findAll(
+    @Request() req: AuthedRequest,
     @Query('username') username?: string,
     @Query('roles') rolesParam?: string,
     @Query('sort') sort?: 'asc' | 'desc',
   ) {
     const roles = rolesParam ? (rolesParam.split(',') as Role[]) : undefined;
-    return this.usersService.findAll(username, roles, sort);
+    return this.usersService.findAll(req.user.roles, username, roles, sort);
   }
 
   /**
    * GET /users/:username
-   * Any authenticated user — fetch a single user by username.
+   * Admins only. Flow admins may fetch users belonging to their own flows.
    */
   @Get(':username')
-  findByUsername(@Param('username') username: string) {
-    return this.usersService.findByUsername(username);
+  @AdminRoles()
+  findByUsername(@Param('username') username: string, @Request() req: AuthedRequest) {
+    return this.usersService.findByUsername(username, req.user.roles);
   }
 
   /**

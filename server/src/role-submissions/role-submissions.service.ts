@@ -71,8 +71,13 @@ export class RoleSubmissionsService {
       return flow ? getRolesForFlow(flow) : [];
     });
 
+    const effectiveRoles = roles?.length
+      ? roles.filter((role) => flowRoles.includes(role))
+      : flowRoles;
+    if (effectiveRoles.length === 0) return [];
+
     return this.roleSubmissionModel
-      .find({ role: { $in: flowRoles }, ...usernameFilter, ...rolesFilter, ...statusFilter })
+      .find({ role: { $in: effectiveRoles }, ...usernameFilter, ...statusFilter })
       .sort({ createdAt: sortOrder })
       .limit(20)
       .exec();
@@ -95,8 +100,21 @@ export class RoleSubmissionsService {
       .exec();
   }
 
-  async findById(id: string): Promise<RoleSubmissionDocument> {
-    return this.fetchDocument(id);
+  async findById(id: string, requesterRoles: Role[]): Promise<RoleSubmissionDocument> {
+    const submission = await this.fetchDocument(id);
+    if (requesterRoles.includes(Role.ANOMALY_ADMIN)) return submission;
+
+    const scopedRoles = requesterRoles
+      .filter(isAdminRole)
+      .flatMap((role) => {
+        const flow = getFlowFromRole(role);
+        return flow ? getRolesForFlow(flow) : [];
+      });
+
+    if (!scopedRoles.includes(submission.role)) {
+      throw new NotFoundException(`Role submission "${id}" not found`);
+    }
+    return submission;
   }
 
   async approve(

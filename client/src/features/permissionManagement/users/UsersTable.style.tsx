@@ -12,10 +12,6 @@ export const AssignRow = styled(Box)(({ theme }) => ({
   marginTop: theme.spacing(1),
 }))
 
-export const AssignRowWrap = styled(AssignRow)({
-  flexWrap: 'wrap',
-})
-
 export const EmptyRow = styled(Box)(({ theme }) => ({
   display: 'flex',
   flexDirection: 'column',

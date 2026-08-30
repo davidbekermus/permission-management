@@ -17,7 +17,7 @@ import { styled } from '@mui/material/styles'
 import LockIcon from '@mui/icons-material/Lock'
 import DeleteIcon from '@mui/icons-material/Delete'
 import { useStoreItems, useCreateStoreItem, useDeleteStoreItem } from './useStores'
-import { useAuth } from '@/app/providers/AuthProvider'
+import { getCurrentRoles, isFlowAdmin } from '@/app/auth/auth.utils'
 
 const PageWrapper = styled(Box)(({ theme }) => ({
   padding: theme.spacing(3),
@@ -32,8 +32,8 @@ const FormRow = styled(Box)(({ theme }) => ({
 }))
 
 export function StoresPage() {
-  const { roles, isFlowAdmin, isAnomalyAdmin } = useAuth()
-  const hasAccess = isAnomalyAdmin || isFlowAdmin('STORE') || roles.includes('STORE_USER')
+  const roles = getCurrentRoles()
+  const hasAccess = isFlowAdmin('STORE') || roles.includes('STORE_USER')
   const isAdmin = isFlowAdmin('STORE')
 
   if (!hasAccess) {

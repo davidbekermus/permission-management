@@ -7,7 +7,7 @@ import Autocomplete from '@mui/material/Autocomplete'
 import TextField from '@mui/material/TextField'
 import Chip from '@mui/material/Chip'
 import Divider from '@mui/material/Divider'
-import { ALL_ROLES, type Role } from '@/features/auth/types'
+import type { Role } from '@/features/auth/types'
 import type { RoleSubmissionStatus } from './types'
 import type { SortOrder } from '../shared/types'
 import { ALL_STATUSES, STATUS_LABELS } from '../shared/types'
@@ -29,11 +29,12 @@ interface RoleSubmissionsFilterDialogProps {
   appliedStatuses: RoleSubmissionStatus[]
   appliedRoles: Role[]
   appliedSort: SortOrder
+  roleOptions: Role[]
   onApply: (statuses: RoleSubmissionStatus[], roles: Role[], sort: SortOrder) => void
 }
 
 export function RoleSubmissionsFilterDialog({
-  open, onClose, appliedStatuses, appliedRoles, appliedSort, onApply,
+  open, onClose, appliedStatuses, appliedRoles, appliedSort, roleOptions, onApply,
 }: RoleSubmissionsFilterDialogProps) {
   const [draftStatuses, setDraftStatuses] = useState<RoleSubmissionStatus[]>(appliedStatuses)
   const [draftRoles, setDraftRoles] = useState<Role[]>(appliedRoles)
@@ -113,7 +114,7 @@ export function RoleSubmissionsFilterDialog({
             </FilterSectionLabel>
             <Autocomplete
               multiple
-              options={ALL_ROLES}
+              options={roleOptions}
               value={draftRoles}
               onChange={(_, value) => setDraftRoles(value)}
               getOptionLabel={(role) => role.toLowerCase().replace(/_/g, '-')}

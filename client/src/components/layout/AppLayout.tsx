@@ -7,8 +7,8 @@ import Divider from '@mui/material/Divider'
 import { styled } from '@mui/material/styles'
 import HomeIcon from '@mui/icons-material/Home'
 import LogoutIcon from '@mui/icons-material/Logout'
-import { Outlet, useNavigate, useRouterState } from '@tanstack/react-router'
-import { useAuth } from '@/app/providers/AuthProvider'
+import { Outlet, useNavigate, useRouter, useRouterState } from '@tanstack/react-router'
+import { getCurrentUsername, removeUserToken } from '@/app/auth/auth.utils'
 
 const MainContent = styled(Box)(({ theme }) => ({
   backgroundColor: theme.palette.background.default,
@@ -32,14 +32,16 @@ function getPageTitle(path: string): string {
 }
 
 export function AppLayout() {
-  const { username, logout } = useAuth()
+  const username = getCurrentUsername()
   const navigate = useNavigate()
+  const router = useRouter()
   const { location } = useRouterState()
   const pageTitle = getPageTitle(location.pathname)
 
-  const handleLogout = () => {
-    logout()
-    navigate({ to: '/login' })
+  const handleLogout = async () => {
+    removeUserToken()
+    await router.invalidate()
+    await navigate({ to: '/login' })
   }
 
   return (

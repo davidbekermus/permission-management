@@ -11,8 +11,7 @@ import { PermissionManagementPage } from '@/features/permissionManagement'
 import { StoresPage } from '@/features/stores/StoresPage'
 import { ProductsPage } from '@/features/products/ProductsPage'
 import { HomePage } from '@/features/home/HomePage'
-import { jwtDecode } from 'jwt-decode'
-import type { JwtPayload } from '@/features/auth/types'
+import { canReadPermissionManagement, isAuthenticated } from '@/app/auth/auth.utils'
 
 const rootRoute = createRootRoute({ component: Outlet })
 
@@ -27,7 +26,7 @@ const appRoute = createRoute({
   path: '/app',
   component: AppLayout,
   beforeLoad: () => {
-    if (!localStorage.getItem('pm_token')) throw redirect({ to: '/login' })
+    if (!isAuthenticated()) throw redirect({ to: '/login' })
   },
 })
 
@@ -36,17 +35,6 @@ const homeRoute = createRoute({
   path: '/home',
   component: HomePage,
 })
-
-function tokenBelongsToAdmin(): boolean {
-  const token = localStorage.getItem('pm_token')
-  if (!token) return false
-  try {
-    const { roles } = jwtDecode<JwtPayload>(token)
-    return roles.some((role) => role === 'ANOMALY_ADMIN' || role.endsWith('_ADMIN'))
-  } catch {
-    return false
-  }
-}
 
 const settingsRoute = createRoute({
   getParentRoute: () => appRoute,
@@ -59,7 +47,7 @@ const settingsIndexRoute = createRoute({
   path: '/',
   beforeLoad: () => {
     throw redirect({
-      to: tokenBelongsToAdmin()
+      to: canReadPermissionManagement()
         ? '/app/settings/users'
         : '/app/settings/permission-requests',
     })
@@ -70,7 +58,7 @@ const settingsUsersRoute = createRoute({
   getParentRoute: () => settingsRoute,
   path: '/users',
   beforeLoad: () => {
-    if (!tokenBelongsToAdmin()) {
+    if (!canReadPermissionManagement()) {
       throw redirect({ to: '/app/settings/permission-requests' })
     }
   },
@@ -100,7 +88,7 @@ const indexRoute = createRoute({
   path: '/',
   beforeLoad: () => {
     throw redirect({
-      to: localStorage.getItem('pm_token') ? '/app/home' : '/login',
+      to: isAuthenticated() ? '/app/home' : '/login',
     })
   },
 })

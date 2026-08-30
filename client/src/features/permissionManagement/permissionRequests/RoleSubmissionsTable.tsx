@@ -25,9 +25,12 @@ import {
   useDeleteRoleSubmission,
 } from './hooks/useRoleSubmissions'
 import { RoleChip, RoleSubmissionStatusChip } from './RoleSubmissionChip'
-import { useAuth } from '@/app/providers/AuthProvider'
+import {
+  canManagePermissions,
+  canReadPermissionManagement,
+  getCurrentUsername,
+} from '@/app/auth/auth.utils'
 import { type Role } from '@/features/auth/types'
-import { useRoleManagement } from '../hooks/useRoleManagement'
 import type { RoleSubmission, RoleSubmissionStatus } from './types'
 import type { SortOrder } from '../shared/types'
 import {
@@ -39,18 +42,14 @@ import {
 
 interface RoleSubmissionRowProps {
   submission: RoleSubmission
-  isAdmin: boolean
   isAnomalyAdmin: boolean
-  canManageRole: (role: Role) => boolean
   currentUsername: string | null
   showActions: boolean
 }
 
 function RoleSubmissionRow({
   submission,
-  isAdmin,
   isAnomalyAdmin,
-  canManageRole,
   currentUsername,
   showActions,
 }: RoleSubmissionRowProps) {
@@ -59,8 +58,8 @@ function RoleSubmissionRow({
   const reject = useRejectRoleSubmission()
   const remove = useDeleteRoleSubmission()
   const [deleteOpen, setDeleteOpen] = useState(false)
-  const canApprove = isAnomalyAdmin && canManageRole(submission.role) && ['PENDING', 'REJECTED'].includes(submission.status)
-  const canReject = isAnomalyAdmin && canManageRole(submission.role) && submission.status === 'PENDING'
+  const canApprove = isAnomalyAdmin && ['PENDING', 'REJECTED'].includes(submission.status)
+  const canReject = isAnomalyAdmin && submission.status === 'PENDING'
   const canDeleteOwn = submission.username === currentUsername && submission.status === 'PENDING'
 
   const handleDelete = () => {
@@ -100,7 +99,7 @@ function RoleSubmissionRow({
       {showActions && (
         <TableCell align="right">
           <Stack direction="row" spacing={1} justifyContent="flex-end">
-            {isAdmin && (
+            {isAnomalyAdmin && (
               <>
                 <ActionButton
                   size="small"
@@ -176,14 +175,15 @@ export function RoleSubmissionsTable({
   roleFilters = [],
   sort = 'latest',
 }: RoleSubmissionsTableProps) {
-  const { username, isAdmin, isAnomalyAdmin } = useAuth()
-  const { canManageRole } = useRoleManagement()
+  const username = getCurrentUsername()
+  const isAdmin = canReadPermissionManagement()
+  const isAnomalyAdmin = canManagePermissions()
   const filters = { search, statuses: statusFilters, roles: roleFilters, sort }
   const allQuery = useAllRoleSubmissions(filters, isAdmin)
   const mineQuery = useMyRoleSubmissions(filters, !isAdmin)
   const { data, isLoading, isError } = isAdmin ? allQuery : mineQuery
   const submissions = data ?? []
-  const showActions = isAdmin || username !== null
+  const showActions = isAnomalyAdmin || (!isAdmin && username !== null)
   const colSpan = showActions ? 6 : 5
 
   return (
@@ -218,9 +218,7 @@ export function RoleSubmissionsTable({
                 <RoleSubmissionRow
                   key={submission._id}
                   submission={submission}
-                  isAdmin={isAdmin}
                   isAnomalyAdmin={isAnomalyAdmin}
-                  canManageRole={canManageRole}
                   currentUsername={username}
                   showActions={showActions}
                 />

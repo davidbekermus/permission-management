@@ -6,7 +6,6 @@ import { RouterProvider } from '@tanstack/react-router'
 import { SnackbarProvider } from 'notistack'
 import { router } from '@/app/router/router'
 import { QueryProvider } from '@/app/providers/QueryProvider'
-import { AuthProvider } from '@/app/providers/AuthProvider'
 import theme from '@/app/theme/theme'
 
 createRoot(document.getElementById('root')!).render(
@@ -15,9 +14,7 @@ createRoot(document.getElementById('root')!).render(
       <CssBaseline />
       <QueryProvider>
         <SnackbarProvider maxSnack={3} autoHideDuration={3000}>
-          <AuthProvider>
-            <RouterProvider router={router} />
-          </AuthProvider>
+          <RouterProvider router={router} />
         </SnackbarProvider>
       </QueryProvider>
     </ThemeProvider>

@@ -9,7 +9,7 @@ import CircularProgress from '@mui/material/CircularProgress'
 import { useSnackbar } from 'notistack'
 import { useCreateUsers } from './hooks/useUsers'
 import { ALL_ROLES, type Role } from '@/features/auth/types'
-import { useRoleManagement } from '../hooks/useRoleManagement'
+import { isRoleInAdminScope } from '@/app/auth/auth.utils'
 import { StyledDialogTitle, StyledDivider, StyledDialogActions, FieldStack } from '../shared/DialogStyles.style'
 
 interface AddUserDialogProps {
@@ -18,13 +18,12 @@ interface AddUserDialogProps {
 }
 
 export function AddUserDialog({ open, onClose }: AddUserDialogProps) {
-  const { canManageRole } = useRoleManagement()
   const { enqueueSnackbar } = useSnackbar()
   const [usernames, setUsernames] = useState<string[]>([])
   const [usernameInput, setUsernameInput] = useState('')
   const [selectedRoles, setSelectedRoles] = useState<Role[]>([])
   const createUsers = useCreateUsers()
-  const availableRoles = ALL_ROLES.filter(canManageRole)
+  const availableRoles = ALL_ROLES.filter(isRoleInAdminScope)
 
   const handleClose = () => {
     setUsernames([])

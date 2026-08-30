@@ -6,7 +6,7 @@ import ToggleButtonGroup from '@mui/material/ToggleButtonGroup'
 import Autocomplete from '@mui/material/Autocomplete'
 import TextField from '@mui/material/TextField'
 import Divider from '@mui/material/Divider'
-import { ALL_ROLES, type Role } from '@/features/auth/types'
+import type { Role } from '@/features/auth/types'
 import type { SortOrder } from '../shared/types'
 import {
   StyledDialogTitle,
@@ -24,12 +24,13 @@ interface FilterDialogProps {
   onClose: () => void
   appliedRoles: Role[]
   appliedSort: SortOrder
+  roleOptions: Role[]
   onApply: (roles: Role[], sort: SortOrder) => void
 }
 
 // Draft state pattern: edits live in local draft state and are only committed to the
 // parent when Apply is clicked. Cancelling or closing discards all in-progress changes.
-export function FilterDialog({ open, onClose, appliedRoles, appliedSort, onApply }: FilterDialogProps) {
+export function FilterDialog({ open, onClose, appliedRoles, appliedSort, roleOptions, onApply }: FilterDialogProps) {
   const [draftRoles, setDraftRoles] = useState<Role[]>(appliedRoles)
   const [draftSort, setDraftSort] = useState<SortOrder>(appliedSort)
 
@@ -83,7 +84,7 @@ export function FilterDialog({ open, onClose, appliedRoles, appliedSort, onApply
             </FilterSectionLabel>
             <Autocomplete
               multiple
-              options={ALL_ROLES}
+              options={roleOptions}
               value={draftRoles}
               onChange={(_, val) => setDraftRoles(val)}
               getOptionLabel={(r) => r.toLowerCase().replace(/_/g, '-')}
