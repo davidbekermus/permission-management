@@ -26,15 +26,6 @@ export const ContentBox = styled(Box)(({ theme }) => ({
   paddingTop: theme.spacing(2.5),
 }))
 
-export const ScreenReaderOnly = styled(Box)({
-  position: 'absolute',
-  width: '1px',
-  height: '1px',
-  overflow: 'hidden',
-  clip: 'rect(0,0,0,0)',
-  whiteSpace: 'nowrap',
-})
-
 export const StyledTabs = styled(Tabs)(({ theme }) => ({
   minHeight: 40,
   '& .MuiTabs-indicator': {
