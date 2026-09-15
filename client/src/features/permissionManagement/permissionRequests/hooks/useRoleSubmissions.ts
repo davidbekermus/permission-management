@@ -5,19 +5,12 @@ import type { RoleSubmissionAction } from '../types'
 
 const roleSubmissionsKey = 'roleSubmissions'
 
-export function useAllRoleSubmissions(filters: RoleSubmissionFilters = {}, enabled = true) {
+export function useGetRoleSubmissions(filters: RoleSubmissionFilters = {}, isAdmin = false) {
   return useQuery({
-    queryKey: [roleSubmissionsKey, 'all', filters],
-    queryFn: () => roleSubmissionsApi.getAll(filters),
-    enabled,
-  })
-}
-
-export function useMyRoleSubmissions(filters: RoleSubmissionFilters = {}, enabled = true) {
-  return useQuery({
-    queryKey: [roleSubmissionsKey, 'mine', filters],
-    queryFn: () => roleSubmissionsApi.getMine(filters),
-    enabled,
+    queryKey: [roleSubmissionsKey, isAdmin ? 'all' : 'mine', filters],
+    queryFn: () => isAdmin
+      ? roleSubmissionsApi.getAll(filters)
+      : roleSubmissionsApi.getMine(filters),
   })
 }
 

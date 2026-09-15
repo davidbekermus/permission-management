@@ -1,5 +1,9 @@
 import { Roles } from './types'
 
+export function formatRole(role: Roles): string {
+  return role.toLowerCase().replace(/_/g, '-')
+}
+
 export function getFlowFromRole(role: Roles): string | null {
   if (role === Roles.ANOMALY_ADMIN) return null
   const parts = role.split('_')

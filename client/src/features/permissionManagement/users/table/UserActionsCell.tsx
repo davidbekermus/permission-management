@@ -2,9 +2,9 @@ import TableCell from '@mui/material/TableCell'
 import Tooltip from '@mui/material/Tooltip'
 import IconButton from '@mui/material/IconButton'
 import AddIcon from '@mui/icons-material/Add'
-import type { Roles } from '../shared/types'
-import { filterRequestableRoles } from '../shared/role.utils'
-import type { User } from './types'
+import type { Roles } from '../../shared/types'
+import { filterRequestableRoles } from '../../shared/role.utils'
+import type { User } from '../types'
 
 interface UserActionsCellProps {
   user: User

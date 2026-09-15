@@ -8,6 +8,7 @@ import TextField from '@mui/material/TextField'
 import Chip from '@mui/material/Chip'
 import Divider from '@mui/material/Divider'
 import type { Roles, SortOrder } from './types'
+import { formatRole } from './role.utils'
 import {
   StyledDialogTitle,
   StyledDivider,
@@ -143,7 +144,7 @@ export function FilterDialog<TStatus extends string = never>({
               options={roleOptions}
               value={roles}
               onChange={(_, value) => setSelectedFilters((current) => ({ ...current, roles: value }))}
-              getOptionLabel={(role) => role.toLowerCase().replace(/_/g, '-')}
+              getOptionLabel={formatRole}
               renderInput={(params) => (
                 <TextField
                   {...params}

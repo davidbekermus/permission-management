@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import Button from '@mui/material/Button'
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline'
-import { RoleSubmissionsTable } from './RoleSubmissionsTable'
+import { RoleSubmissionsTable } from './table/RoleSubmissionsTable'
 import { CreateRoleSubmissionDialog } from './CreateRoleSubmissionDialog'
 import { SearchAndFilterControls } from '../shared/SearchAndFilterControls'
 import { useDebounce } from '../hooks/useDebounce'
@@ -12,8 +12,8 @@ import {
 import { ALL_ROLES, type Roles, type SortOrder } from '../shared/types'
 import {
   ALL_STATUSES,
+  RoleSubmissionStatus,
   STATUS_LABELS,
-  type RoleSubmissionStatus,
 } from './types'
 import {
   PermissionManagementLayout,
@@ -29,12 +29,24 @@ interface PermissionRequestsViewProps {
   onViewChange: (view: PermissionManagementView) => void
 }
 
+interface PermissionRequestFilters {
+  search: string
+  statuses: RoleSubmissionStatus[]
+  roles: Roles[]
+  sort: SortOrder
+}
+
+const INITIAL_FILTERS: PermissionRequestFilters = {
+  search: '',
+  statuses: [RoleSubmissionStatus.PENDING],
+  roles: [],
+  sort: 'latest',
+}
+
 export function PermissionRequestsView({ onViewChange }: PermissionRequestsViewProps) {
   const isAdmin = canReadPermissionManagement()
-  const [search, setSearch] = useState('')
-  const [statuses, setStatuses] = useState<RoleSubmissionStatus[]>(['PENDING'])
-  const [roles, setRoles] = useState<Roles[]>([])
-  const [sort, setSort] = useState<SortOrder>('latest')
+  const [filters, setFilters] = useState<PermissionRequestFilters>(INITIAL_FILTERS)
+  const { search, statuses, roles, sort } = filters
   const [createDialogOpen, setCreateDialogOpen] = useState(false)
   const debouncedSearch = useDebounce(search, 300)
   const filterCount = statuses.length + roles.length + (sort !== 'latest' ? 1 : 0)
@@ -45,7 +57,7 @@ export function PermissionRequestsView({ onViewChange }: PermissionRequestsViewP
       <SearchAndFilterControls
         dialogTitle="Filter Permission Requests"
         search={search}
-        onSearchChange={setSearch}
+        onSearchChange={(value) => setFilters((current) => ({ ...current, search: value }))}
         filterCount={filterCount}
         appliedRoles={roles}
         appliedSort={sort}
@@ -53,9 +65,12 @@ export function PermissionRequestsView({ onViewChange }: PermissionRequestsViewP
         statusOptions={STATUS_FILTER_OPTIONS}
         appliedStatuses={statuses}
         onApply={(selectedRoles, selectedSort, selectedStatuses) => {
-          setRoles(selectedRoles)
-          setSort(selectedSort)
-          setStatuses(selectedStatuses)
+          setFilters((current) => ({
+            ...current,
+            roles: selectedRoles,
+            sort: selectedSort,
+            statuses: selectedStatuses,
+          }))
         }}
       />
       <Button

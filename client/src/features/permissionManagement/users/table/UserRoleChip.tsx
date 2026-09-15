@@ -6,14 +6,11 @@
 
 import { useState } from 'react'
 import Typography from '@mui/material/Typography'
-import type { Roles } from '../shared/types'
+import type { Roles } from '../../shared/types'
+import { formatRole } from '../../shared/role.utils'
 import { StyledChip, ConfirmBox, ConfirmButton } from './UserRoleChip.style'
 
 // STORE_ADMIN → store-admin
-function toChipLabel(role: string): string {
-  return role.toLowerCase().replace(/_/g, '-')
-}
-
 interface UserRoleChipProps {
   role: Roles
   onDelete?: () => void // omit to render as display-only (no × icon)
@@ -27,7 +24,7 @@ export function UserRoleChip({ role, onDelete }: UserRoleChipProps) {
     return (
       <ConfirmBox>
         <Typography variant="caption" color="text.secondary">
-          Remove {toChipLabel(role)}?
+          Remove {formatRole(role)}?
         </Typography>
         <ConfirmButton
           size="small"
@@ -51,7 +48,7 @@ export function UserRoleChip({ role, onDelete }: UserRoleChipProps) {
   // Clicking × enters confirming state rather than deleting immediately
   return (
     <StyledChip
-      label={toChipLabel(role)}
+      label={formatRole(role)}
       size="small"
       variant="outlined"
       onDelete={onDelete ? () => setConfirming(true) : undefined}

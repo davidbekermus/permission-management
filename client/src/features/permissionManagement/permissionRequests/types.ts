@@ -1,9 +1,16 @@
 import type { Roles } from '../shared/types'
 
-export type RoleSubmissionStatus = 'PENDING' | 'APPROVED' | 'REJECTED'
-export type RoleSubmissionAction = 'ADDITION' | 'DELETION'
+export enum RoleSubmissionStatus {
+  PENDING = 'PENDING',
+  APPROVED = 'APPROVED',
+  REJECTED = 'REJECTED',
+}
+export enum RoleSubmissionAction {
+  ADDITION = 'ADDITION',
+  DELETION = 'DELETION',
+}
 
-export const ALL_STATUSES: RoleSubmissionStatus[] = ['PENDING', 'APPROVED', 'REJECTED']
+export const ALL_STATUSES = Object.values(RoleSubmissionStatus)
 
 export const STATUS_LABELS: Record<RoleSubmissionStatus, string> = {
   PENDING: 'Pending',
@@ -12,15 +19,15 @@ export const STATUS_LABELS: Record<RoleSubmissionStatus, string> = {
 }
 
 export const ACTION_LABELS: Record<RoleSubmissionAction, string> = {
-  ADDITION: 'Add',
-  DELETION: 'Delete',
+  [RoleSubmissionAction.ADDITION]: 'Add',
+  [RoleSubmissionAction.DELETION]: 'Delete',
 }
 
 export interface RoleSubmission {
   _id: string
   username: string
   role: Roles
-  action: RoleSubmissionAction
+  action?: RoleSubmissionAction
   status: RoleSubmissionStatus
   grantedBy?: string | null
   grantedAt?: string | null

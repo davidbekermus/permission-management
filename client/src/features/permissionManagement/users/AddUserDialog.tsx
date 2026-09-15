@@ -10,6 +10,7 @@ import { useSnackbar } from 'notistack'
 import { useCreateUsers } from './hooks/useUsers'
 import { ALL_ROLES, type Roles } from '../shared/types'
 import { isRoleInAdminScope } from '@/app/auth/auth.utils'
+import { formatRole } from '../shared/role.utils'
 import { StyledDialogTitle, StyledDivider, StyledDialogActions, FieldStack } from '../shared/DialogStyles.style'
 
 interface AddUserDialogProps {
@@ -127,7 +128,7 @@ export function AddUserDialog({ open, onClose }: AddUserDialogProps) {
               ...current,
               selectedRoles: roles,
             }))}
-            getOptionLabel={(role) => role.toLowerCase().replace(/_/g, '-')}
+            getOptionLabel={formatRole}
             renderInput={(params) => (
               <TextField {...params} label="Roles" size="small" helperText="Applied to every username" />
             )}

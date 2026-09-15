@@ -9,12 +9,13 @@ import Divider from '@mui/material/Divider'
 import CircularProgress from '@mui/material/CircularProgress'
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup'
 import ToggleButton from '@mui/material/ToggleButton'
+import { useSnackbar } from 'notistack'
 import { useCreateRoleSubmission } from './hooks/useRoleSubmissions'
 import { getCurrentRoles, isAnomalyAdmin } from '@/app/auth/auth.utils'
 import { ALL_ROLES, type Roles } from '../shared/types'
-import { filterRequestableRoles } from '../shared/role.utils'
+import { filterRequestableRoles, formatRole } from '../shared/role.utils'
 import { StyledDialogTitle, StyledDivider, StyledDialogActions, FieldStack } from '../shared/DialogStyles.style'
-import type { RoleSubmissionAction } from './types'
+import { RoleSubmissionAction } from './types'
 
 interface CreateRoleSubmissionDialogProps {
   open: boolean
@@ -28,16 +29,17 @@ interface SubmissionForm {
 
 const INITIAL_FORM: SubmissionForm = {
   roles: [],
-  action: 'ADDITION',
+  action: RoleSubmissionAction.ADDITION,
 }
 
 export function CreateRoleSubmissionDialog({ open, onClose }: CreateRoleSubmissionDialogProps) {
+  const { enqueueSnackbar } = useSnackbar()
   const myRoles = getCurrentRoles()
   const userIsAnomalyAdmin = isAnomalyAdmin()
   const [form, setForm] = useState<SubmissionForm>(INITIAL_FORM)
   const { roles, action } = form
   const createSubmission = useCreateRoleSubmission()
-  const availableRoles = action === 'ADDITION'
+  const availableRoles = action === RoleSubmissionAction.ADDITION
     ? filterRequestableRoles(ALL_ROLES, myRoles)
     : myRoles
 
@@ -49,7 +51,18 @@ export function CreateRoleSubmissionDialog({ open, onClose }: CreateRoleSubmissi
 
   const handleSubmit = () => {
     if (roles.length === 0) return
-    createSubmission.mutate({ roles, action }, { onSuccess: handleClose })
+    createSubmission.mutate(
+      { roles, action },
+      {
+        onSuccess: (createdSubmissions) => {
+          enqueueSnackbar(
+            `${createdSubmissions.length} permission ${createdSubmissions.length === 1 ? 'request' : 'requests'} submitted`,
+            { variant: 'success' },
+          )
+          handleClose()
+        },
+      },
+    )
   }
 
   return (
@@ -71,11 +84,11 @@ export function CreateRoleSubmissionDialog({ open, onClose }: CreateRoleSubmissi
             }}
             disabled={createSubmission.isPending}
           >
-            <ToggleButton value="ADDITION">Add</ToggleButton>
-            <ToggleButton value="DELETION">Delete</ToggleButton>
+            <ToggleButton value={RoleSubmissionAction.ADDITION}>Add</ToggleButton>
+            <ToggleButton value={RoleSubmissionAction.DELETION}>Delete</ToggleButton>
           </ToggleButtonGroup>
 
-          {userIsAnomalyAdmin && action === 'ADDITION' ? (
+          {userIsAnomalyAdmin && action === RoleSubmissionAction.ADDITION ? (
             <Alert severity="info">
               You already have the highest level of access. No additional roles can be requested.
             </Alert>
@@ -85,14 +98,14 @@ export function CreateRoleSubmissionDialog({ open, onClose }: CreateRoleSubmissi
               options={availableRoles}
               value={roles}
               onChange={(_, value) => setForm((current) => ({ ...current, roles: value }))}
-              getOptionLabel={(role) => role.toLowerCase().replace(/_/g, '-')}
+              getOptionLabel={formatRole}
               renderInput={(params) => (
                 <TextField
                   {...params}
-                  label={`Roles to ${action === 'ADDITION' ? 'add' : 'delete'}`}
+                  label={`Roles to ${action === RoleSubmissionAction.ADDITION ? 'add' : 'delete'}`}
                   size="small"
                   helperText={availableRoles.length === 0
-                    ? `No roles available to ${action === 'ADDITION' ? 'add' : 'delete'}`
+                    ? `No roles available to ${action === RoleSubmissionAction.ADDITION ? 'add' : 'delete'}`
                     : 'Each selected role creates one submission'}
                 />
               )}

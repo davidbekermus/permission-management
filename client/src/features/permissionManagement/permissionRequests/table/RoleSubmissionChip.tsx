@@ -1,23 +1,21 @@
 import type { ChipProps } from '@mui/material/Chip'
-import { ACTION_LABELS, type RoleSubmissionAction, type RoleSubmissionStatus } from './types'
-import type { Roles } from '../shared/types'
+import { ACTION_LABELS, RoleSubmissionStatus, type RoleSubmissionAction } from '../types'
+import type { Roles } from '../../shared/types'
+import { formatRole } from '../../shared/role.utils'
 import { StyledChip, StyledStatusChip } from './RoleSubmissionChip.style'
 
-function toChipLabel(value: string): string {
-  return value.toLowerCase().replace(/_/g, '-')
-}
-
 const statusColor: Record<RoleSubmissionStatus, ChipProps['color']> = {
-  APPROVED: 'success',
-  REJECTED: 'error',
-  PENDING: 'default',
+  [RoleSubmissionStatus.APPROVED]: 'success',
+  [RoleSubmissionStatus.REJECTED]: 'error',
+  [RoleSubmissionStatus.PENDING]: 'default',
 }
 
 export function RoleChip({ role }: { role: Roles }) {
-  return <StyledChip label={toChipLabel(role)} size="small" />
+  return <StyledChip label={formatRole(role)} size="small" />
 }
 
-export function RoleSubmissionActionChip({ action }: { action: RoleSubmissionAction }) {
+export function RoleSubmissionActionChip({ action }: { action?: RoleSubmissionAction }) {
+  if (!action) return null
   return <StyledChip label={ACTION_LABELS[action]} size="small" />
 }
 

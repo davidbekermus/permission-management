@@ -6,12 +6,12 @@ import Select from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
 import InputLabel from '@mui/material/InputLabel'
 import Button from '@mui/material/Button'
-import { useAssignRole, useRemoveRole } from './hooks/useUsers'
+import { useAssignRole, useRemoveRole } from '../hooks/useUsers'
 import { UserRoleChip } from './UserRoleChip'
-import { Roles } from '../shared/types'
-import { filterRequestableRoles } from '../shared/role.utils'
+import { Roles } from '../../shared/types'
+import { filterRequestableRoles, formatRole } from '../../shared/role.utils'
 import { AssignRoleRow, RoleChipsBox, StyledFormControl } from './UsersTable.style'
-import type { User } from './types'
+import type { User } from '../types'
 
 interface UserRolesCellProps {
   user: User
@@ -96,7 +96,7 @@ export function UserRolesCell({
                 >
                   {availableRoles.map((role) => (
                     <MenuItem key={role} value={role}>
-                      {role.toLowerCase().replace(/_/g, '-')}
+                      {formatRole(role)}
                     </MenuItem>
                   ))}
                 </Select>

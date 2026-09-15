@@ -9,12 +9,12 @@ import Typography from '@mui/material/Typography'
 import CircularProgress from '@mui/material/CircularProgress'
 import Alert from '@mui/material/Alert'
 import Snackbar from '@mui/material/Snackbar'
-import { useGetUsers } from './hooks/useUsers'
+import { useGetUsers } from '../hooks/useUsers'
 import { UserActionsCell } from './UserActionsCell'
 import { UserRolesCell } from './UserRolesCell'
 import { canManagePermissions, isRoleInAdminScope } from '@/app/auth/auth.utils'
-import { ALL_ROLES, type Roles } from '../shared/types'
-import { EmptyRow, EmptyTableCell } from '../shared/TableStyles.style'
+import { ALL_ROLES, type Roles } from '../../shared/types'
+import { EmptyRow, EmptyTableCell } from '../../shared/TableStyles.style'
 
 interface UsersTableProps {
   search?: string

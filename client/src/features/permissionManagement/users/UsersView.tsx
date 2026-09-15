@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import Button from '@mui/material/Button'
 import PersonAddIcon from '@mui/icons-material/PersonAdd'
-import { UsersTable } from './UsersTable'
+import { UsersTable } from './table/UsersTable'
 import { AddUserDialog } from './AddUserDialog'
 import { SearchAndFilterControls } from '../shared/SearchAndFilterControls'
 import { useDebounce } from '../hooks/useDebounce'
