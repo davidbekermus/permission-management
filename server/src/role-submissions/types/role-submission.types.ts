@@ -5,12 +5,17 @@ export enum RoleSubmissionStatus {
   PENDING = 'PENDING',
   APPROVED = 'APPROVED',
   REJECTED = 'REJECTED',
-  DELETED = 'DELETED',
+}
+
+export enum RoleSubmissionAction {
+  ADDITION = 'ADDITION',
+  DELETION = 'DELETION',
 }
 
 export class RoleSubmissionItem {
   username: string;
   role: Role;
+  action: RoleSubmissionAction;
   status: RoleSubmissionStatus;
   grantedBy?: string;
   grantedAt?: Date;

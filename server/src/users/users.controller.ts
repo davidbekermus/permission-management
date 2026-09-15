@@ -19,11 +19,15 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { CreateUsersDto } from './dto/create-users.dto';
 import { AssignRoleDto } from './dto/assign-role.dto';
 import { AuthedRequest } from '../common/interfaces/authed-request.interface';
+import { AdminService } from '../admin/admin.service';
 
 @UseGuards(JwtAuthGuard)
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly adminService: AdminService,
+  ) {}
 
   /**
    * GET /users
@@ -57,13 +61,13 @@ export class UsersController {
   @Post()
   @Roles(Role.ANOMALY_ADMIN)
   create(@Body() dto: CreateUserDto, @Request() req: AuthedRequest) {
-    return this.usersService.createUser(dto.username, dto.roles, req.user.roles, req.user.username);
+    return this.adminService.createUser(dto.username, dto.roles, req.user.roles, req.user.username);
   }
 
   @Post('bulk')
   @Roles(Role.ANOMALY_ADMIN)
   createMany(@Body() dto: CreateUsersDto, @Request() req: AuthedRequest) {
-    return this.usersService.createUsers(dto.usernames, dto.roles, req.user.roles, req.user.username);
+    return this.adminService.createUsers(dto.usernames, dto.roles, req.user.roles, req.user.username);
   }
 
   /**
@@ -76,7 +80,7 @@ export class UsersController {
     @Body() dto: AssignRoleDto,
     @Request() req: AuthedRequest,
   ) {
-    return this.usersService.assignRole(username, dto.role, req.user.roles, req.user.username);
+    return this.adminService.assignRole(username, dto.role, req.user.roles, req.user.username);
   }
 
   /**
@@ -89,6 +93,6 @@ export class UsersController {
     @Param('role', new ParseEnumPipe(Role)) roleToRemove: Role,
     @Request() req: AuthedRequest,
   ) {
-    return this.usersService.removeRole(username, roleToRemove, req.user.roles, req.user.username);
+    return this.adminService.removeRole(username, roleToRemove, req.user.roles, req.user.username);
   }
 }

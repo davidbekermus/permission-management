@@ -7,33 +7,49 @@ import Button from '@mui/material/Button'
 import Alert from '@mui/material/Alert'
 import Divider from '@mui/material/Divider'
 import CircularProgress from '@mui/material/CircularProgress'
+import ToggleButtonGroup from '@mui/material/ToggleButtonGroup'
+import ToggleButton from '@mui/material/ToggleButton'
 import { useCreateRoleSubmission } from './hooks/useRoleSubmissions'
 import { getCurrentRoles, isAnomalyAdmin } from '@/app/auth/auth.utils'
 import { ALL_ROLES, type Roles } from '../shared/types'
 import { filterRequestableRoles } from '../shared/role.utils'
 import { StyledDialogTitle, StyledDivider, StyledDialogActions, FieldStack } from '../shared/DialogStyles.style'
+import type { RoleSubmissionAction } from './types'
 
 interface CreateRoleSubmissionDialogProps {
   open: boolean
   onClose: () => void
 }
 
+interface SubmissionForm {
+  roles: Roles[]
+  action: RoleSubmissionAction
+}
+
+const INITIAL_FORM: SubmissionForm = {
+  roles: [],
+  action: 'ADDITION',
+}
+
 export function CreateRoleSubmissionDialog({ open, onClose }: CreateRoleSubmissionDialogProps) {
   const myRoles = getCurrentRoles()
   const userIsAnomalyAdmin = isAnomalyAdmin()
-  const [selected, setSelected] = useState<Roles[]>([])
+  const [form, setForm] = useState<SubmissionForm>(INITIAL_FORM)
+  const { roles, action } = form
   const createSubmission = useCreateRoleSubmission()
-  const availableRoles = filterRequestableRoles(ALL_ROLES, myRoles)
+  const availableRoles = action === 'ADDITION'
+    ? filterRequestableRoles(ALL_ROLES, myRoles)
+    : myRoles
 
   const handleClose = () => {
-    setSelected([])
+    setForm(INITIAL_FORM)
     createSubmission.reset()
     onClose()
   }
 
   const handleSubmit = () => {
-    if (selected.length === 0) return
-    createSubmission.mutate(selected, { onSuccess: handleClose })
+    if (roles.length === 0) return
+    createSubmission.mutate({ roles, action }, { onSuccess: handleClose })
   }
 
   return (
@@ -45,7 +61,21 @@ export function CreateRoleSubmissionDialog({ open, onClose }: CreateRoleSubmissi
           {createSubmission.isError && (
             <Alert severity="error">Failed to submit request. Please try again.</Alert>
           )}
-          {userIsAnomalyAdmin ? (
+          <ToggleButtonGroup
+            value={action}
+            exclusive
+            fullWidth
+            size="small"
+            onChange={(_, value: RoleSubmissionAction | null) => {
+              if (value) setForm({ roles: [], action: value })
+            }}
+            disabled={createSubmission.isPending}
+          >
+            <ToggleButton value="ADDITION">Add</ToggleButton>
+            <ToggleButton value="DELETION">Delete</ToggleButton>
+          </ToggleButtonGroup>
+
+          {userIsAnomalyAdmin && action === 'ADDITION' ? (
             <Alert severity="info">
               You already have the highest level of access. No additional roles can be requested.
             </Alert>
@@ -53,15 +83,17 @@ export function CreateRoleSubmissionDialog({ open, onClose }: CreateRoleSubmissi
             <Autocomplete
               multiple
               options={availableRoles}
-              value={selected}
-              onChange={(_, value) => setSelected(value)}
+              value={roles}
+              onChange={(_, value) => setForm((current) => ({ ...current, roles: value }))}
               getOptionLabel={(role) => role.toLowerCase().replace(/_/g, '-')}
               renderInput={(params) => (
                 <TextField
                   {...params}
-                  label="Roles to request"
+                  label={`Roles to ${action === 'ADDITION' ? 'add' : 'delete'}`}
                   size="small"
-                  helperText="Each selected role creates one submission"
+                  helperText={availableRoles.length === 0
+                    ? `No roles available to ${action === 'ADDITION' ? 'add' : 'delete'}`
+                    : 'Each selected role creates one submission'}
                 />
               )}
               disabled={createSubmission.isPending}
@@ -77,7 +109,7 @@ export function CreateRoleSubmissionDialog({ open, onClose }: CreateRoleSubmissi
         <Button
           variant="contained"
           onClick={handleSubmit}
-          disabled={selected.length === 0 || createSubmission.isPending}
+          disabled={roles.length === 0 || createSubmission.isPending}
           startIcon={createSubmission.isPending ? <CircularProgress size={14} color="inherit" /> : null}
         >
           {createSubmission.isPending ? 'Submitting...' : 'Submit request'}

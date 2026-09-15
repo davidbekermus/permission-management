@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { roleSubmissionsApi, type RoleSubmissionFilters } from '../services/roleSubmissionsApi'
 import type { Roles } from '../../shared/types'
+import type { RoleSubmissionAction } from '../types'
 
 const roleSubmissionsKey = 'roleSubmissions'
 
@@ -23,7 +24,8 @@ export function useMyRoleSubmissions(filters: RoleSubmissionFilters = {}, enable
 export function useCreateRoleSubmission() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (roles: Roles[]) => roleSubmissionsApi.create(roles),
+    mutationFn: ({ roles, action }: { roles: Roles[]; action: RoleSubmissionAction }) =>
+      roleSubmissionsApi.create(roles, action),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [roleSubmissionsKey] })
     },

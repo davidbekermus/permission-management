@@ -1,19 +1,19 @@
 import {
   Injectable,
+  BadRequestException,
   NotFoundException,
   ConflictException,
   ForbiddenException,
 } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { RoleSubmissionDocument } from './schemas/role-submission.schema';
 import {
-  RoleSubmission,
-  RoleSubmissionDocument,
-} from './schemas/role-submission.schema';
-import { RoleSubmissionStatus } from './types/role-submission.types';
+  RoleSubmissionAction,
+  RoleSubmissionStatus,
+} from './types/role-submission.types';
 import { CreateRoleSubmissionDto } from './dto/create-role-submission.dto';
-import { UsersService } from '../users/users.service';
-import { isReviewableStatus } from './utils/role-submission.utils';
+import { UsersRepository } from '../users/users.repository';
+import { RoleSubmissionsRepository } from './role-submissions.repository';
+import { AdminService } from '../admin/admin.service';
 import {
   Role,
   isAdminRole,
@@ -25,22 +25,31 @@ import {
 @Injectable()
 export class RoleSubmissionsService {
   constructor(
-    @InjectModel(RoleSubmission.name)
-    private readonly roleSubmissionModel: Model<RoleSubmissionDocument>,
-    private readonly usersService: UsersService,
+    private readonly submissionsRepository: RoleSubmissionsRepository,
+    private readonly usersRepository: UsersRepository,
+    private readonly adminService: AdminService,
   ) {}
 
   async create(
     username: string,
     dto: CreateRoleSubmissionDto,
   ): Promise<RoleSubmissionDocument[]> {
-    const submissions = dto.roles.map((role) => ({
-      username,
-      role,
-      status: RoleSubmissionStatus.PENDING,
-    }));
+    if (dto.action === RoleSubmissionAction.DELETION) {
+      const user = await this.usersRepository.findByUsername(username);
+      if (!user) throw new NotFoundException(`User "${username}" not found`);
+      const heldRoles = user.roles.map((entry) => entry.role);
+      const rolesNotHeld = dto.roles.filter((role) => !heldRoles.includes(role));
+      if (rolesNotHeld.length > 0) {
+        throw new BadRequestException('Deletion requests may only include roles currently held by the user');
+      }
+    }
 
-    return this.roleSubmissionModel.insertMany(submissions);
+    return this.submissionsRepository.createMany({
+      username,
+      roles: dto.roles,
+      action: dto.action,
+      status: RoleSubmissionStatus.PENDING,
+    });
   }
 
   async findAll(
@@ -56,11 +65,10 @@ export class RoleSubmissionsService {
     const sortOrder = sort === 'asc' ? 1 : -1;
 
     if (requesterRoles.includes(Role.ANOMALY_ADMIN)) {
-      return this.roleSubmissionModel
-        .find({ ...usernameFilter, ...rolesFilter, ...statusFilter })
-        .sort({ createdAt: sortOrder })
-        .limit(20)
-        .exec();
+      return this.submissionsRepository.find(
+        { ...usernameFilter, ...rolesFilter, ...statusFilter },
+        sortOrder,
+      );
     }
 
     const adminRoles = requesterRoles.filter(isAdminRole);
@@ -76,11 +84,10 @@ export class RoleSubmissionsService {
       : flowRoles;
     if (effectiveRoles.length === 0) return [];
 
-    return this.roleSubmissionModel
-      .find({ role: { $in: effectiveRoles }, ...usernameFilter, ...statusFilter })
-      .sort({ createdAt: sortOrder })
-      .limit(20)
-      .exec();
+    return this.submissionsRepository.find(
+      { role: { $in: effectiveRoles }, ...usernameFilter, ...statusFilter },
+      sortOrder,
+    );
   }
 
   async findMine(
@@ -93,11 +100,10 @@ export class RoleSubmissionsService {
     const statusFilter = statuses?.length ? { status: { $in: statuses } } : {};
     const sortOrder = sort === 'asc' ? 1 : -1;
 
-    return this.roleSubmissionModel
-      .find({ username: requesterUsername, ...rolesFilter, ...statusFilter })
-      .sort({ createdAt: sortOrder })
-      .limit(20)
-      .exec();
+    return this.submissionsRepository.find(
+      { username: requesterUsername, ...rolesFilter, ...statusFilter },
+      sortOrder,
+    );
   }
 
   async findById(id: string, requesterRoles: Role[]): Promise<RoleSubmissionDocument> {
@@ -122,24 +128,11 @@ export class RoleSubmissionsService {
     reviewerUsername: string,
     reviewerRoles: Role[],
   ): Promise<RoleSubmissionDocument> {
-    const submission = await this.fetchDocument(submissionId);
-    assertIsAnomalyAdmin(reviewerRoles, 'approve');
-
-    if (!isReviewableStatus(submission.status)) {
-      throw new ConflictException(`Role submission ${submissionId} is already ${submission.status}`);
-    }
-
-    const grantedAt = new Date();
-    await this.usersService.upsertUserWithRoles(
-      submission.username,
-      [{ role: submission.role, grantedBy: reviewerUsername }],
-      false,
+    return this.adminService.approveSubmission(
+      submissionId,
+      reviewerUsername,
+      reviewerRoles,
     );
-
-    submission.status = RoleSubmissionStatus.APPROVED;
-    submission.grantedBy = reviewerUsername;
-    submission.grantedAt = grantedAt;
-    return submission.save();
   }
 
   async reject(
@@ -157,12 +150,12 @@ export class RoleSubmissionsService {
     submission.status = RoleSubmissionStatus.REJECTED;
     submission.grantedBy = reviewerUsername;
     submission.grantedAt = new Date();
-    return submission.save();
+    return this.submissionsRepository.save(submission);
   }
 
   async deleteMine(submissionId: string, requesterUsername: string): Promise<void> {
     const submission = await this.fetchOwnedPendingDocument(submissionId, requesterUsername);
-    await submission.deleteOne();
+    await this.submissionsRepository.delete(submission);
   }
 
   private async fetchOwnedPendingDocument(
@@ -180,7 +173,7 @@ export class RoleSubmissionsService {
   }
 
   private async fetchDocument(id: string): Promise<RoleSubmissionDocument> {
-    const submission = await this.roleSubmissionModel.findById(id).exec();
+    const submission = await this.submissionsRepository.findById(id);
     if (!submission) throw new NotFoundException(`Role submission ${id} not found`);
     return submission;
   }

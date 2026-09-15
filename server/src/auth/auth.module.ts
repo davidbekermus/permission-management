@@ -6,6 +6,7 @@ import { AuthService } from './auth.service';
 import { JwtStrategy } from './jwt.strategy';
 import { UsersModule } from '../users/users.module';
 import { JWT_SECRET, JWT_EXPIRES_IN } from './auth.constants';
+import { AdminModule } from '../admin/admin.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { JWT_SECRET, JWT_EXPIRES_IN } from './auth.constants';
       signOptions: { expiresIn: JWT_EXPIRES_IN },
     }),
     UsersModule, // AuthService needs UsersService to look up existing users
+    AdminModule,
   ],
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy],

@@ -1,5 +1,6 @@
 import { IsArray, IsEnum, ArrayMinSize, ArrayUnique, IsNotEmpty } from 'class-validator';
 import { Role } from '../../common/utils/roles.util';
+import { RoleSubmissionAction } from '../types/role-submission.types';
 
 export class CreateRoleSubmissionDto {
   @IsNotEmpty()
@@ -8,4 +9,7 @@ export class CreateRoleSubmissionDto {
   @ArrayUnique()
   @IsEnum(Role, { each: true })
   roles: Role[];
+
+  @IsEnum(RoleSubmissionAction)
+  action: RoleSubmissionAction;
 }

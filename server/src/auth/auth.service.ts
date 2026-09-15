@@ -4,12 +4,14 @@ import { UsersService } from '../users/users.service';
 import { Role } from '../common/utils/roles.util';
 import { JwtPayload } from './jwt.strategy';
 import { SEED_ADMIN_USERNAME } from './auth.constants';
+import { AdminService } from '../admin/admin.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly jwtService: JwtService,
     private readonly usersService: UsersService,
+    private readonly adminService: AdminService,
   ) {}
 
   /**
@@ -69,7 +71,7 @@ export class AuthService {
       if (!(e instanceof NotFoundException)) throw e;
     }
 
-    await this.usersService.createUser(SEED_ADMIN_USERNAME, [Role.ANOMALY_ADMIN], undefined, 'system');
+    await this.adminService.createSystemUser(SEED_ADMIN_USERNAME, [Role.ANOMALY_ADMIN]);
     return { message: `${SEED_ADMIN_USERNAME} created with ANOMALY_ADMIN role` };
   }
 }

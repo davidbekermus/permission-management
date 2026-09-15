@@ -25,7 +25,11 @@ import {
   useRejectRoleSubmission,
   useDeleteRoleSubmission,
 } from './hooks/useRoleSubmissions'
-import { RoleChip, RoleSubmissionStatusChip } from './RoleSubmissionChip'
+import {
+  RoleChip,
+  RoleSubmissionActionChip,
+  RoleSubmissionStatusChip,
+} from './RoleSubmissionChip'
 import {
   canManagePermissions,
   canReadPermissionManagement,
@@ -80,6 +84,9 @@ function RoleSubmissionRow({
       </TableCell>
       <TableCell>
         <RoleChip role={submission.role} />
+      </TableCell>
+      <TableCell>
+        <RoleSubmissionActionChip action={submission.action} />
       </TableCell>
       <TableCell>
         <RoleSubmissionStatusChip status={submission.status} />
@@ -182,7 +189,7 @@ export function RoleSubmissionsTable({
   const { data, isLoading, isError } = isAdmin ? allQuery : mineQuery
   const submissions = data ?? []
   const showActions = isAnomalyAdmin || (!isAdmin && username !== null)
-  const colSpan = showActions ? 6 : 5
+  const colSpan = showActions ? 7 : 6
 
   return (
     <>
@@ -196,6 +203,7 @@ export function RoleSubmissionsTable({
               <TableRow>
                 <TableCell>Requester</TableCell>
                 <TableCell>Requested role</TableCell>
+                <TableCell>Action</TableCell>
                 <TableCell>Status</TableCell>
                 <TableCell>Granted by</TableCell>
                 <TableCell>Date</TableCell>

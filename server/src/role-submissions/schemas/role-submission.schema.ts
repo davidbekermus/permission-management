@@ -1,7 +1,10 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 import { Role } from '../../common/utils/roles.util';
-import { RoleSubmissionStatus } from '../types/role-submission.types';
+import {
+  RoleSubmissionAction,
+  RoleSubmissionStatus,
+} from '../types/role-submission.types';
 
 export type RoleSubmissionDocument = RoleSubmission & Document;
 
@@ -16,6 +19,13 @@ export class RoleSubmission {
 
   @Prop({ type: String, enum: Object.values(Role), required: true })
   role: Role;
+
+  @Prop({
+    type: String,
+    enum: Object.values(RoleSubmissionAction),
+    required: true,
+  })
+  action: RoleSubmissionAction;
 
   @Prop({
     type: String,

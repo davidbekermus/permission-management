@@ -1,23 +1,13 @@
 import { Module } from '@nestjs/common';
-import { MongooseModule } from '@nestjs/mongoose';
+import { AdminModule } from '../admin/admin.module';
+import { PersistenceModule } from '../persistence/persistence.module';
 import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
-import { User, UserSchema } from './schemas/user.schema';
-import {
-  RoleSubmission,
-  RoleSubmissionSchema,
-} from '../role-submissions/schemas/role-submission.schema';
 
 @Module({
-  imports: [
-    MongooseModule.forFeature([
-      { name: User.name, schema: UserSchema },
-      { name: RoleSubmission.name, schema: RoleSubmissionSchema },
-    ]),
-  ],
+  imports: [PersistenceModule, AdminModule],
   controllers: [UsersController],
   providers: [UsersService],
-  // Export UsersService so AuthModule and RoleSubmissionsModule can inject it
   exports: [UsersService],
 })
 export class UsersModule {}
