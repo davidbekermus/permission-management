@@ -61,6 +61,7 @@ export function CreateRoleSubmissionDialog({ open, onClose }: CreateRoleSubmissi
           )
           handleClose()
         },
+        onError: () => enqueueSnackbar('Failed to submit permission request', { variant: 'error' }),
       },
     )
   }
