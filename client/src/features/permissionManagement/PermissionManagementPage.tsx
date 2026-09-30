@@ -8,7 +8,7 @@ interface PermissionManagementPageProps {
   view: PermissionManagementView
 }
 
-export function PermissionManagementPage({ view }: PermissionManagementPageProps) {
+export const PermissionManagementPage = ({ view }: PermissionManagementPageProps) => {
   const isAdmin = canReadPermissionManagement()
   const navigate = useNavigate()
   // only adimns have reading rights to see users with flow admins only seeing users of the own flow
