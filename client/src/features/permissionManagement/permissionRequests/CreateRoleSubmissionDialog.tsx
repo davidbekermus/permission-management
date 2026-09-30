@@ -66,7 +66,7 @@ export function CreateRoleSubmissionDialog({ open, onClose }: CreateRoleSubmissi
   }
 
   return (
-    <Dialog open={open} onClose={handleClose} fullWidth maxWidth="xs">
+    <Dialog open={open} onClose={createSubmission.isPending ? undefined : handleClose} fullWidth maxWidth="xs">
       <StyledDialogTitle>Request Permission</StyledDialogTitle>
       <StyledDivider />
       <DialogContent>
