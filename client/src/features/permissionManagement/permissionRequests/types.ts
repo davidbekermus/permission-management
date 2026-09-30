@@ -13,9 +13,9 @@ export enum RoleSubmissionAction {
 export const ALL_STATUSES = Object.values(RoleSubmissionStatus)
 
 export const STATUS_LABELS: Record<RoleSubmissionStatus, string> = {
-  PENDING: 'Pending',
-  APPROVED: 'Approved',
-  REJECTED: 'Rejected',
+  [RoleSubmissionStatus.PENDING]: 'Pending',
+  [RoleSubmissionStatus.APPROVED]: 'Approved',
+  [RoleSubmissionStatus.REJECTED]: 'Rejected',
 }
 
 export const ACTION_LABELS: Record<RoleSubmissionAction, string> = {
@@ -27,7 +27,7 @@ export interface RoleSubmission {
   _id: string
   username: string
   role: Roles
-  action?: RoleSubmissionAction
+  action: RoleSubmissionAction
   status: RoleSubmissionStatus
   grantedBy?: string | null
   grantedAt?: string | null

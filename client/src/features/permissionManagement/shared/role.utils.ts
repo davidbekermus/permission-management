@@ -1,5 +1,6 @@
 import { Roles } from './types'
 
+// STORE_ADMIN → store-admin
 export function formatRole(role: Roles): string {
   return role.toLowerCase().replace(/_/g, '-')
 }

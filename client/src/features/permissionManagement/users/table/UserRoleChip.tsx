@@ -10,7 +10,6 @@ import type { Roles } from '../../shared/types'
 import { formatRole } from '../../shared/role.utils'
 import { StyledChip, ConfirmBox, ConfirmButton } from './UserRoleChip.style'
 
-// STORE_ADMIN → store-admin
 interface UserRoleChipProps {
   role: Roles
   onDelete?: () => void // omit to render as display-only (no × icon)
