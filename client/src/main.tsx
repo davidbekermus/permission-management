@@ -1,0 +1,22 @@
+import { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
+import { ThemeProvider } from '@mui/material/styles'
+import CssBaseline from '@mui/material/CssBaseline'
+import { RouterProvider } from '@tanstack/react-router'
+import { SnackbarProvider } from 'notistack'
+import { router } from '@/app/router/router'
+import { QueryProvider } from '@/app/providers/QueryProvider'
+import theme from '@/app/theme/theme'
+
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <QueryProvider>
+        <SnackbarProvider maxSnack={3} autoHideDuration={3000}>
+          <RouterProvider router={router} />
+        </SnackbarProvider>
+      </QueryProvider>
+    </ThemeProvider>
+  </StrictMode>,
+)
