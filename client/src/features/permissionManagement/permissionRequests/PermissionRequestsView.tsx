@@ -1,5 +1,8 @@
 import { useState } from 'react'
 import Button from '@mui/material/Button'
+import Chip from '@mui/material/Chip'
+import Stack from '@mui/material/Stack'
+import Typography from '@mui/material/Typography'
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline'
 import { RoleSubmissionsTable } from './table/RoleSubmissionsTable'
 import { CreateRoleSubmissionDialog } from './CreateRoleSubmissionDialog'
@@ -91,6 +94,35 @@ export function PermissionRequestsView({ onViewChange }: PermissionRequestsViewP
       toolbarActions={toolbarActions}
       onViewChange={onViewChange}
     >
+      {statuses.length > 0 && (
+        <Stack
+          direction="row"
+          spacing={1}
+          alignItems="center"
+          flexWrap="wrap"
+          useFlexGap
+          sx={{ mb: 2 }}
+        >
+          <Typography variant="body2" color="text.secondary">
+            Showing:
+          </Typography>
+          {statuses.map((status) => (
+            <Chip
+              key={status}
+              label={STATUS_LABELS[status]}
+              size="small"
+              variant="outlined"
+              onDelete={() => {
+                setFilters((current) => ({
+                  ...current,
+                  statuses: current.statuses.filter((item) => item !== status),
+                }))
+              }}
+            />
+          ))}
+        </Stack>
+      )}
+
       <RoleSubmissionsTable
         search={debouncedSearch}
         statusFilters={statuses}
