@@ -1,5 +1,5 @@
 // Shared styled components used identically across all four dialogs
-// (FilterDialog, CreateRoleSubmissionDialog, AddUserDialog).
+// (FilterDialog, CreateRoleSubmissionDialog, DeleteRoleSubmissionDialog, AddUserDialog).
 // Import from here instead of redefining per-dialog.
 
 import { styled } from '@mui/material/styles'

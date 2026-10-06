@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import TableCell from '@mui/material/TableCell'
 import Stack from '@mui/material/Stack'
+import Button from '@mui/material/Button'
 import IconButton from '@mui/material/IconButton'
 import Tooltip from '@mui/material/Tooltip'
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
@@ -11,7 +12,7 @@ import {
   useRejectRoleSubmission,
 } from '../hooks/useRoleSubmissions'
 import { DeleteRoleSubmissionDialog } from './DeleteRoleSubmissionDialog'
-import { ActionButton } from './RoleSubmissionsTable.style'
+import { ActionButtons } from './RoleSubmissionsTable.style'
 import { RoleSubmissionStatus, type RoleSubmission } from '../types'
 
 interface RoleSubmissionActionsCellProps {
@@ -66,14 +67,14 @@ export const RoleSubmissionActionsCell = ({
     <TableCell align="right">
       <Stack direction="row" spacing={1} justifyContent="flex-end">
         {isAnomalyAdmin && (
-          <>
-            <ActionButton size="small" variant="contained" color="success" disabled={!canApprove || isActionPending} onClick={handleApprove}>
+          <ActionButtons>
+            <Button size="small" variant="contained" color="success" disabled={!canApprove || isActionPending} onClick={handleApprove}>
               Approve
-            </ActionButton>
-            <ActionButton size="small" variant="outlined" color="error" disabled={!canReject || isActionPending} onClick={handleReject}>
+            </Button>
+            <Button size="small" variant="outlined" color="error" disabled={!canReject || isActionPending} onClick={handleReject}>
               Reject
-            </ActionButton>
-          </>
+            </Button>
+          </ActionButtons>
         )}
         {canDeleteOwn && (
           <Tooltip title="Delete permission request">

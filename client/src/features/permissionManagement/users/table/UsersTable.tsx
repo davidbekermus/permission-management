@@ -33,7 +33,6 @@ export const UsersTable = ({ search, roleFilters = [], sort = 'latest' }: UsersT
   // this has to change in the real app to the generated type
   const manageableRoles = ALL_ROLES.filter(isRoleInAdminScope)
 
-  if (isLoading) return <CircularProgress size={24} />
   if (isError) return <Alert severity="error">Failed to load users.</Alert>
 
   return (
@@ -49,7 +48,14 @@ export const UsersTable = ({ search, roleFilters = [], sort = 'latest' }: UsersT
             </TableRow>
           </TableHead>
           <TableBody>
-            {users.length === 0 && (
+            {isLoading && (
+              <TableRow>
+                <EmptyTableCell colSpan={isAnomalyAdmin ? 4 : 3}>
+                  <EmptyRow><CircularProgress /></EmptyRow>
+                </EmptyTableCell>
+              </TableRow>
+            )}
+            {!isLoading && users.length === 0 && (
               <TableRow>
                 <EmptyTableCell colSpan={isAnomalyAdmin ? 4 : 3}>
                   <EmptyRow>
@@ -58,7 +64,7 @@ export const UsersTable = ({ search, roleFilters = [], sort = 'latest' }: UsersT
                 </EmptyTableCell>
               </TableRow>
             )}
-            {users.map((user) => (
+            {!isLoading && users.map((user) => (
               <TableRow key={user._id}>
                 <TableCell>
                   <Typography variant="body2" fontWeight={500}>{user.username}</Typography>

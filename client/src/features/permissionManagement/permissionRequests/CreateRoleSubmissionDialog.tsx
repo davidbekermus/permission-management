@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { isAxiosError } from 'axios'
 import Dialog from '@mui/material/Dialog'
 import DialogContent from '@mui/material/DialogContent'
 import Autocomplete from '@mui/material/Autocomplete'
@@ -31,7 +32,6 @@ export const CreateRoleSubmissionDialog = ({ open, onClose, onSubmitted }: Creat
 
   const handleClose = () => {
     setRoles([])
-    createSubmission.reset()
     onClose()
   }
 
@@ -48,7 +48,10 @@ export const CreateRoleSubmissionDialog = ({ open, onClose, onSubmitted }: Creat
           handleClose()
           onSubmitted()
         },
-        onError: () => enqueueSnackbar('Failed to submit permission request', { variant: 'error' }),
+        onError: (error) => {
+          const message = isAxiosError<{ message?: string }>(error) ? error.response?.data?.message : undefined
+          enqueueSnackbar(message || 'Failed to submit permission request', { variant: 'error' })
+        },
       },
     )
   }
@@ -59,9 +62,6 @@ export const CreateRoleSubmissionDialog = ({ open, onClose, onSubmitted }: Creat
       <StyledDivider />
       <DialogContent>
         <FieldStack>
-          {createSubmission.isError && (
-            <Alert severity="error">Failed to submit request. Please try again.</Alert>
-          )}
           {userIsAnomalyAdmin ? (
             <Alert severity="info">
               You already have the highest level of access. No additional roles can be requested.

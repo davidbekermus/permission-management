@@ -33,7 +33,6 @@ export const RoleSubmissionsTable = ({ scope, search = '', statusFilters = [], r
   )
   const colSpan = showControls ? 7 : 6
 
-  if (isLoading) return <CircularProgress size={24} />
   if (isError) return <Alert severity="error">Failed to load permission requests.</Alert>
 
   return (
@@ -51,14 +50,21 @@ export const RoleSubmissionsTable = ({ scope, search = '', statusFilters = [], r
           </TableRow>
         </TableHead>
         <TableBody>
-          {submissions.length === 0 && (
+          {isLoading && (
+            <TableRow>
+              <EmptyTableCell colSpan={colSpan}>
+                <EmptyRow><CircularProgress /></EmptyRow>
+              </EmptyTableCell>
+            </TableRow>
+          )}
+          {!isLoading && submissions.length === 0 && (
             <TableRow>
               <EmptyTableCell colSpan={colSpan}>
                 <EmptyRow><Typography variant="body2">No permission requests</Typography></EmptyRow>
               </EmptyTableCell>
             </TableRow>
           )}
-          {submissions.map((submission) => (
+          {!isLoading && submissions.map((submission) => (
             <RoleSubmissionRow
               key={submission._id}
               submission={submission}
