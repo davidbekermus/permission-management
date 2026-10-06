@@ -7,26 +7,26 @@ import TableContainer from '@mui/material/TableContainer'
 import Typography from '@mui/material/Typography'
 import CircularProgress from '@mui/material/CircularProgress'
 import Alert from '@mui/material/Alert'
-import { useGetRoleSubmissions } from '../hooks/useRoleSubmissions'
+import { useGetRoleSubmissions, type RoleSubmissionScope } from '../hooks/useRoleSubmissions'
 import { RoleSubmissionRow } from './RoleSubmissionRow'
-import { canManagePermissions, canReadPermissionManagement, getCurrentUsername } from '@/app/auth/auth.utils'
+import { canManagePermissions, getCurrentUsername } from '@/app/auth/auth.utils'
 import type { Roles, SortOrder } from '../../shared/types'
 import { RoleSubmissionStatus } from '../types'
 import { EmptyRow, EmptyTableCell } from '../../shared/TableStyles.style'
 
 interface RoleSubmissionsTableProps {
+  scope: RoleSubmissionScope
   search?: string
   statusFilters?: RoleSubmissionStatus[]
   roleFilters?: Roles[]
   sort?: SortOrder
 }
 
-export const RoleSubmissionsTable = ({ search = '', statusFilters = [], roleFilters = [], sort = 'latest' }: RoleSubmissionsTableProps) => {
+export const RoleSubmissionsTable = ({ scope, search = '', statusFilters = [], roleFilters = [], sort = 'latest' }: RoleSubmissionsTableProps) => {
   const username = getCurrentUsername()
-  const isAdmin = canReadPermissionManagement()
-  const isAnomalyAdmin = canManagePermissions()
+  const isAnomalyAdmin = scope === 'review' && canManagePermissions()
   const filters = { search, statuses: statusFilters, roles: roleFilters, sort }
-  const { data, isLoading, isError } = useGetRoleSubmissions(filters, isAdmin)
+  const { data, isLoading, isError } = useGetRoleSubmissions(filters, scope)
   const submissions = data ?? []
   const showControls = isAnomalyAdmin || submissions.some(
     (submission) => submission.username === username && submission.status === RoleSubmissionStatus.PENDING,

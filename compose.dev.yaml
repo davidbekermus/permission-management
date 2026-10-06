@@ -16,7 +16,6 @@ services:
     volumes:
       - ./server:/app
       - server_node_modules:/app/node_modules
-      - server_dist:/app/dist
 
   client:
     build:
@@ -37,5 +36,4 @@ services:
 volumes:
   mongo_data:
   server_node_modules:
-  server_dist:
   client_node_modules:

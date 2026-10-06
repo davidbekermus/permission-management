@@ -19,6 +19,7 @@ interface StatusOption<TStatus extends string> {
 interface SearchAndFilterControlsProps<TStatus extends string> {
   dialogTitle: string
   search: string
+  showSearch?: boolean
   onSearchChange: (search: string) => void
   filterCount: number
   appliedRoles: Roles[]
@@ -32,6 +33,7 @@ interface SearchAndFilterControlsProps<TStatus extends string> {
 export const SearchAndFilterControls = <TStatus extends string = never>({
   dialogTitle,
   search,
+  showSearch = true,
   onSearchChange,
   filterCount,
   appliedRoles,
@@ -45,7 +47,7 @@ export const SearchAndFilterControls = <TStatus extends string = never>({
 
   return (
     <>
-      <SearchField
+      {showSearch && <SearchField
         placeholder="Search by username..."
         size="small"
         value={search}
@@ -57,7 +59,7 @@ export const SearchAndFilterControls = <TStatus extends string = never>({
             </InputAdornment>
           ),
         }}
-      />
+      />}
       <Tooltip title="Filter">
         <StyledFilterIconButton
           size="small"
