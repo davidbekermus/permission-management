@@ -117,7 +117,7 @@ export const PermissionRequestsView = ({ onViewChange }: PermissionRequestsViewP
             <Tab value="mine" label="My requests" id="request-scope-mine" aria-controls="request-scope-panel" />
           </Tabs>
         )}
-        {statuses.length > 0 && (
+        {isAdmin && statuses.length > 0 && (
           <Stack
             direction="row"
             spacing={1}

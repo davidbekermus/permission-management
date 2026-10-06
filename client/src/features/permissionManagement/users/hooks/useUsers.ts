@@ -16,7 +16,10 @@ export function useAssignRole() {
   return useMutation({
     mutationFn: ({ username, role }: { username: string; role: Roles }) =>
       usersApi.assignRole(username, role),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: [usersKey] }),
+    onSuccess: () => Promise.all([
+      queryClient.invalidateQueries({ queryKey: [usersKey] }),
+      queryClient.invalidateQueries({ queryKey: ['roleSubmissions'] }),
+    ]),
   })
 }
 
@@ -25,7 +28,10 @@ export function useRemoveRole() {
   return useMutation({
     mutationFn: ({ username, role }: { username: string; role: Roles }) =>
       usersApi.removeRole(username, role),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: [usersKey] }),
+    onSuccess: () => Promise.all([
+      queryClient.invalidateQueries({ queryKey: [usersKey] }),
+      queryClient.invalidateQueries({ queryKey: ['roleSubmissions'] }),
+    ]),
   })
 }
 
@@ -34,7 +40,10 @@ export function useCreateUser() {
   return useMutation({
     mutationFn: ({ username, roles }: { username: string; roles: Roles[] }) =>
       usersApi.createUser(username, roles),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: [usersKey] }),
+    onSuccess: () => Promise.all([
+      queryClient.invalidateQueries({ queryKey: [usersKey] }),
+      queryClient.invalidateQueries({ queryKey: ['roleSubmissions'] }),
+    ]),
   })
 }
 
@@ -43,6 +52,9 @@ export function useCreateUsers() {
   return useMutation({
     mutationFn: ({ usernames, roles }: { usernames: string[]; roles: Roles[] }) =>
       usersApi.createUsers(usernames, roles),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: [usersKey] }),
+    onSuccess: () => Promise.all([
+      queryClient.invalidateQueries({ queryKey: [usersKey] }),
+      queryClient.invalidateQueries({ queryKey: ['roleSubmissions'] }),
+    ]),
   })
 }

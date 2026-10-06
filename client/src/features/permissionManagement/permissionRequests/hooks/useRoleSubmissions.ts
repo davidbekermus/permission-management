@@ -8,11 +8,14 @@ const roleSubmissionsKey = 'roleSubmissions'
 export type RoleSubmissionScope = 'review' | 'mine'
 
 export function useGetRoleSubmissions(filters: RoleSubmissionFilters, scope: RoleSubmissionScope) {
+  const { statuses, roles, sort } = filters
+  const scopedFilters = scope === 'review' ? filters : { statuses, roles, sort }
+
   return useQuery({
-    queryKey: [roleSubmissionsKey, scope, filters],
+    queryKey: [roleSubmissionsKey, scope, scopedFilters],
     queryFn: () => scope === 'review'
-      ? roleSubmissionsApi.getAll(filters)
-      : roleSubmissionsApi.getMine(filters),
+      ? roleSubmissionsApi.getAll(scopedFilters)
+      : roleSubmissionsApi.getMine(scopedFilters),
   })
 }
 
@@ -29,7 +32,10 @@ export function useApproveRoleSubmission() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (id: string) => roleSubmissionsApi.approve(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: [roleSubmissionsKey] }),
+    onSuccess: () => Promise.all([
+      queryClient.invalidateQueries({ queryKey: [roleSubmissionsKey] }),
+      queryClient.invalidateQueries({ queryKey: ['users'] }),
+    ]),
   })
 }
 

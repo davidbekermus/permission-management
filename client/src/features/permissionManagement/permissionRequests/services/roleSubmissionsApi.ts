@@ -13,10 +13,9 @@ export interface RoleSubmissionFilters {
   sort?: 'latest' | 'oldest'
 }
 
-function buildParams(filters: RoleSubmissionFilters, includeSearch = true) {
-  const { search, statuses, roles, sort } = filters
+function buildParams(filters: Omit<RoleSubmissionFilters, 'search'>) {
+  const { statuses, roles, sort } = filters
   return {
-    ...(includeSearch && search ? { username: search } : {}),
     ...(statuses?.length ? { statuses: statuses.join(',') } : {}),
     ...(roles?.length ? { roles: roles.join(',') } : {}),
     ...(sort ? { sort: sort === 'oldest' ? 'asc' : 'desc' } : {}),
@@ -28,14 +27,17 @@ const BASE = '/role-submissions'
 export const roleSubmissionsApi = {
   getAll: async (filters: RoleSubmissionFilters = {}): Promise<RoleSubmission[]> => {
     const { data } = await apiClient.get<RoleSubmission[]>(BASE, {
-      params: buildParams(filters, true),
+      params: {
+        ...buildParams(filters),
+        ...(filters.search ? { username: filters.search } : {}),
+      },
     })
     return data
   },
 
-  getMine: async (filters: RoleSubmissionFilters = {}): Promise<RoleSubmission[]> => {
+  getMine: async (filters: Omit<RoleSubmissionFilters, 'search'> = {}): Promise<RoleSubmission[]> => {
     const { data } = await apiClient.get<RoleSubmission[]>(`${BASE}/my-submissions`, {
-      params: buildParams(filters, false),
+      params: buildParams(filters),
     })
     return data
   },
