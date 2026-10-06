@@ -30,7 +30,7 @@ const INITIAL_FORM: AddUserForm = {
   selectedRoles: [],
 }
 
-export function AddUserDialog({ open, onClose }: AddUserDialogProps) {
+export const AddUserDialog = ({ open, onClose }: AddUserDialogProps) => {
   const { enqueueSnackbar } = useSnackbar()
   const [form, setForm] = useState<AddUserForm>(INITIAL_FORM)
   const { usernames, usernameInput, selectedRoles } = form

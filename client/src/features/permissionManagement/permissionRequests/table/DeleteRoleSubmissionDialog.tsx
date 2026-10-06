@@ -15,13 +15,13 @@ interface DeleteRoleSubmissionDialogProps {
   onConfirm: () => void
 }
 
-export function DeleteRoleSubmissionDialog({
+export const DeleteRoleSubmissionDialog = ({
   open,
   role,
   isPending,
   onClose,
   onConfirm,
-}: DeleteRoleSubmissionDialogProps) {
+}: DeleteRoleSubmissionDialogProps) => {
   return (
     <Dialog open={open} onClose={isPending ? undefined : onClose} maxWidth="xs">
       <DialogTitle>Delete permission request?</DialogTitle>

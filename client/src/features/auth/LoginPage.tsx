@@ -33,7 +33,7 @@ const Form = styled('form')(({ theme }) => ({
   gap: theme.spacing(2),
 }))
 
-export function LoginPage() {
+export const LoginPage = () => {
   const [username, setUsername] = useState('')
   const navigate = useNavigate()
   const router = useRouter()

@@ -46,7 +46,7 @@ const INITIAL_FILTERS: PermissionRequestFilters = {
   sort: 'latest',
 }
 
-export function PermissionRequestsView({ onViewChange }: PermissionRequestsViewProps) {
+export const PermissionRequestsView = ({ onViewChange }: PermissionRequestsViewProps) => {
   const isAdmin = canReadPermissionManagement()
   const [filters, setFilters] = useState<PermissionRequestFilters>(INITIAL_FILTERS)
   const { search, statuses, roles, sort } = filters

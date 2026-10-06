@@ -42,7 +42,7 @@ interface SelectedFilters<TStatus extends string> {
   statuses: TStatus[]
 }
 
-export function FilterDialog<TStatus extends string = never>({
+export const FilterDialog = <TStatus extends string = never>({
   title,
   open,
   onClose,
@@ -52,7 +52,7 @@ export function FilterDialog<TStatus extends string = never>({
   statusOptions,
   appliedStatuses,
   onApply,
-}: FilterDialogProps<TStatus>) {
+}: FilterDialogProps<TStatus>) => {
   const [selectedFilters, setSelectedFilters] = useState<SelectedFilters<TStatus>>({
     roles: appliedRoles,
     sort: appliedSort,

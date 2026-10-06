@@ -31,7 +31,7 @@ function getPageTitle(path: string): string {
   return PAGE_TITLES[path] ?? ''
 }
 
-export function AppLayout() {
+export const AppLayout = () => {
   const username = getCurrentUsername()
   const navigate = useNavigate()
   const router = useRouter()

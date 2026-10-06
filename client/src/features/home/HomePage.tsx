@@ -70,7 +70,7 @@ const cards: NavCardItem[] = [
   },
 ]
 
-export function HomePage() {
+export const HomePage = () => {
   const navigate = useNavigate()
 
   return (

@@ -19,13 +19,13 @@ interface PermissionManagementLayoutProps {
   children: ReactNode
 }
 
-export function PermissionManagementLayout({
+export const PermissionManagementLayout = ({
   activeView,
   showUsersTab,
   toolbarActions,
   onViewChange,
   children,
-}: PermissionManagementLayoutProps) {
+}: PermissionManagementLayoutProps) => {
   const handleTabChange = (_: SyntheticEvent, view: PermissionManagementView) => {
     onViewChange(view)
   }

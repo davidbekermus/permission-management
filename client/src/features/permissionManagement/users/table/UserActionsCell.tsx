@@ -13,12 +13,12 @@ interface UserActionsCellProps {
   onManage: (username: string) => void
 }
 
-export function UserActionsCell({
+export const UserActionsCell = ({
   user,
   manageableRoles,
   isEditing,
   onManage,
-}: UserActionsCellProps) {
+}: UserActionsCellProps) => {
   const existingRoles = user.roles.map((entry) => entry.role)
   const canAdd = filterRequestableRoles(manageableRoles, existingRoles).length > 0
   const canRemove = existingRoles.length > 0

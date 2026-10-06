@@ -22,7 +22,7 @@ interface UsersTableProps {
   sort?: 'latest' | 'oldest'
 }
 
-export function UsersTable({ search, roleFilters = [], sort = 'latest' }: UsersTableProps) {
+export const UsersTable = ({ search, roleFilters = [], sort = 'latest' }: UsersTableProps) => {
   const isAnomalyAdmin = canManagePermissions()
   const [editingUsername, setEditingUsername] = useState<string | null>(null)
   const [snackMessage, setSnackMessage] = useState<string | null>(null)

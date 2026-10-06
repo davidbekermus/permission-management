@@ -29,7 +29,7 @@ interface SearchAndFilterControlsProps<TStatus extends string> {
   onApply: (roles: Roles[], sort: SortOrder, statuses: TStatus[]) => void
 }
 
-export function SearchAndFilterControls<TStatus extends string = never>({
+export const SearchAndFilterControls = <TStatus extends string = never>({
   dialogTitle,
   search,
   onSearchChange,
@@ -40,7 +40,7 @@ export function SearchAndFilterControls<TStatus extends string = never>({
   statusOptions,
   appliedStatuses,
   onApply,
-}: SearchAndFilterControlsProps<TStatus>) {
+}: SearchAndFilterControlsProps<TStatus>) => {
   const [filterOpen, setFilterOpen] = useState(false)
 
   return (

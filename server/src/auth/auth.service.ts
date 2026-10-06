@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, OnApplicationBootstrap } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
 import { Role } from '../common/utils/roles.util';
@@ -7,12 +7,21 @@ import { SEED_ADMIN_USERNAME } from './auth.constants';
 import { AdminService } from '../admin/admin.service';
 
 @Injectable()
-export class AuthService {
+export class AuthService implements OnApplicationBootstrap {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
     private readonly jwtService: JwtService,
     private readonly usersService: UsersService,
     private readonly adminService: AdminService,
   ) {}
+
+  async onApplicationBootstrap(): Promise<void> {
+    if (process.env.AUTO_SEED_ADMIN !== 'true') return;
+
+    const result = await this.seedSuperAdmin();
+    this.logger.log(result.message);
+  }
 
   /**
    * Simulates an OSS (external single sign-on) login.

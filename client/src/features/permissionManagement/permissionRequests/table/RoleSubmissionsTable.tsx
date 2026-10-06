@@ -21,7 +21,7 @@ interface RoleSubmissionsTableProps {
   sort?: SortOrder
 }
 
-export function RoleSubmissionsTable({ search = '', statusFilters = [], roleFilters = [], sort = 'latest' }: RoleSubmissionsTableProps) {
+export const RoleSubmissionsTable = ({ search = '', statusFilters = [], roleFilters = [], sort = 'latest' }: RoleSubmissionsTableProps) => {
   const username = getCurrentUsername()
   const isAdmin = canReadPermissionManagement()
   const isAnomalyAdmin = canManagePermissions()

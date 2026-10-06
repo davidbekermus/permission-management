@@ -32,7 +32,7 @@ const INITIAL_FORM: SubmissionForm = {
   action: RoleSubmissionAction.ADDITION,
 }
 
-export function CreateRoleSubmissionDialog({ open, onClose }: CreateRoleSubmissionDialogProps) {
+export const CreateRoleSubmissionDialog = ({ open, onClose }: CreateRoleSubmissionDialogProps) => {
   const { enqueueSnackbar } = useSnackbar()
   const myRoles = getCurrentRoles()
   const userIsAnomalyAdmin = isAnomalyAdmin()

@@ -22,14 +22,14 @@ interface UserRolesCellProps {
   onMessage: (message: string) => void
 }
 
-export function UserRolesCell({
+export const UserRolesCell = ({
   user,
   manageableRoles,
   isEditing,
   canManage,
   onDone,
   onMessage,
-}: UserRolesCellProps) {
+}: UserRolesCellProps) => {
   const [selectedRole, setSelectedRole] = useState<Roles | ''>('')
   const assignRole = useAssignRole()
   const removeRole = useRemoveRole()
