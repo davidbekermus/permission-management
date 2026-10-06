@@ -8,30 +8,30 @@ import TableContainer from '@mui/material/TableContainer'
 import Typography from '@mui/material/Typography'
 import CircularProgress from '@mui/material/CircularProgress'
 import Alert from '@mui/material/Alert'
-import Snackbar from '@mui/material/Snackbar'
 import { useGetUsers } from '../hooks/useUsers'
 import { UserActionsCell } from './UserActionsCell'
 import { UserRolesCell } from './UserRolesCell'
-import { canManagePermissions, isRoleInAdminScope } from '@/app/auth/auth.utils'
-import { ALL_ROLES, type Roles } from '../../shared/types'
+import { canManagePermissions, getRolesInAdminScope } from '@/app/auth/auth.utils'
+import type { Roles, SortOrder } from '../../shared/types'
 import { EmptyRow, EmptyTableCell } from '../../shared/TableStyles.style'
 
 interface UsersTableProps {
   search?: string
   roleFilters?: Roles[]
-  sort?: 'latest' | 'oldest'
+  sort?: SortOrder
 }
 
-export const UsersTable = ({ search, roleFilters = [], sort = 'latest' }: UsersTableProps) => {
+export function UsersTable({ search, roleFilters = [], sort = 'latest' }: UsersTableProps) {
   const isAnomalyAdmin = canManagePermissions()
   const [editingUsername, setEditingUsername] = useState<string | null>(null)
-  const [snackMessage, setSnackMessage] = useState<string | null>(null)
 
-  const { data: users = [], isLoading, isError } = useGetUsers({ search, roles: roleFilters, sort })
+  const { data, isLoading, isError } = useGetUsers({ search, roles: roleFilters, sort })
+  const users = data ?? []
+  const showLoading = isLoading && data === undefined
 
   // The subset of ALL_ROLES this admin is allowed to assign — used to populate the dropdown
   // this has to change in the real app to the generated type
-  const manageableRoles = ALL_ROLES.filter(isRoleInAdminScope)
+  const manageableRoles = getRolesInAdminScope()
 
   if (isError) return <Alert severity="error">Failed to load users.</Alert>
 
@@ -48,14 +48,14 @@ export const UsersTable = ({ search, roleFilters = [], sort = 'latest' }: UsersT
             </TableRow>
           </TableHead>
           <TableBody>
-            {isLoading && (
+            {showLoading && (
               <TableRow>
                 <EmptyTableCell colSpan={isAnomalyAdmin ? 4 : 3}>
                   <EmptyRow><CircularProgress /></EmptyRow>
                 </EmptyTableCell>
               </TableRow>
             )}
-            {!isLoading && users.length === 0 && (
+            {!showLoading && users.length === 0 && (
               <TableRow>
                 <EmptyTableCell colSpan={isAnomalyAdmin ? 4 : 3}>
                   <EmptyRow>
@@ -64,7 +64,7 @@ export const UsersTable = ({ search, roleFilters = [], sort = 'latest' }: UsersT
                 </EmptyTableCell>
               </TableRow>
             )}
-            {!isLoading && users.map((user) => (
+            {users.map((user) => (
               <TableRow key={user._id}>
                 <TableCell>
                   <Typography variant="body2" fontWeight={500}>{user.username}</Typography>
@@ -75,7 +75,6 @@ export const UsersTable = ({ search, roleFilters = [], sort = 'latest' }: UsersT
                   isEditing={editingUsername === user.username}
                   canManage={isAnomalyAdmin}
                   onDone={() => setEditingUsername(null)}
-                  onMessage={setSnackMessage}
                 />
                 <TableCell>
                   <Typography variant="caption" color="text.secondary">
@@ -95,15 +94,6 @@ export const UsersTable = ({ search, roleFilters = [], sort = 'latest' }: UsersT
           </TableBody>
         </Table>
       </TableContainer>
-
-      {/* sx exception: MUI v5 Snackbar has no styled API for content background */}
-      <Snackbar
-        open={snackMessage !== null}
-        autoHideDuration={3000}
-        onClose={() => setSnackMessage(null)}
-        message={snackMessage}
-        ContentProps={{ sx: { backgroundColor: 'success.main' } }}
-      />
     </>
   )
 }

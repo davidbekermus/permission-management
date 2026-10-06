@@ -11,6 +11,14 @@ export function getFlowFromRole(role: Roles): string | null {
   return parts.slice(0, -1).join('_')
 }
 
+export function normalizeRoles(roles: Roles[]): Roles[] {
+  if (roles.includes(Roles.ANOMALY_ADMIN)) return [Roles.ANOMALY_ADMIN]
+  return roles.filter((role) => {
+    const flow = getFlowFromRole(role)
+    return !(flow && role.endsWith('_USER') && roles.includes(`${flow}_ADMIN` as Roles))
+  })
+}
+
 /**
  * Filters a candidate collection of roles to those that can still be requested
  * or assigned based on the user's existing roles.

@@ -22,12 +22,13 @@ interface RoleSubmissionsTableProps {
   sort?: SortOrder
 }
 
-export const RoleSubmissionsTable = ({ scope, search = '', statusFilters = [], roleFilters = [], sort = 'latest' }: RoleSubmissionsTableProps) => {
+export function RoleSubmissionsTable({ scope, search = '', statusFilters = [], roleFilters = [], sort = 'latest' }: RoleSubmissionsTableProps) {
   const username = getCurrentUsername()
   const isAnomalyAdmin = scope === 'review' && canManagePermissions()
   const filters = { search, statuses: statusFilters, roles: roleFilters, sort }
   const { data, isLoading, isError } = useGetRoleSubmissions(filters, scope)
   const submissions = data ?? []
+  const showLoading = isLoading && data === undefined
   const showControls = isAnomalyAdmin || submissions.some(
     (submission) => submission.username === username && submission.status === RoleSubmissionStatus.PENDING,
   )
@@ -50,21 +51,21 @@ export const RoleSubmissionsTable = ({ scope, search = '', statusFilters = [], r
           </TableRow>
         </TableHead>
         <TableBody>
-          {isLoading && (
+          {showLoading && (
             <TableRow>
               <EmptyTableCell colSpan={colSpan}>
                 <EmptyRow><CircularProgress /></EmptyRow>
               </EmptyTableCell>
             </TableRow>
           )}
-          {!isLoading && submissions.length === 0 && (
+          {!showLoading && submissions.length === 0 && (
             <TableRow>
               <EmptyTableCell colSpan={colSpan}>
                 <EmptyRow><Typography variant="body2">No permission requests</Typography></EmptyRow>
               </EmptyTableCell>
             </TableRow>
           )}
-          {!isLoading && submissions.map((submission) => (
+          {submissions.map((submission) => (
             <RoleSubmissionRow
               key={submission._id}
               submission={submission}

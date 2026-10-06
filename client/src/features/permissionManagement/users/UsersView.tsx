@@ -16,7 +16,7 @@ interface UsersViewProps {
   onViewChange: (view: PermissionManagementView) => void
 }
 
-export const UsersView = ({ onViewChange }: UsersViewProps) => {
+export function UsersView({ onViewChange }: UsersViewProps) {
   const isAnomalyAdmin = canManagePermissions()
   const [search, setSearch] = useState('')
   const [roles, setRoles] = useState<Roles[]>([])

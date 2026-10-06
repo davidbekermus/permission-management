@@ -1,48 +1,43 @@
 import { styled } from '@mui/material/styles'
-import Box from '@mui/material/Box'
-import Tabs from '@mui/material/Tabs'
+import Tabs, { tabsClasses } from '@mui/material/Tabs'
+import { tabClasses } from '@mui/material/Tab'
 import IconButton from '@mui/material/IconButton'
-import Badge from '@mui/material/Badge'
 import TextField from '@mui/material/TextField'
-import SearchIcon from '@mui/icons-material/Search'
 
-export const PageWrapper = styled(Box)(({ theme }) => ({
+export const PageWrapper = styled('div')(({ theme }) => ({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: theme.spacing(2.5),
   padding: theme.spacing(3),
 }))
 
-export const Toolbar = styled(Box)(({ theme }) => ({
+export const Toolbar = styled('div')(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
-  gap: theme.spacing(1.5),
-  paddingBottom: theme.spacing(2.5),
+  justifyContent: 'space-between',
   flexWrap: 'wrap',
+  gap: theme.spacing(1.5),
 }))
 
-export const FlexSpacer = styled(Box)({
-  flexGrow: 1,
-})
-
-export const ContentBox = styled(Box)(({ theme }) => ({
-  paddingTop: theme.spacing(2.5),
+export const ToolbarActions = styled('div')(({ theme }) => ({
+  display: 'flex',
+  alignItems: 'center',
+  flexWrap: 'wrap',
+  gap: theme.spacing(1.5),
 }))
 
 export const StyledTabs = styled(Tabs)(({ theme }) => ({
-  minHeight: 40,
-  '& .MuiTabs-indicator': {
-    height: 3,
-    borderRadius: '3px 3px 0 0',
+  minHeight: theme.spacing(5),
+  [`& .${tabsClasses.indicator}`]: {
+    height: theme.spacing(0.375),
+    borderRadius: `${theme.spacing(0.375)} ${theme.spacing(0.375)} 0 0`,
   },
-  '& .MuiTab-root': {
-    minHeight: 40,
-    textTransform: 'none',
-    fontWeight: 500,
-    fontSize: '0.875rem',
+  [`& .${tabClasses.root}`]: {
+    minHeight: theme.spacing(5),
     padding: theme.spacing(0.75, 2),
-    color: theme.palette.text.secondary,
   },
-  '& .MuiTab-root.Mui-selected': {
-    color: theme.palette.primary.main,
-    fontWeight: 700,
+  [`& .${tabClasses.root}.${tabClasses.selected}`]: {
+    fontWeight: theme.typography.fontWeightBold,
   },
 }))
 
@@ -50,31 +45,21 @@ interface FilterIconButtonStyledProps {
   $active: boolean
 }
 
-export const StyledFilterIconButton = styled(IconButton)<FilterIconButtonStyledProps>(
+export const StyledFilterIconButton = styled(IconButton, {
+  shouldForwardProp: (prop) =>
+    prop !== '$active' && prop !== 'ownerState' && prop !== 'theme' && prop !== 'sx' && prop !== 'as',
+})<FilterIconButtonStyledProps>(
   ({ theme, $active }) => ({
     border: '1px solid',
     borderColor: $active ? theme.palette.primary.main : theme.palette.divider,
     borderRadius: theme.shape.borderRadius,
     color: $active ? theme.palette.primary.main : theme.palette.text.secondary,
-    padding: theme.spacing(0.625),
   }),
 )
 
-export const StyledBadge = styled(Badge)(({ theme }) => ({
-  '& .MuiBadge-badge': {
-    fontSize: '0.6rem',
-    minWidth: theme.spacing(2),
-    height: theme.spacing(2),
-  },
-}))
-
 export const SearchField = styled(TextField)(({ theme }) => ({
-  width: 260,
+  width: theme.spacing(32),
   [theme.breakpoints.down('sm')]: {
     width: '100%',
   },
-}))
-
-export const SearchAdornmentIcon = styled(SearchIcon)(({ theme }) => ({
-  color: theme.palette.text.disabled,
 }))

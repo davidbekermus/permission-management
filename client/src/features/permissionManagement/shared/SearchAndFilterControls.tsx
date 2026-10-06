@@ -1,14 +1,14 @@
 import { useState } from 'react'
 import InputAdornment from '@mui/material/InputAdornment'
 import Tooltip from '@mui/material/Tooltip'
+import Badge from '@mui/material/Badge'
 import FilterListIcon from '@mui/icons-material/FilterList'
+import SearchIcon from '@mui/icons-material/Search'
 import { FilterDialog } from './FilterDialog'
 import type { Roles, SortOrder } from './types'
 import {
   StyledFilterIconButton,
-  StyledBadge,
   SearchField,
-  SearchAdornmentIcon,
 } from '../PermissionManagementPage.style'
 
 interface StatusOption<TStatus extends string> {
@@ -30,7 +30,7 @@ interface SearchAndFilterControlsProps<TStatus extends string> {
   onApply: (roles: Roles[], sort: SortOrder, statuses: TStatus[]) => void
 }
 
-export const SearchAndFilterControls = <TStatus extends string = never>({
+export function SearchAndFilterControls<TStatus extends string = never>({
   dialogTitle,
   search,
   showSearch = true,
@@ -42,7 +42,7 @@ export const SearchAndFilterControls = <TStatus extends string = never>({
   statusOptions,
   appliedStatuses,
   onApply,
-}: SearchAndFilterControlsProps<TStatus>) => {
+}: SearchAndFilterControlsProps<TStatus>) {
   const [filterOpen, setFilterOpen] = useState(false)
 
   return (
@@ -55,7 +55,7 @@ export const SearchAndFilterControls = <TStatus extends string = never>({
         InputProps={{
           startAdornment: (
             <InputAdornment position="start">
-              <SearchAdornmentIcon fontSize="small" />
+              <SearchIcon fontSize="small" />
             </InputAdornment>
           ),
         }}
@@ -66,9 +66,9 @@ export const SearchAndFilterControls = <TStatus extends string = never>({
           $active={filterCount > 0}
           onClick={() => setFilterOpen(true)}
         >
-          <StyledBadge badgeContent={filterCount} color="primary">
+          <Badge badgeContent={filterCount} color="primary">
             <FilterListIcon fontSize="small" />
-          </StyledBadge>
+          </Badge>
         </StyledFilterIconButton>
       </Tooltip>
 

@@ -15,11 +15,11 @@ const actionColor: Record<RoleSubmissionAction, ChipProps['color']> = {
   [RoleSubmissionAction.DELETION]: 'error',
 }
 
-export const RoleChip = ({ role }: { role: Roles }) => {
+export function RoleChip({ role }: { role: Roles }) {
   return <StyledChip label={formatRole(role)} size="small" />
 }
 
-export const RoleSubmissionActionChip = ({ action }: { action?: RoleSubmissionAction }) => {
+export function RoleSubmissionActionChip({ action }: { action?: RoleSubmissionAction }) {
   if (!action) return null
   return (
     <StyledChip
@@ -31,7 +31,7 @@ export const RoleSubmissionActionChip = ({ action }: { action?: RoleSubmissionAc
   )
 }
 
-export const RoleSubmissionStatusChip = ({ status }: { status: RoleSubmissionStatus }) => {
+export function RoleSubmissionStatusChip({ status }: { status: RoleSubmissionStatus }) {
   return (
     <StyledStatusChip
       label={status.toLowerCase()}

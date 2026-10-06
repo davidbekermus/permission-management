@@ -42,18 +42,18 @@ interface PermissionRequestFilters {
   sort: SortOrder
 }
 
-const INITIAL_FILTERS: PermissionRequestFilters = {
+const getInitialFilters = (isAdmin: boolean): PermissionRequestFilters => ({
   search: '',
-  statuses: [RoleSubmissionStatus.PENDING],
+  statuses: isAdmin ? [RoleSubmissionStatus.PENDING] : [],
   roles: [],
   sort: 'latest',
-}
+})
 
-export const PermissionRequestsView = ({ onViewChange }: PermissionRequestsViewProps) => {
+export function PermissionRequestsView({ onViewChange }: PermissionRequestsViewProps) {
   const isAdmin = canReadPermissionManagement()
   const [selectedScope, setSelectedScope] = useState<RoleSubmissionScope>(isAdmin ? 'review' : 'mine')
   const scope = isAdmin ? selectedScope : 'mine'
-  const [filters, setFilters] = useState<PermissionRequestFilters>(INITIAL_FILTERS)
+  const [filters, setFilters] = useState<PermissionRequestFilters>(() => getInitialFilters(isAdmin))
   const { search, statuses, roles, sort } = filters
   const [createDialogOpen, setCreateDialogOpen] = useState(false)
   const debouncedSearch = useDebounce(search, 300)
@@ -62,7 +62,7 @@ export const PermissionRequestsView = ({ onViewChange }: PermissionRequestsViewP
 
   const changeScope = (nextScope: RoleSubmissionScope) => {
     setSelectedScope(nextScope)
-    setFilters(INITIAL_FILTERS)
+    setFilters(getInitialFilters(isAdmin))
   }
 
   const toolbarActions = (
@@ -106,58 +106,60 @@ export const PermissionRequestsView = ({ onViewChange }: PermissionRequestsViewP
       toolbarActions={toolbarActions}
       onViewChange={onViewChange}
     >
-      <Stack direction="row" spacing={3} alignItems="center" sx={{ mb: 2 }}>
-        {isAdmin && (
-          <Tabs
-            value={scope}
-            onChange={(_, value: RoleSubmissionScope) => changeScope(value)}
-            aria-label="Permission request scopes"
-          >
-            <Tab value="review" label="Requests to review" id="request-scope-review" aria-controls="request-scope-panel" />
-            <Tab value="mine" label="My requests" id="request-scope-mine" aria-controls="request-scope-panel" />
-          </Tabs>
-        )}
-        {isAdmin && statuses.length > 0 && (
-          <Stack
-            direction="row"
-            spacing={1}
-            alignItems="center"
-            flexWrap="wrap"
-            useFlexGap
-          >
-            <Typography variant="body2" color="text.secondary">
-              Showing:
-            </Typography>
-            {statuses.map((status) => (
-              <Chip
-                key={status}
-                label={STATUS_LABELS[status]}
-                size="small"
-                variant="outlined"
-                onDelete={() => {
-                  setFilters((current) => ({
-                    ...current,
-                    statuses: current.statuses.filter((item) => item !== status),
-                  }))
-                }}
-              />
-            ))}
-          </Stack>
-        )}
+      <div>
+        <Stack direction="row" spacing={3} alignItems="center" sx={{ mb: 2 }}>
+          {isAdmin && (
+            <Tabs
+              value={scope}
+              onChange={(_, value: RoleSubmissionScope) => changeScope(value)}
+              aria-label="Permission request scopes"
+            >
+              <Tab value="review" label="Requests to review" id="request-scope-review" aria-controls="request-scope-panel" />
+              <Tab value="mine" label="My requests" id="request-scope-mine" aria-controls="request-scope-panel" />
+            </Tabs>
+          )}
+          {isAdmin && statuses.length > 0 && (
+            <Stack
+              direction="row"
+              spacing={1}
+              alignItems="center"
+              flexWrap="wrap"
+              useFlexGap
+            >
+              <Typography variant="body2" color="text.secondary">
+                Showing:
+              </Typography>
+              {statuses.map((status) => (
+                <Chip
+                  key={status}
+                  label={STATUS_LABELS[status]}
+                  size="small"
+                  variant="outlined"
+                  onDelete={() => {
+                    setFilters((current) => ({
+                      ...current,
+                      statuses: current.statuses.filter((item) => item !== status),
+                    }))
+                  }}
+                />
+              ))}
+            </Stack>
+          )}
 
-      </Stack>
-      <div
-        role={isAdmin ? 'tabpanel' : undefined}
-        id="request-scope-panel"
-        aria-labelledby={isAdmin ? `request-scope-${scope}` : undefined}
-      >
-        <RoleSubmissionsTable
-          scope={scope}
-          search={scope === 'review' ? debouncedSearch : ''}
-          statusFilters={statuses}
-          roleFilters={roles}
-          sort={sort}
-        />
+        </Stack>
+        <div
+          role={isAdmin ? 'tabpanel' : undefined}
+          id="request-scope-panel"
+          aria-labelledby={isAdmin ? `request-scope-${scope}` : undefined}
+        >
+          <RoleSubmissionsTable
+            scope={scope}
+            search={scope === 'review' ? debouncedSearch : ''}
+            statusFilters={statuses}
+            roleFilters={roles}
+            sort={sort}
+          />
+        </div>
       </div>
 
       <CreateRoleSubmissionDialog

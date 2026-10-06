@@ -21,11 +21,11 @@ interface RoleSubmissionActionsCellProps {
   currentUsername: string | null
 }
 
-export const RoleSubmissionActionsCell = ({
+export function RoleSubmissionActionsCell({
   submission,
   isAnomalyAdmin,
   currentUsername,
-}: RoleSubmissionActionsCellProps) => {
+}: RoleSubmissionActionsCellProps) {
   const { enqueueSnackbar } = useSnackbar()
   const approve = useApproveRoleSubmission()
   const reject = useRejectRoleSubmission()

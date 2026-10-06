@@ -40,7 +40,7 @@ npm install @tanstack/react-query axios jwt-decode
 
 **Token** — The feature reads the JWT from `localStorage.getItem('pm_token')`. Change the key in your project's constants file and update the import in `axiosClient`.
 
-**Routing** — Mount `PermissionManagementPage` on any route that requires an admin role. No internal routing — it's a single page with tabs.
+**Routing** — Mount `PermissionManagementPage` with a `view` (`'users'` or `'submissions'`) and an `onViewChange` callback. The host route layer owns navigation and maps view changes to its routes. The page restricts the users view to admins.
 
 **React Query** — Wrap the feature (or your whole app) in a `QueryClientProvider`.
 

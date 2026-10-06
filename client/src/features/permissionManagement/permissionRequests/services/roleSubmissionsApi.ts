@@ -1,5 +1,5 @@
 import { apiClient } from '@/app/api/axiosClient'
-import type { Roles } from '../../shared/types'
+import type { Roles, SortOrder } from '../../shared/types'
 import type {
   RoleSubmission,
   RoleSubmissionAction,
@@ -10,7 +10,7 @@ export interface RoleSubmissionFilters {
   search?: string
   statuses?: RoleSubmissionStatus[]
   roles?: Roles[]
-  sort?: 'latest' | 'oldest'
+  sort?: SortOrder
 }
 
 function buildParams(filters: Omit<RoleSubmissionFilters, 'search'>) {

@@ -8,6 +8,7 @@ import { styled } from '@mui/material/styles'
 import HomeIcon from '@mui/icons-material/Home'
 import LogoutIcon from '@mui/icons-material/Logout'
 import { Outlet, useNavigate, useRouter, useRouterState } from '@tanstack/react-router'
+import { useQueryClient } from '@tanstack/react-query'
 import { getCurrentUsername, removeUserToken } from '@/app/auth/auth.utils'
 
 const MainContent = styled(Box)(({ theme }) => ({
@@ -35,11 +36,13 @@ export const AppLayout = () => {
   const username = getCurrentUsername()
   const navigate = useNavigate()
   const router = useRouter()
+  const queryClient = useQueryClient()
   const { location } = useRouterState()
   const pageTitle = getPageTitle(location.pathname)
 
   const handleLogout = async () => {
     removeUserToken()
+    queryClient.clear()
     await router.invalidate()
     await navigate({ to: '/login' })
   }

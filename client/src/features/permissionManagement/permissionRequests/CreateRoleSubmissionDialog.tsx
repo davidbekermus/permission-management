@@ -6,14 +6,14 @@ import Autocomplete from '@mui/material/Autocomplete'
 import TextField from '@mui/material/TextField'
 import Button from '@mui/material/Button'
 import Alert from '@mui/material/Alert'
-import Divider from '@mui/material/Divider'
+import DialogTitle from '@mui/material/DialogTitle'
 import CircularProgress from '@mui/material/CircularProgress'
 import { useSnackbar } from 'notistack'
 import { useCreateRoleSubmission } from './hooks/useRoleSubmissions'
 import { getCurrentRoles, isAnomalyAdmin } from '@/app/auth/auth.utils'
 import { ALL_ROLES, type Roles } from '../shared/types'
 import { filterRequestableRoles, formatRole } from '../shared/role.utils'
-import { StyledDialogTitle, StyledDivider, StyledDialogActions, FieldStack } from '../shared/DialogStyles.style'
+import { StyledDialogActions, FieldStack } from '../shared/DialogStyles.style'
 import { RoleSubmissionAction } from './types'
 
 interface CreateRoleSubmissionDialogProps {
@@ -22,7 +22,7 @@ interface CreateRoleSubmissionDialogProps {
   onSubmitted: () => void
 }
 
-export const CreateRoleSubmissionDialog = ({ open, onClose, onSubmitted }: CreateRoleSubmissionDialogProps) => {
+export function CreateRoleSubmissionDialog({ open, onClose, onSubmitted }: CreateRoleSubmissionDialogProps) {
   const { enqueueSnackbar } = useSnackbar()
   const myRoles = getCurrentRoles()
   const userIsAnomalyAdmin = isAnomalyAdmin()
@@ -58,9 +58,8 @@ export const CreateRoleSubmissionDialog = ({ open, onClose, onSubmitted }: Creat
 
   return (
     <Dialog open={open} onClose={createSubmission.isPending ? undefined : handleClose} fullWidth maxWidth="xs">
-      <StyledDialogTitle>Request Permission</StyledDialogTitle>
-      <StyledDivider />
-      <DialogContent>
+      <DialogTitle>Request Permission</DialogTitle>
+      <DialogContent dividers>
         <FieldStack>
           {userIsAnomalyAdmin ? (
             <Alert severity="info">
@@ -88,8 +87,7 @@ export const CreateRoleSubmissionDialog = ({ open, onClose, onSubmitted }: Creat
           )}
         </FieldStack>
       </DialogContent>
-      <Divider />
-      <StyledDialogActions>
+      <StyledDialogActions disableSpacing>
         <Button onClick={handleClose} color="inherit" disabled={createSubmission.isPending}>
           Cancel
         </Button>

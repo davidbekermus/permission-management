@@ -12,7 +12,7 @@ interface RoleSubmissionRowProps {
   showControls: boolean
 }
 
-export const RoleSubmissionRow = ({ submission, isAnomalyAdmin, currentUsername, showControls }: RoleSubmissionRowProps) => {
+export function RoleSubmissionRow({ submission, isAnomalyAdmin, currentUsername, showControls }: RoleSubmissionRowProps) {
   return (
     <TableRow>
       <TableCell><Typography variant="body2" fontWeight={500}>{submission.username}</Typography></TableCell>

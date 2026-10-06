@@ -6,16 +6,14 @@ import ToggleButtonGroup from '@mui/material/ToggleButtonGroup'
 import Autocomplete from '@mui/material/Autocomplete'
 import TextField from '@mui/material/TextField'
 import Chip from '@mui/material/Chip'
-import Divider from '@mui/material/Divider'
+import DialogTitle from '@mui/material/DialogTitle'
+import Typography from '@mui/material/Typography'
 import type { Roles, SortOrder } from './types'
 import { formatRole } from './role.utils'
 import {
-  StyledDialogTitle,
-  StyledDivider,
   StyledDialogActions,
   FieldStack,
   ButtonRow,
-  FilterSectionLabel,
 } from './DialogStyles.style'
 import { FilterSection, StatusChips, StyledSortToggleButton } from './FilterDialog.style'
 
@@ -42,7 +40,7 @@ interface SelectedFilters<TStatus extends string> {
   statuses: TStatus[]
 }
 
-export const FilterDialog = <TStatus extends string = never>({
+export function FilterDialog<TStatus extends string = never>({
   title,
   open,
   onClose,
@@ -52,7 +50,7 @@ export const FilterDialog = <TStatus extends string = never>({
   statusOptions,
   appliedStatuses,
   onApply,
-}: FilterDialogProps<TStatus>) => {
+}: FilterDialogProps<TStatus>) {
   const [selectedFilters, setSelectedFilters] = useState<SelectedFilters<TStatus>>({
     roles: appliedRoles,
     sort: appliedSort,
@@ -92,14 +90,13 @@ export const FilterDialog = <TStatus extends string = never>({
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="xs">
-      <StyledDialogTitle>{title}</StyledDialogTitle>
-      <StyledDivider />
-      <DialogContent>
+      <DialogTitle>{title}</DialogTitle>
+      <DialogContent dividers>
         <FieldStack>
           <FilterSection>
-            <FilterSectionLabel variant="caption" color="text.secondary">
+            <Typography variant="overline" color="text.secondary">
               Sort by date
-            </FilterSectionLabel>
+            </Typography>
             <ToggleButtonGroup
               value={sort}
               exclusive
@@ -116,9 +113,9 @@ export const FilterDialog = <TStatus extends string = never>({
 
           {statusOptions && statusOptions.length > 0 && (
             <FilterSection>
-              <FilterSectionLabel variant="caption" color="text.secondary">
+              <Typography variant="overline" color="text.secondary">
                 Status
-              </FilterSectionLabel>
+              </Typography>
               <StatusChips>
                 {statusOptions.map(({ value, label }) => (
                   <Chip
@@ -136,9 +133,9 @@ export const FilterDialog = <TStatus extends string = never>({
           )}
 
           <FilterSection>
-            <FilterSectionLabel variant="caption" color="text.secondary">
+            <Typography variant="overline" color="text.secondary">
               Roles
-            </FilterSectionLabel>
+            </Typography>
             <Autocomplete
               multiple
               options={roleOptions}
@@ -157,8 +154,7 @@ export const FilterDialog = <TStatus extends string = never>({
           </FilterSection>
         </FieldStack>
       </DialogContent>
-      <Divider />
-      <StyledDialogActions>
+      <StyledDialogActions disableSpacing>
         <Button size="small" color="inherit" onClick={handleClear} disabled={!hasSelectedFilters}>
           Clear all
         </Button>

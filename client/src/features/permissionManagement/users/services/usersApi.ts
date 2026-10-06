@@ -1,11 +1,11 @@
 import { apiClient } from '@/app/api/axiosClient'
-import type { Roles } from '../../shared/types'
+import type { Roles, SortOrder } from '../../shared/types'
 import type { User } from '../types'
 
 export interface UserFilters {
   search?: string
   roles?: Roles[]
-  sort?: 'latest' | 'oldest'
+  sort?: SortOrder
 }
 
 const BASE = '/users'
@@ -24,12 +24,12 @@ export const usersApi = {
   },
 
   assignRole: async (username: string, role: Roles): Promise<User> => {
-    const { data } = await apiClient.patch<User>(`${BASE}/${username}/roles`, { role })
+    const { data } = await apiClient.patch<User>(`${BASE}/${encodeURIComponent(username)}/roles`, { role })
     return data
   },
 
   removeRole: async (username: string, role: Roles): Promise<User> => {
-    const { data } = await apiClient.delete<User>(`${BASE}/${username}/roles/${role}`)
+    const { data } = await apiClient.delete<User>(`${BASE}/${encodeURIComponent(username)}/roles/${role}`)
     return data
   },
 

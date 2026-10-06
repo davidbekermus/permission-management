@@ -4,8 +4,7 @@ import Divider from '@mui/material/Divider'
 import {
   PageWrapper,
   Toolbar,
-  FlexSpacer,
-  ContentBox,
+  ToolbarActions,
   StyledTabs,
 } from './PermissionManagementPage.style'
 
@@ -19,13 +18,13 @@ interface PermissionManagementLayoutProps {
   children: ReactNode
 }
 
-export const PermissionManagementLayout = ({
+export function PermissionManagementLayout({
   activeView,
   showUsersTab,
   toolbarActions,
   onViewChange,
   children,
-}: PermissionManagementLayoutProps) => {
+}: PermissionManagementLayoutProps) {
   const handleTabChange = (_: SyntheticEvent, view: PermissionManagementView) => {
     onViewChange(view)
   }
@@ -41,13 +40,12 @@ export const PermissionManagementLayout = ({
           {showUsersTab && <Tab value="users" label="Users" />}
           <Tab value="submissions" label="Permission Requests" />
         </StyledTabs>
-        <FlexSpacer />
-        {toolbarActions}
+        <ToolbarActions>{toolbarActions}</ToolbarActions>
       </Toolbar>
 
       <Divider />
 
-      <ContentBox>{children}</ContentBox>
+      {children}
     </PageWrapper>
   )
 }

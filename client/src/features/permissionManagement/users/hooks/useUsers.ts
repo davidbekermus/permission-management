@@ -1,13 +1,17 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { keepPreviousData, useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { getCurrentUsername } from '@/app/auth/auth.utils'
 import { usersApi, type UserFilters } from '../services/usersApi'
 import type { Roles } from '../../shared/types'
 
 const usersKey = 'users'
 
 export function useGetUsers(filters: UserFilters = {}) {
+  const username = getCurrentUsername()
   return useQuery({
-    queryKey: [usersKey, filters],
+    queryKey: [usersKey, username, filters],
     queryFn: () => usersApi.getUsers(filters),
+    placeholderData: (previousData, previousQuery) =>
+      previousQuery?.queryKey[1] === username ? keepPreviousData(previousData) : undefined,
   })
 }
 
