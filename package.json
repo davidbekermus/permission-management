@@ -1,0 +1,13 @@
+{
+  "name": "permission-management-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev:server": "cd server && npm run start:dev",
+    "dev:client": "cd client && npm run dev",
+    "install:all": "cd server && npm install && cd ../client && npm install",
+    "docker:up": "docker compose up --build -d",
+    "docker:dev": "docker compose -f compose.dev.yaml up --build",
+    "docker:dev:down": "docker compose -f compose.dev.yaml down"
+  }
+}

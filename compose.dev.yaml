@@ -1,0 +1,39 @@
+services:
+  mongo:
+    extends:
+      file: compose.yaml
+      service: mongo
+
+  server:
+    extends:
+      file: compose.yaml
+      service: server
+    build:
+      target: development
+    environment:
+      NODE_ENV: development
+      TSC_WATCHFILE: DynamicPriorityPolling
+    volumes:
+      - ./server:/app
+      - server_node_modules:/app/node_modules
+
+  client:
+    build:
+      context: ./client
+      target: development
+    environment:
+      VITE_API_BASE_URL: /
+      API_PROXY_TARGET: http://server:3000
+      DOCKER_DEV: "true"
+    ports:
+      - "${CLIENT_PORT:-8080}:5173"
+    volumes:
+      - ./client:/app
+      - client_node_modules:/app/node_modules
+    depends_on:
+      - server
+
+volumes:
+  mongo_data:
+  server_node_modules:
+  client_node_modules:
