@@ -39,9 +39,16 @@ const theme = createTheme({
     h6: { fontWeight: 600 },
     subtitle1: { fontWeight: 600 },
     subtitle2: { fontWeight: 600 },
+    overline: {
+      fontSize: '0.75rem',
+      lineHeight: 1.66,
+      textTransform: 'uppercase',
+      letterSpacing: '0.05em',
+      fontWeight: 600,
+    },
   },
   shape: {
-    borderRadius: 10,
+    borderRadius: 8,
   },
   components: {
     MuiButton: {
@@ -71,17 +78,15 @@ const theme = createTheme({
     },
     MuiTableHead: {
       styleOverrides: {
-        root: {
+        root: ({ theme }) => ({
           '& .MuiTableCell-root': {
-            fontWeight: 600,
-            fontSize: '0.75rem',
-            textTransform: 'uppercase',
-            letterSpacing: '0.05em',
+            ...theme.typography.overline,
+            lineHeight: 1.5,
             color: '#64748b',
             backgroundColor: '#0d0f14',
             borderBottom: '1px solid rgba(255,255,255,0.10)',
           },
-        },
+        }),
       },
     },
     MuiTableCell: {

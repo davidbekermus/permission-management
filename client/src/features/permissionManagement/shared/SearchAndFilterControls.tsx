@@ -1,14 +1,14 @@
 import { useState } from 'react'
 import InputAdornment from '@mui/material/InputAdornment'
 import Tooltip from '@mui/material/Tooltip'
+import Badge from '@mui/material/Badge'
 import FilterListIcon from '@mui/icons-material/FilterList'
+import SearchIcon from '@mui/icons-material/Search'
 import { FilterDialog } from './FilterDialog'
 import type { Roles, SortOrder } from './types'
 import {
   StyledFilterIconButton,
-  StyledBadge,
   SearchField,
-  SearchAdornmentIcon,
 } from '../PermissionManagementPage.style'
 
 interface StatusOption<TStatus extends string> {
@@ -19,6 +19,7 @@ interface StatusOption<TStatus extends string> {
 interface SearchAndFilterControlsProps<TStatus extends string> {
   dialogTitle: string
   search: string
+  showSearch?: boolean
   onSearchChange: (search: string) => void
   filterCount: number
   appliedRoles: Roles[]
@@ -32,6 +33,7 @@ interface SearchAndFilterControlsProps<TStatus extends string> {
 export function SearchAndFilterControls<TStatus extends string = never>({
   dialogTitle,
   search,
+  showSearch = true,
   onSearchChange,
   filterCount,
   appliedRoles,
@@ -45,7 +47,7 @@ export function SearchAndFilterControls<TStatus extends string = never>({
 
   return (
     <>
-      <SearchField
+      {showSearch && <SearchField
         placeholder="Search by username..."
         size="small"
         value={search}
@@ -53,20 +55,20 @@ export function SearchAndFilterControls<TStatus extends string = never>({
         InputProps={{
           startAdornment: (
             <InputAdornment position="start">
-              <SearchAdornmentIcon fontSize="small" />
+              <SearchIcon fontSize="small" />
             </InputAdornment>
           ),
         }}
-      />
+      />}
       <Tooltip title="Filter">
         <StyledFilterIconButton
           size="small"
           $active={filterCount > 0}
           onClick={() => setFilterOpen(true)}
         >
-          <StyledBadge badgeContent={filterCount} color="primary">
+          <Badge badgeContent={filterCount} color="primary">
             <FilterListIcon fontSize="small" />
-          </StyledBadge>
+          </Badge>
         </StyledFilterIconButton>
       </Tooltip>
 

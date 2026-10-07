@@ -1,58 +1,44 @@
 import { useState } from 'react'
+import { isAxiosError } from 'axios'
 import Dialog from '@mui/material/Dialog'
 import DialogContent from '@mui/material/DialogContent'
 import Autocomplete from '@mui/material/Autocomplete'
 import TextField from '@mui/material/TextField'
 import Button from '@mui/material/Button'
 import Alert from '@mui/material/Alert'
-import Divider from '@mui/material/Divider'
+import DialogTitle from '@mui/material/DialogTitle'
 import CircularProgress from '@mui/material/CircularProgress'
-import ToggleButtonGroup from '@mui/material/ToggleButtonGroup'
-import ToggleButton from '@mui/material/ToggleButton'
 import { useSnackbar } from 'notistack'
 import { useCreateRoleSubmission } from './hooks/useRoleSubmissions'
 import { getCurrentRoles, isAnomalyAdmin } from '@/app/auth/auth.utils'
 import { ALL_ROLES, type Roles } from '../shared/types'
 import { filterRequestableRoles, formatRole } from '../shared/role.utils'
-import { StyledDialogTitle, StyledDivider, StyledDialogActions, FieldStack } from '../shared/DialogStyles.style'
+import { StyledDialogActions, FieldStack } from '../shared/DialogStyles.style'
 import { RoleSubmissionAction } from './types'
 
 interface CreateRoleSubmissionDialogProps {
   open: boolean
   onClose: () => void
+  onSubmitted: () => void
 }
 
-interface SubmissionForm {
-  roles: Roles[]
-  action: RoleSubmissionAction
-}
-
-const INITIAL_FORM: SubmissionForm = {
-  roles: [],
-  action: RoleSubmissionAction.ADDITION,
-}
-
-export function CreateRoleSubmissionDialog({ open, onClose }: CreateRoleSubmissionDialogProps) {
+export function CreateRoleSubmissionDialog({ open, onClose, onSubmitted }: CreateRoleSubmissionDialogProps) {
   const { enqueueSnackbar } = useSnackbar()
   const myRoles = getCurrentRoles()
   const userIsAnomalyAdmin = isAnomalyAdmin()
-  const [form, setForm] = useState<SubmissionForm>(INITIAL_FORM)
-  const { roles, action } = form
+  const [roles, setRoles] = useState<Roles[]>([])
   const createSubmission = useCreateRoleSubmission()
-  const availableRoles = action === RoleSubmissionAction.ADDITION
-    ? filterRequestableRoles(ALL_ROLES, myRoles)
-    : myRoles
+  const availableRoles = filterRequestableRoles(ALL_ROLES, myRoles)
 
   const handleClose = () => {
-    setForm(INITIAL_FORM)
-    createSubmission.reset()
+    setRoles([])
     onClose()
   }
 
   const handleSubmit = () => {
     if (roles.length === 0) return
     createSubmission.mutate(
-      { roles, action },
+      { roles, action: RoleSubmissionAction.ADDITION },
       {
         onSuccess: (createdSubmissions) => {
           enqueueSnackbar(
@@ -60,36 +46,22 @@ export function CreateRoleSubmissionDialog({ open, onClose }: CreateRoleSubmissi
             { variant: 'success' },
           )
           handleClose()
+          onSubmitted()
         },
-        onError: () => enqueueSnackbar('Failed to submit permission request', { variant: 'error' }),
+        onError: (error) => {
+          const message = isAxiosError<{ message?: string }>(error) ? error.response?.data?.message : undefined
+          enqueueSnackbar(message || 'Failed to submit permission request', { variant: 'error' })
+        },
       },
     )
   }
 
   return (
     <Dialog open={open} onClose={createSubmission.isPending ? undefined : handleClose} fullWidth maxWidth="xs">
-      <StyledDialogTitle>Request Permission</StyledDialogTitle>
-      <StyledDivider />
-      <DialogContent>
+      <DialogTitle>Request Permission</DialogTitle>
+      <DialogContent dividers>
         <FieldStack>
-          {createSubmission.isError && (
-            <Alert severity="error">Failed to submit request. Please try again.</Alert>
-          )}
-          <ToggleButtonGroup
-            value={action}
-            exclusive
-            fullWidth
-            size="small"
-            onChange={(_, value: RoleSubmissionAction | null) => {
-              if (value) setForm({ roles: [], action: value })
-            }}
-            disabled={createSubmission.isPending}
-          >
-            <ToggleButton value={RoleSubmissionAction.ADDITION}>Add</ToggleButton>
-            <ToggleButton value={RoleSubmissionAction.DELETION}>Delete</ToggleButton>
-          </ToggleButtonGroup>
-
-          {userIsAnomalyAdmin && action === RoleSubmissionAction.ADDITION ? (
+          {userIsAnomalyAdmin ? (
             <Alert severity="info">
               You already have the highest level of access. No additional roles can be requested.
             </Alert>
@@ -98,15 +70,15 @@ export function CreateRoleSubmissionDialog({ open, onClose }: CreateRoleSubmissi
               multiple
               options={availableRoles}
               value={roles}
-              onChange={(_, value) => setForm((current) => ({ ...current, roles: value }))}
+              onChange={(_, value) => setRoles(value)}
               getOptionLabel={formatRole}
               renderInput={(params) => (
                 <TextField
                   {...params}
-                  label={`Roles to ${action === RoleSubmissionAction.ADDITION ? 'add' : 'delete'}`}
+                  label="Roles to add"
                   size="small"
                   helperText={availableRoles.length === 0
-                    ? `No roles available to ${action === RoleSubmissionAction.ADDITION ? 'add' : 'delete'}`
+                    ? 'No roles available to add'
                     : 'Each selected role creates one submission'}
                 />
               )}
@@ -115,8 +87,7 @@ export function CreateRoleSubmissionDialog({ open, onClose }: CreateRoleSubmissi
           )}
         </FieldStack>
       </DialogContent>
-      <Divider />
-      <StyledDialogActions>
+      <StyledDialogActions disableSpacing>
         <Button onClick={handleClose} color="inherit" disabled={createSubmission.isPending}>
           Cancel
         </Button>

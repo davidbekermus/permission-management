@@ -32,7 +32,7 @@ const FormRow = styled(Box)(({ theme }) => ({
   flexWrap: 'wrap',
 }))
 
-export function StoresPage() {
+export const StoresPage = () => {
   const roles = getCurrentRoles()
   const hasAccess = isFlowAdmin('STORE') || roles.includes(Roles.STORE_USER)
   const isAdmin = isFlowAdmin('STORE')

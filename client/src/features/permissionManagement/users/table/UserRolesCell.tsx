@@ -6,6 +6,7 @@ import Select from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
 import InputLabel from '@mui/material/InputLabel'
 import Button from '@mui/material/Button'
+import { useSnackbar } from 'notistack'
 import { useAssignRole, useRemoveRole } from '../hooks/useUsers'
 import { UserRoleChip } from './UserRoleChip'
 import { Roles } from '../../shared/types'
@@ -19,7 +20,6 @@ interface UserRolesCellProps {
   isEditing: boolean
   canManage: boolean
   onDone: () => void
-  onMessage: (message: string) => void
 }
 
 export function UserRolesCell({
@@ -28,11 +28,11 @@ export function UserRolesCell({
   isEditing,
   canManage,
   onDone,
-  onMessage,
 }: UserRolesCellProps) {
   const [selectedRole, setSelectedRole] = useState<Roles | ''>('')
   const assignRole = useAssignRole()
   const removeRole = useRemoveRole()
+  const { enqueueSnackbar } = useSnackbar()
   const existingRoles = user.roles.map((entry) => entry.role)
   const availableRoles = filterRequestableRoles(manageableRoles, existingRoles)
 
@@ -47,9 +47,10 @@ export function UserRolesCell({
       {
         onSuccess: () => {
           setSelectedRole('')
-          onMessage('Role assigned')
+          enqueueSnackbar('Role assigned', { variant: 'success' })
           onDone()
         },
+        onError: () => enqueueSnackbar('Failed to assign role', { variant: 'error' }),
       },
     )
   }
@@ -69,11 +70,18 @@ export function UserRolesCell({
           <UserRoleChip
             key={entry.role}
             role={entry.role}
+            disabled={removeRole.isPending}
             onDelete={canManage && isEditing
-              ? () => removeRole.mutate(
-                { username: user.username, role: entry.role },
-                { onSuccess: () => onMessage('Role removed') },
-              )
+              ? () => {
+                if (removeRole.isPending) return
+                removeRole.mutate(
+                  { username: user.username, role: entry.role },
+                  {
+                    onSuccess: () => enqueueSnackbar('Role removed', { variant: 'success' }),
+                    onError: () => enqueueSnackbar('Failed to remove role', { variant: 'error' }),
+                  },
+                )
+              }
               : undefined}
           />
         ))}

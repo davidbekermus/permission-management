@@ -7,33 +7,33 @@ import TableContainer from '@mui/material/TableContainer'
 import Typography from '@mui/material/Typography'
 import CircularProgress from '@mui/material/CircularProgress'
 import Alert from '@mui/material/Alert'
-import { useGetRoleSubmissions } from '../hooks/useRoleSubmissions'
+import { useGetRoleSubmissions, type RoleSubmissionScope } from '../hooks/useRoleSubmissions'
 import { RoleSubmissionRow } from './RoleSubmissionRow'
-import { canManagePermissions, canReadPermissionManagement, getCurrentUsername } from '@/app/auth/auth.utils'
+import { canManagePermissions, getCurrentUsername } from '@/app/auth/auth.utils'
 import type { Roles, SortOrder } from '../../shared/types'
 import { RoleSubmissionStatus } from '../types'
 import { EmptyRow, EmptyTableCell } from '../../shared/TableStyles.style'
 
 interface RoleSubmissionsTableProps {
+  scope: RoleSubmissionScope
   search?: string
   statusFilters?: RoleSubmissionStatus[]
   roleFilters?: Roles[]
   sort?: SortOrder
 }
 
-export function RoleSubmissionsTable({ search = '', statusFilters = [], roleFilters = [], sort = 'latest' }: RoleSubmissionsTableProps) {
+export function RoleSubmissionsTable({ scope, search = '', statusFilters = [], roleFilters = [], sort = 'latest' }: RoleSubmissionsTableProps) {
   const username = getCurrentUsername()
-  const isAdmin = canReadPermissionManagement()
-  const isAnomalyAdmin = canManagePermissions()
+  const isAnomalyAdmin = scope === 'review' && canManagePermissions()
   const filters = { search, statuses: statusFilters, roles: roleFilters, sort }
-  const { data, isLoading, isError } = useGetRoleSubmissions(filters, isAdmin)
+  const { data, isLoading, isError } = useGetRoleSubmissions(filters, scope)
   const submissions = data ?? []
+  const showLoading = isLoading && data === undefined
   const showControls = isAnomalyAdmin || submissions.some(
     (submission) => submission.username === username && submission.status === RoleSubmissionStatus.PENDING,
   )
   const colSpan = showControls ? 7 : 6
 
-  if (isLoading) return <CircularProgress size={24} />
   if (isError) return <Alert severity="error">Failed to load permission requests.</Alert>
 
   return (
@@ -51,7 +51,14 @@ export function RoleSubmissionsTable({ search = '', statusFilters = [], roleFilt
           </TableRow>
         </TableHead>
         <TableBody>
-          {submissions.length === 0 && (
+          {showLoading && (
+            <TableRow>
+              <EmptyTableCell colSpan={colSpan}>
+                <EmptyRow><CircularProgress /></EmptyRow>
+              </EmptyTableCell>
+            </TableRow>
+          )}
+          {!showLoading && submissions.length === 0 && (
             <TableRow>
               <EmptyTableCell colSpan={colSpan}>
                 <EmptyRow><Typography variant="body2">No permission requests</Typography></EmptyRow>

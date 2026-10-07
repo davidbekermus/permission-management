@@ -4,8 +4,7 @@ import Divider from '@mui/material/Divider'
 import {
   PageWrapper,
   Toolbar,
-  FlexSpacer,
-  ContentBox,
+  ToolbarActions,
   StyledTabs,
 } from './PermissionManagementPage.style'
 
@@ -41,13 +40,12 @@ export function PermissionManagementLayout({
           {showUsersTab && <Tab value="users" label="Users" />}
           <Tab value="submissions" label="Permission Requests" />
         </StyledTabs>
-        <FlexSpacer />
-        {toolbarActions}
+        <ToolbarActions>{toolbarActions}</ToolbarActions>
       </Toolbar>
 
       <Divider />
 
-      <ContentBox>{children}</ContentBox>
+      {children}
     </PageWrapper>
   )
 }

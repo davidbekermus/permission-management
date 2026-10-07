@@ -26,21 +26,19 @@ export function UserActionsCell({
 
   return (
     <TableCell align="right">
-      {!isEditing && (
-        <Tooltip title={canAct ? 'Manage roles' : 'Nothing to manage'}>
-          <span>
-            <IconButton
-              size="small"
-              disabled={!canAct}
-              aria-label={`Manage roles for ${user.username}`}
-              aria-expanded={false}
-              onClick={() => onManage(user.username)}
-            >
-              <AddIcon fontSize="small" />
-            </IconButton>
-          </span>
-        </Tooltip>
-      )}
+      <Tooltip title={canAct ? 'Manage roles' : 'Nothing to manage'}>
+        <span>
+          <IconButton
+            size="small"
+            disabled={!canAct}
+            aria-label={`Manage roles for ${user.username}`}
+            aria-expanded={isEditing}
+            onClick={() => onManage(user.username)}
+          >
+            <AddIcon fontSize="small" />
+          </IconButton>
+        </span>
+      </Tooltip>
     </TableCell>
   )
 }

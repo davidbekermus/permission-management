@@ -4,14 +4,14 @@ import DialogContent from '@mui/material/DialogContent'
 import TextField from '@mui/material/TextField'
 import Autocomplete from '@mui/material/Autocomplete'
 import Button from '@mui/material/Button'
-import Divider from '@mui/material/Divider'
+import DialogTitle from '@mui/material/DialogTitle'
 import CircularProgress from '@mui/material/CircularProgress'
 import { useSnackbar } from 'notistack'
 import { useCreateUsers } from './hooks/useUsers'
-import { ALL_ROLES, type Roles } from '../shared/types'
-import { isRoleInAdminScope } from '@/app/auth/auth.utils'
-import { formatRole } from '../shared/role.utils'
-import { StyledDialogTitle, StyledDivider, StyledDialogActions, FieldStack } from '../shared/DialogStyles.style'
+import type { Roles } from '../shared/types'
+import { getRolesInAdminScope } from '@/app/auth/auth.utils'
+import { formatRole, normalizeRoles } from '../shared/role.utils'
+import { StyledDialogActions, FieldStack } from '../shared/DialogStyles.style'
 
 interface AddUserDialogProps {
   open: boolean
@@ -35,7 +35,7 @@ export function AddUserDialog({ open, onClose }: AddUserDialogProps) {
   const [form, setForm] = useState<AddUserForm>(INITIAL_FORM)
   const { usernames, usernameInput, selectedRoles } = form
   const createUsers = useCreateUsers()
-  const availableRoles = ALL_ROLES.filter(isRoleInAdminScope)
+  const availableRoles = getRolesInAdminScope()
 
   const handleClose = () => {
     setForm(INITIAL_FORM)
@@ -80,16 +80,16 @@ export function AddUserDialog({ open, onClose }: AddUserDialogProps) {
     }))
   }
 
+  const hasShortUsername = usernames.some((username) => username.length < 2)
   const isValid =
     usernames.length > 0 &&
-    usernames.every((username) => username.length >= 2) &&
+    !hasShortUsername &&
     selectedRoles.length > 0
 
   return (
-    <Dialog open={open} onClose={handleClose} fullWidth maxWidth="xs">
-      <StyledDialogTitle>Add Users</StyledDialogTitle>
-      <StyledDivider />
-      <DialogContent>
+    <Dialog open={open} onClose={createUsers.isPending ? undefined : handleClose} fullWidth maxWidth="xs">
+      <DialogTitle>Add Users</DialogTitle>
+      <DialogContent dividers>
         <FieldStack>
           <Autocomplete
             multiple
@@ -97,15 +97,18 @@ export function AddUserDialog({ open, onClose }: AddUserDialogProps) {
             options={[] as string[]}
             value={usernames}
             inputValue={usernameInput}
-            onInputChange={(_, value) => setForm((current) => ({
-              ...current,
-              usernameInput: value,
-            }))}
-            onChange={(_, values) => {
+            onInputChange={(_, value, reason) => {
+              if (reason === 'reset') return
+              setForm((current) => ({
+                ...current,
+                usernameInput: value,
+              }))
+            }}
+            onChange={(_, values, reason) => {
               setForm((current) => ({
                 ...current,
                 usernames: normalizeUsernames(values),
-                usernameInput: '',
+                usernameInput: reason === 'createOption' ? '' : current.usernameInput,
               }))
             }}
             renderInput={(params) => (
@@ -115,7 +118,10 @@ export function AddUserDialog({ open, onClose }: AddUserDialogProps) {
                 size="small"
                 autoFocus
                 onBlur={commitUsernameInput}
-                helperText="Type a username and press Enter, or paste comma-separated usernames."
+                error={hasShortUsername}
+                helperText={hasShortUsername
+                  ? 'Each username must be at least 2 characters. Remove or replace shorter usernames.'
+                  : 'Type a username and press Enter, or paste comma-separated usernames.'}
               />
             )}
             disabled={createUsers.isPending}
@@ -126,7 +132,7 @@ export function AddUserDialog({ open, onClose }: AddUserDialogProps) {
             value={selectedRoles}
             onChange={(_, roles) => setForm((current) => ({
               ...current,
-              selectedRoles: roles,
+              selectedRoles: normalizeRoles(roles),
             }))}
             getOptionLabel={formatRole}
             renderInput={(params) => (
@@ -136,8 +142,7 @@ export function AddUserDialog({ open, onClose }: AddUserDialogProps) {
           />
         </FieldStack>
       </DialogContent>
-      <Divider />
-      <StyledDialogActions>
+      <StyledDialogActions disableSpacing>
         <Button onClick={handleClose} color="inherit" disabled={createUsers.isPending}>
           Cancel
         </Button>
@@ -145,9 +150,13 @@ export function AddUserDialog({ open, onClose }: AddUserDialogProps) {
           variant="contained"
           onClick={handleSubmit}
           disabled={!isValid || createUsers.isPending}
-          startIcon={createUsers.isPending ? <CircularProgress size={14} color="inherit" /> : null}
+          startIcon={createUsers.isPending ? <CircularProgress size="1em" color="inherit" /> : null}
         >
-          {createUsers.isPending ? 'Creating...' : `Create ${usernames.length || ''} ${usernames.length === 1 ? 'user' : 'users'}`}
+          {createUsers.isPending
+            ? 'Creating...'
+            : usernames.length === 0
+              ? 'Create users'
+              : `Create ${usernames.length} ${usernames.length === 1 ? 'user' : 'users'}`}
         </Button>
       </StyledDialogActions>
     </Dialog>
