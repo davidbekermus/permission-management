@@ -1,4 +1,4 @@
-import type { ReactNode, SyntheticEvent } from 'react'
+import type { ReactNode, Ref, SyntheticEvent } from 'react'
 import Tab from '@mui/material/Tab'
 import Divider from '@mui/material/Divider'
 import {
@@ -13,7 +13,7 @@ export type PermissionManagementView = 'users' | 'submissions'
 interface PermissionManagementLayoutProps {
   activeView: PermissionManagementView
   showUsersTab: boolean
-  toolbarActions: ReactNode
+  toolbarRef: Ref<HTMLDivElement>
   onViewChange: (view: PermissionManagementView) => void
   children: ReactNode
 }
@@ -21,7 +21,7 @@ interface PermissionManagementLayoutProps {
 export function PermissionManagementLayout({
   activeView,
   showUsersTab,
-  toolbarActions,
+  toolbarRef,
   onViewChange,
   children,
 }: PermissionManagementLayoutProps) {
@@ -40,7 +40,7 @@ export function PermissionManagementLayout({
           {showUsersTab && <Tab value="users" label="Users" />}
           <Tab value="submissions" label="Permission Requests" />
         </StyledTabs>
-        <ToolbarActions>{toolbarActions}</ToolbarActions>
+        <ToolbarActions ref={toolbarRef} />
       </Toolbar>
 
       <Divider />

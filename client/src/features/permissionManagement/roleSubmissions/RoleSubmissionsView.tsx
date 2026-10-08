@@ -1,13 +1,12 @@
 import { useState } from 'react'
+import { createPortal } from 'react-dom'
 import Button from '@mui/material/Button'
-import Chip from '@mui/material/Chip'
 import Stack from '@mui/material/Stack'
-import Typography from '@mui/material/Typography'
-import Tab from '@mui/material/Tab'
-import Tabs from '@mui/material/Tabs'
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline'
 import { RoleSubmissionsTable } from './table/RoleSubmissionsTable'
 import { CreateRoleSubmissionDialog } from './CreateRoleSubmissionDialog'
+import { RoleSubmissionsScopeTabs } from './RoleSubmissionsScopeTabs'
+import { RoleSubmissionsStatusChips } from './RoleSubmissionsStatusChips'
 import { SearchAndFilterControls } from '../shared/SearchAndFilterControls'
 import { useDebounce } from '../hooks/useDebounce'
 import type { RoleSubmissionScope } from './hooks/useRoleSubmissions'
@@ -21,10 +20,6 @@ import {
   RoleSubmissionStatus,
   STATUS_LABELS,
 } from './types'
-import {
-  PermissionManagementLayout,
-  type PermissionManagementView,
-} from '../PermissionManagementLayout'
 
 const STATUS_FILTER_OPTIONS = ALL_STATUSES.map((status) => ({
   value: status,
@@ -32,7 +27,7 @@ const STATUS_FILTER_OPTIONS = ALL_STATUSES.map((status) => ({
 }))
 
 interface PermissionRequestsViewProps {
-  onViewChange: (view: PermissionManagementView) => void
+  toolbarContainer: HTMLDivElement | null
 }
 
 interface PermissionRequestFilters {
@@ -49,7 +44,7 @@ const getInitialFilters = (isAdmin: boolean): PermissionRequestFilters => ({
   sort: 'latest',
 })
 
-export function PermissionRequestsView({ onViewChange }: PermissionRequestsViewProps) {
+export function PermissionRequestsView({ toolbarContainer }: PermissionRequestsViewProps) {
   const isAdmin = canReadPermissionManagement()
   const [selectedScope, setSelectedScope] = useState<RoleSubmissionScope>(isAdmin ? 'review' : 'mine')
   const scope = isAdmin ? selectedScope : 'mine'
@@ -100,50 +95,24 @@ export function PermissionRequestsView({ onViewChange }: PermissionRequestsViewP
   )
 
   return (
-    <PermissionManagementLayout
-      activeView="submissions"
-      showUsersTab={isAdmin}
-      toolbarActions={toolbarActions}
-      onViewChange={onViewChange}
-    >
+    <>
+      {/* Keep view controls in the shared toolbar while their state stays in this view. */}
+      {toolbarContainer && createPortal(toolbarActions, toolbarContainer)}
       <div>
         <Stack direction="row" spacing={3} alignItems="center" sx={{ mb: 2 }}>
           {isAdmin && (
-            <Tabs
-              value={scope}
-              onChange={(_, value: RoleSubmissionScope) => changeScope(value)}
-              aria-label="Permission request scopes"
-            >
-              <Tab value="review" label="Requests to review" id="request-scope-review" aria-controls="request-scope-panel" />
-              <Tab value="mine" label="My requests" id="request-scope-mine" aria-controls="request-scope-panel" />
-            </Tabs>
+            <RoleSubmissionsScopeTabs scope={scope} onScopeChange={changeScope} />
           )}
           {isAdmin && statuses.length > 0 && (
-            <Stack
-              direction="row"
-              spacing={1}
-              alignItems="center"
-              flexWrap="wrap"
-              useFlexGap
-            >
-              <Typography variant="body2" color="text.secondary">
-                Showing:
-              </Typography>
-              {statuses.map((status) => (
-                <Chip
-                  key={status}
-                  label={STATUS_LABELS[status]}
-                  size="small"
-                  variant="outlined"
-                  onDelete={() => {
-                    setFilters((current) => ({
-                      ...current,
-                      statuses: current.statuses.filter((item) => item !== status),
-                    }))
-                  }}
-                />
-              ))}
-            </Stack>
+            <RoleSubmissionsStatusChips
+              statuses={statuses}
+              onStatusDelete={(status) => {
+                setFilters((current) => ({
+                  ...current,
+                  statuses: current.statuses.filter((item) => item !== status),
+                }))
+              }}
+            />
           )}
 
         </Stack>
@@ -167,6 +136,6 @@ export function PermissionRequestsView({ onViewChange }: PermissionRequestsViewP
         onClose={() => setCreateDialogOpen(false)}
         onSubmitted={() => changeScope('mine')}
       />
-    </PermissionManagementLayout>
+    </>
   )
 }

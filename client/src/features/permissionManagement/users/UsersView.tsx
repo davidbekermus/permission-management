@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { createPortal } from 'react-dom'
 import Button from '@mui/material/Button'
 import PersonAddIcon from '@mui/icons-material/PersonAdd'
 import { UsersTable } from './table/UsersTable'
@@ -7,16 +8,12 @@ import { SearchAndFilterControls } from '../shared/SearchAndFilterControls'
 import { useDebounce } from '../hooks/useDebounce'
 import { canManagePermissions, getRolesInAdminScope } from '@/app/auth/auth.utils'
 import type { Roles, SortOrder } from '../shared/types'
-import {
-  PermissionManagementLayout,
-  type PermissionManagementView,
-} from '../PermissionManagementLayout'
 
 interface UsersViewProps {
-  onViewChange: (view: PermissionManagementView) => void
+  toolbarContainer: HTMLDivElement | null
 }
 
-export function UsersView({ onViewChange }: UsersViewProps) {
+export function UsersView({ toolbarContainer }: UsersViewProps) {
   const isAnomalyAdmin = canManagePermissions()
   const [search, setSearch] = useState('')
   const [roles, setRoles] = useState<Roles[]>([])
@@ -54,16 +51,13 @@ export function UsersView({ onViewChange }: UsersViewProps) {
   )
 
   return (
-    <PermissionManagementLayout
-      activeView="users"
-      showUsersTab
-      toolbarActions={toolbarActions}
-      onViewChange={onViewChange}
-    >
+    <>
+      {/* Keep view controls in the shared toolbar while their state stays in this view. */}
+      {toolbarContainer && createPortal(toolbarActions, toolbarContainer)}
       <UsersTable search={debouncedSearch} roleFilters={roles} sort={sort} />
 
       <AddUserDialog open={addUserOpen} onClose={() => setAddUserOpen(false)} />
 
-    </PermissionManagementLayout>
+    </>
   )
 }

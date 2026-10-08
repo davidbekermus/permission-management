@@ -5,6 +5,7 @@ import {
   redirect,
   Outlet,
   useNavigate,
+  useLocation,
 } from '@tanstack/react-router'
 import { LoginPage } from '@/features/auth/LoginPage'
 import { AppLayout } from '@/components/layout/AppLayout'
@@ -17,8 +18,10 @@ import { canReadPermissionManagement, isAuthenticated } from '@/app/auth/auth.ut
 
 const rootRoute = createRootRoute({ component: Outlet })
 
-function PermissionManagementRoute({ view }: { view: PermissionManagementView }) {
+function PermissionManagementRoute() {
   const navigate = useNavigate()
+  const pathname = useLocation({ select: (location) => location.pathname })
+  const view: PermissionManagementView = pathname.endsWith('/users') ? 'users' : 'submissions'
 
   const handleViewChange = (nextView: PermissionManagementView) => {
     navigate({
@@ -55,7 +58,7 @@ const homeRoute = createRoute({
 const settingsRoute = createRoute({
   getParentRoute: () => appRoute,
   path: '/settings',
-  component: Outlet,
+  component: PermissionManagementRoute,
 })
 
 const settingsIndexRoute = createRoute({
@@ -78,13 +81,13 @@ const settingsUsersRoute = createRoute({
       throw redirect({ to: '/app/settings/permission-requests' })
     }
   },
-  component: () => <PermissionManagementRoute view="users" />,
+  component: () => null,
 })
 
 const settingsPermissionRequestsRoute = createRoute({
   getParentRoute: () => settingsRoute,
   path: '/permission-requests',
-  component: () => <PermissionManagementRoute view="submissions" />,
+  component: () => null,
 })
 
 const storesRoute = createRoute({
