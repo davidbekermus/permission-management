@@ -18,7 +18,7 @@ const PageWrapper = styled(Box)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-  backgroundColor: theme.palette.background.default,
+  backgroundColor: theme.palette.background.paper,
 }))
 
 const LoginCard = styled(Card)(() => ({

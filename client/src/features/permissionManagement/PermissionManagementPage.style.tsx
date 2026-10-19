@@ -55,9 +55,9 @@ export const StyledFilterIconButton = styled(IconButton, {
 })<FilterIconButtonStyledProps>(
   ({ theme, $active }) => ({
     border: '1px solid',
-    borderColor: $active ? theme.palette.primary.main : theme.palette.divider,
+    borderColor: $active ? theme.palette.secondary.main : theme.palette.divider,
     borderRadius: theme.shape.borderRadius,
-    color: $active ? theme.palette.primary.main : theme.palette.text.secondary,
+    color: $active ? theme.palette.secondary.main : theme.palette.text.secondary,
   }),
 )
 

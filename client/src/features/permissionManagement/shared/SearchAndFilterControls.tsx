@@ -66,7 +66,7 @@ export const SearchAndFilterControls = <TStatus extends string = never>({
           $active={filterCount > 0}
           onClick={() => setFilterOpen(true)}
         >
-          <Badge badgeContent={filterCount} color="primary">
+          <Badge badgeContent={filterCount} color="secondary">
             <FilterListIcon fontSize="small" />
           </Badge>
         </StyledFilterIconButton>

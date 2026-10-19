@@ -4,25 +4,25 @@ const theme = createTheme({
   palette: {
     mode: 'dark',
     primary: {
+      main: '#212735',
+    },
+    secondary: {
       main: '#2dd070',
       light: '#57d98c',
       dark: '#1f914e',
       contrastText: '#202735',
     },
-    secondary: {
-      main: '#22d3ee',
-    },
     background: {
-      default: '#202735',
+      default: '#31394d',
       paper: '#202735',
     },
-    divider: 'rgba(255,255,255,0.08)',
+    divider: '#3d465e',
     text: {
-      primary: '#e2e8f0',
+      primary: '#ffffff',
       secondary: '#94a3b8',
     },
     success: {
-      main: '#22c55e',
+      main: '#2dd070',
       contrastText: '#fff',
     },
     error: {
@@ -52,6 +52,32 @@ const theme = createTheme({
     borderRadius: 8,
   },
   components: {
+    MuiCssBaseline: {
+      styleOverrides: (theme) => ({
+        body: { backgroundColor: theme.palette.background.paper },
+      }),
+    },
+    MuiTabs: {
+      defaultProps: { textColor: 'secondary', indicatorColor: 'secondary' },
+    },
+    MuiCircularProgress: {
+      defaultProps: { color: 'secondary' },
+    },
+    MuiTextField: {
+      defaultProps: { color: 'secondary' },
+    },
+    MuiSelect: {
+      defaultProps: { color: 'secondary' },
+    },
+    MuiTooltip: {
+      styleOverrides: {
+        tooltip: ({ theme }) => ({
+          backgroundColor: theme.palette.background.paper,
+          color: theme.palette.text.primary,
+        }),
+        arrow: ({ theme }) => ({ color: theme.palette.background.paper }),
+      },
+    },
     MuiDialog: {
       styleOverrides: {
         paper: ({ theme }) => ({
@@ -61,6 +87,7 @@ const theme = createTheme({
       },
     },
     MuiButton: {
+      defaultProps: { color: 'secondary' },
       styleOverrides: {
         root: {
           textTransform: 'none',
@@ -79,10 +106,10 @@ const theme = createTheme({
     },
     MuiPaper: {
       styleOverrides: {
-        root: {
+        root: ({ theme }) => ({
           backgroundImage: 'none',
-          backgroundColor: '#202735',
-        },
+          backgroundColor: theme.palette.background.paper,
+        }),
       },
     },
     MuiTableHead: {
@@ -92,7 +119,7 @@ const theme = createTheme({
             ...theme.typography.overline,
             lineHeight: 1.5,
             color: theme.palette.text.primary,
-            backgroundColor: theme.palette.background.default,
+            backgroundColor: theme.palette.background.paper,
             borderBottom: '1px solid #13161e',
           },
         }),

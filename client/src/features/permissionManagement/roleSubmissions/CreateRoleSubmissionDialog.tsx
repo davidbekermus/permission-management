@@ -39,7 +39,7 @@ export const CreateRoleSubmissionDialog = ({ open, onClose, availableRoles, hasH
       <DialogContent dividers>
         <FieldStack>
           {hasHighestAccess ? (
-            <Alert severity="info" sx={{ color: 'primary.main', '& .MuiAlert-icon': { color: 'primary.main' } }}>
+            <Alert severity="info" sx={{ color: 'secondary.main', '& .MuiAlert-icon': { color: 'secondary.main' } }}>
               You already have the highest level of access. No additional roles can be requested.
             </Alert>
           ) : (

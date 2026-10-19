@@ -26,7 +26,7 @@ const NavCard = styled(Card)(({ theme }) => ({
   transition: 'box-shadow 0.15s, border-color 0.15s',
   '&:hover': {
     boxShadow: '0 4px 16px rgba(0,0,0,0.10)',
-    borderColor: theme.palette.primary.main,
+    borderColor: theme.palette.secondary.main,
   },
 }))
 
@@ -37,8 +37,8 @@ const IconWrapper = styled(Box)(({ theme }) => ({
   width: 48,
   height: 48,
   borderRadius: theme.shape.borderRadius,
-  backgroundColor: theme.palette.primary.main + '18',
-  color: theme.palette.primary.main,
+  backgroundColor: theme.palette.secondary.main + '18',
+  color: theme.palette.secondary.main,
   marginBottom: theme.spacing(1.5),
 }))
 

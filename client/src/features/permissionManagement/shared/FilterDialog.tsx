@@ -125,11 +125,11 @@ export const FilterDialog = <TStatus extends string = never>({
                     variant={statuses.includes(value) ? 'filled' : 'outlined'}
                     color="default"
                     sx={statuses.includes(value) ? (theme) => ({
-                      backgroundColor: theme.palette.background.default,
+                      backgroundColor: theme.palette.background.paper,
                       color: theme.palette.text.primary,
                       border: 'none',
                       '&:hover, &.Mui-focusVisible': {
-                        backgroundColor: theme.palette.background.default,
+                        backgroundColor: theme.palette.background.paper,
                       },
                     }) : undefined}
                     size="small"
