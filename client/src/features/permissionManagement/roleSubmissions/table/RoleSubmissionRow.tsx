@@ -1,5 +1,6 @@
+import type { SubmissionActions } from './action.types'
 import TableCell from '@mui/material/TableCell'
-import TableRow from '@mui/material/TableRow'
+import { RequestTableRow } from './RoleSubmissionsTable.style'
 import Typography from '@mui/material/Typography'
 import { RoleChip, RoleSubmissionActionChip, RoleSubmissionStatusChip } from './RoleSubmissionChip'
 import { RoleSubmissionActionsCell } from './RoleSubmissionActionsCell'
@@ -7,14 +8,14 @@ import type { RoleSubmission } from '../types'
 
 interface RoleSubmissionRowProps {
   submission: RoleSubmission
-  isAnomalyAdmin: boolean
-  currentUsername: string | null
+  actions: SubmissionActions
+  showReviewActions: boolean
   showControls: boolean
 }
 
-export function RoleSubmissionRow({ submission, isAnomalyAdmin, currentUsername, showControls }: RoleSubmissionRowProps) {
+export const RoleSubmissionRow = ({ submission, actions, showReviewActions, showControls }: RoleSubmissionRowProps) => {
   return (
-    <TableRow>
+    <RequestTableRow>
       <TableCell><Typography variant="body2" fontWeight={500}>{submission.username}</Typography></TableCell>
       <TableCell><RoleChip role={submission.role} /></TableCell>
       <TableCell><RoleSubmissionActionChip action={submission.action} /></TableCell>
@@ -26,8 +27,8 @@ export function RoleSubmissionRow({ submission, isAnomalyAdmin, currentUsername,
         </Typography>
       </TableCell>
       {showControls && (
-        <RoleSubmissionActionsCell submission={submission} isAnomalyAdmin={isAnomalyAdmin} currentUsername={currentUsername} />
+        <RoleSubmissionActionsCell submission={submission} actions={actions} showReviewActions={showReviewActions} />
       )}
-    </TableRow>
+    </RequestTableRow>
   )
 }

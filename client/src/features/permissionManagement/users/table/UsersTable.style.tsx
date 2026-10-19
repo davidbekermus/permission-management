@@ -3,6 +3,7 @@ import FormControl from '@mui/material/FormControl'
 
 export const AssignRoleRow = styled('div')(({ theme }) => ({
   display: 'flex',
+  flexWrap: 'wrap',
   gap: theme.spacing(1),
   alignItems: 'center',
   paddingTop: theme.spacing(1),
@@ -15,5 +16,6 @@ export const RoleChipsBox = styled('div')(({ theme }) => ({
 }))
 
 export const StyledFormControl = styled(FormControl)({
-  flex: 1,
+  width: 240,
+  maxWidth: '100%',
 })

@@ -6,53 +6,49 @@ import Select from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
 import InputLabel from '@mui/material/InputLabel'
 import Button from '@mui/material/Button'
-import { useSnackbar } from 'notistack'
-import { useAssignRole, useRemoveRole } from '../hooks/useUsers'
 import { UserRoleChip } from './UserRoleChip'
-import { Roles } from '../../shared/types'
-import { filterRequestableRoles, formatRole } from '../../shared/role.utils'
+import type { Roles } from '../../shared/types'
+import { formatRole } from '../../shared/role.utils'
 import { AssignRoleRow, RoleChipsBox, StyledFormControl } from './UsersTable.style'
 import type { User } from '../types'
 
 interface UserRolesCellProps {
   user: User
-  manageableRoles: Roles[]
+  availableRoles: Roles[]
+  hasHighestAccess: boolean
   isEditing: boolean
   canManage: boolean
+  isAssigning: boolean
+  isRemoving: boolean
+  onAssignRole: (username: string, role: Roles) => Promise<boolean>
+  onRemoveRole: (username: string, role: Roles) => Promise<boolean>
   onDone: () => void
 }
 
-export function UserRolesCell({
+export const UserRolesCell = ({
   user,
-  manageableRoles,
+  availableRoles,
+  hasHighestAccess,
   isEditing,
   canManage,
   onDone,
-}: UserRolesCellProps) {
+  isAssigning,
+  isRemoving,
+  onAssignRole,
+  onRemoveRole,
+}: UserRolesCellProps) => {
   const [selectedRole, setSelectedRole] = useState<Roles | ''>('')
-  const assignRole = useAssignRole()
-  const removeRole = useRemoveRole()
-  const { enqueueSnackbar } = useSnackbar()
-  const existingRoles = user.roles.map((entry) => entry.role)
-  const availableRoles = filterRequestableRoles(manageableRoles, existingRoles)
 
   useEffect(() => {
     if (isEditing) setSelectedRole('')
   }, [isEditing])
 
-  const handleAssign = () => {
-    if (!selectedRole) return
-    assignRole.mutate(
-      { username: user.username, role: selectedRole },
-      {
-        onSuccess: () => {
-          setSelectedRole('')
-          enqueueSnackbar('Role assigned', { variant: 'success' })
-          onDone()
-        },
-        onError: () => enqueueSnackbar('Failed to assign role', { variant: 'error' }),
-      },
-    )
+  const handleAssign = async () => {
+    if (!selectedRole || isAssigning) return
+    if (await onAssignRole(user.username, selectedRole)) {
+      setSelectedRole('')
+      onDone()
+    }
   }
 
   const handleDone = () => {
@@ -70,18 +66,9 @@ export function UserRolesCell({
           <UserRoleChip
             key={entry.role}
             role={entry.role}
-            disabled={removeRole.isPending}
+            disabled={isRemoving}
             onDelete={canManage && isEditing
-              ? () => {
-                if (removeRole.isPending) return
-                removeRole.mutate(
-                  { username: user.username, role: entry.role },
-                  {
-                    onSuccess: () => enqueueSnackbar('Role removed', { variant: 'success' }),
-                    onError: () => enqueueSnackbar('Failed to remove role', { variant: 'error' }),
-                  },
-                )
-              }
+              ? () => { if (!isRemoving) void onRemoveRole(user.username, entry.role) }
               : undefined}
           />
         ))}
@@ -89,7 +76,7 @@ export function UserRolesCell({
 
       <Collapse in={isEditing}>
         <AssignRoleRow>
-          {user.roles.some((entry) => entry.role === Roles.ANOMALY_ADMIN) ? (
+          {hasHighestAccess ? (
             <Typography variant="caption" color="text.secondary" fontStyle="italic">
               This user already has the highest level of access.
             </Typography>
@@ -112,7 +99,7 @@ export function UserRolesCell({
               <Button
                 size="small"
                 variant="contained"
-                disabled={!selectedRole || assignRole.isPending}
+                disabled={!selectedRole || isAssigning}
                 onClick={handleAssign}
               >
                 Add

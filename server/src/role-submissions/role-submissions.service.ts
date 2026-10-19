@@ -58,6 +58,7 @@ export class RoleSubmissionsService {
     username?: string,
     roles?: Role[],
     sort?: 'asc' | 'desc',
+    offset = 0,
   ): Promise<RoleSubmissionDocument[]> {
     const usernameFilter = username ? { username: { $regex: username, $options: 'i' } } : {};
     const rolesFilter = roles?.length ? { role: { $in: roles } } : {};
@@ -68,6 +69,7 @@ export class RoleSubmissionsService {
       return this.submissionsRepository.find(
         { ...usernameFilter, ...rolesFilter, ...statusFilter },
         sortOrder,
+        offset,
       );
     }
 
@@ -87,6 +89,7 @@ export class RoleSubmissionsService {
     return this.submissionsRepository.find(
       { role: { $in: effectiveRoles }, ...usernameFilter, ...statusFilter },
       sortOrder,
+      offset,
     );
   }
 
@@ -95,6 +98,7 @@ export class RoleSubmissionsService {
     statuses?: RoleSubmissionStatus[],
     roles?: Role[],
     sort?: 'asc' | 'desc',
+    offset = 0,
   ): Promise<RoleSubmissionDocument[]> {
     const rolesFilter = roles?.length ? { role: { $in: roles } } : {};
     const statusFilter = statuses?.length ? { status: { $in: statuses } } : {};
@@ -103,6 +107,7 @@ export class RoleSubmissionsService {
     return this.submissionsRepository.find(
       { username: requesterUsername, ...rolesFilter, ...statusFilter },
       sortOrder,
+      offset,
     );
   }
 

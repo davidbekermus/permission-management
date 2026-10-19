@@ -16,18 +16,33 @@ import { ProductsPage } from '@/features/products/ProductsPage'
 import { HomePage } from '@/features/home/HomePage'
 import { canReadPermissionManagement, isAuthenticated } from '@/app/auth/auth.utils'
 
+const ROUTE_PATHS = {
+  settingsPermissionRequests: '/app/settings/permission-requests',
+  settingsUsers: '/app/settings/users',
+  appHome: '/app/home',
+  permissionRequests: '/permission-requests',
+  settings: '/settings',
+  products: '/products',
+  stores: '/stores',
+  users: '/users',
+  login: '/login',
+  home: '/home',
+  app: '/app',
+  root: '/',
+} as const
+
 const rootRoute = createRootRoute({ component: Outlet })
 
-function PermissionManagementRoute() {
+const PermissionManagementRoute = () => {
   const navigate = useNavigate()
   const pathname = useLocation({ select: (location) => location.pathname })
-  const view: PermissionManagementView = pathname.endsWith('/users') ? 'users' : 'submissions'
+  const view: PermissionManagementView = pathname.endsWith(ROUTE_PATHS.users) ? 'users' : 'submissions'
 
   const handleViewChange = (nextView: PermissionManagementView) => {
     navigate({
       to: nextView === 'users'
-        ? '/app/settings/users'
-        : '/app/settings/permission-requests',
+        ? ROUTE_PATHS.settingsUsers
+        : ROUTE_PATHS.settingsPermissionRequests,
     })
   }
 
@@ -36,49 +51,49 @@ function PermissionManagementRoute() {
 
 const loginRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/login',
+  path: ROUTE_PATHS.login,
   component: LoginPage,
 })
 
 const appRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/app',
+  path: ROUTE_PATHS.app,
   component: AppLayout,
   beforeLoad: () => {
-    if (!isAuthenticated()) throw redirect({ to: '/login' })
+    if (!isAuthenticated()) throw redirect({ to: ROUTE_PATHS.login })
   },
 })
 
 const homeRoute = createRoute({
   getParentRoute: () => appRoute,
-  path: '/home',
+  path: ROUTE_PATHS.home,
   component: HomePage,
 })
 
 const settingsRoute = createRoute({
   getParentRoute: () => appRoute,
-  path: '/settings',
+  path: ROUTE_PATHS.settings,
   component: PermissionManagementRoute,
 })
 
 const settingsIndexRoute = createRoute({
   getParentRoute: () => settingsRoute,
-  path: '/',
+  path: ROUTE_PATHS.root,
   beforeLoad: () => {
     throw redirect({
       to: canReadPermissionManagement()
-        ? '/app/settings/users'
-        : '/app/settings/permission-requests',
+        ? ROUTE_PATHS.settingsUsers
+        : ROUTE_PATHS.settingsPermissionRequests,
     })
   },
 })
 
 const settingsUsersRoute = createRoute({
   getParentRoute: () => settingsRoute,
-  path: '/users',
+  path: ROUTE_PATHS.users,
   beforeLoad: () => {
     if (!canReadPermissionManagement()) {
-      throw redirect({ to: '/app/settings/permission-requests' })
+      throw redirect({ to: ROUTE_PATHS.settingsPermissionRequests })
     }
   },
   component: () => null,
@@ -86,28 +101,28 @@ const settingsUsersRoute = createRoute({
 
 const settingsPermissionRequestsRoute = createRoute({
   getParentRoute: () => settingsRoute,
-  path: '/permission-requests',
+  path: ROUTE_PATHS.permissionRequests,
   component: () => null,
 })
 
 const storesRoute = createRoute({
   getParentRoute: () => appRoute,
-  path: '/stores',
+  path: ROUTE_PATHS.stores,
   component: StoresPage,
 })
 
 const productsRoute = createRoute({
   getParentRoute: () => appRoute,
-  path: '/products',
+  path: ROUTE_PATHS.products,
   component: ProductsPage,
 })
 
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/',
+  path: ROUTE_PATHS.root,
   beforeLoad: () => {
     throw redirect({
-      to: isAuthenticated() ? '/app/home' : '/login',
+      to: isAuthenticated() ? ROUTE_PATHS.appHome : ROUTE_PATHS.login,
     })
   },
 })

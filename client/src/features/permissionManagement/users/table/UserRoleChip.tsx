@@ -16,7 +16,7 @@ interface UserRoleChipProps {
   onDelete?: () => void // omit to render as display-only (no × icon)
 }
 
-export function UserRoleChip({ role, onDelete, disabled = false }: UserRoleChipProps) {
+export const UserRoleChip = ({ role, onDelete, disabled = false }: UserRoleChipProps) => {
   const [confirming, setConfirming] = useState(false)
 
   // Confirmation state: chip is replaced with "Remove X? Yes / No"

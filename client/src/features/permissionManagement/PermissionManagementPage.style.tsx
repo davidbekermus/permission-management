@@ -7,11 +7,15 @@ import TextField from '@mui/material/TextField'
 export const PageWrapper = styled('div')(({ theme }) => ({
   display: 'flex',
   flexDirection: 'column',
+  height: 'calc(100dvh - 49px)',
+  minHeight: 0,
+  overflow: 'hidden',
   gap: theme.spacing(2.5),
   padding: theme.spacing(3),
 }))
 
 export const Toolbar = styled('div')(({ theme }) => ({
+  flexShrink: 0,
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'space-between',
@@ -59,6 +63,9 @@ export const StyledFilterIconButton = styled(IconButton, {
 
 export const SearchField = styled(TextField)(({ theme }) => ({
   width: theme.spacing(32),
+  '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
+    borderColor: theme.palette.text.secondary,
+  },
   [theme.breakpoints.down('sm')]: {
     width: '100%',
   },

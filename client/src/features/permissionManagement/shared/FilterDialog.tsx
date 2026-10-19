@@ -4,7 +4,7 @@ import DialogContent from '@mui/material/DialogContent'
 import Button from '@mui/material/Button'
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup'
 import Autocomplete from '@mui/material/Autocomplete'
-import TextField from '@mui/material/TextField'
+import { DialogTextField, DialogOptionsPaper, renderDialogRoleOption } from './DialogFields.style'
 import Chip from '@mui/material/Chip'
 import DialogTitle from '@mui/material/DialogTitle'
 import Typography from '@mui/material/Typography'
@@ -40,7 +40,7 @@ interface SelectedFilters<TStatus extends string> {
   statuses: TStatus[]
 }
 
-export function FilterDialog<TStatus extends string = never>({
+export const FilterDialog = <TStatus extends string = never>({
   title,
   open,
   onClose,
@@ -50,7 +50,7 @@ export function FilterDialog<TStatus extends string = never>({
   statusOptions,
   appliedStatuses,
   onApply,
-}: FilterDialogProps<TStatus>) {
+}: FilterDialogProps<TStatus>) => {
   const [selectedFilters, setSelectedFilters] = useState<SelectedFilters<TStatus>>({
     roles: appliedRoles,
     sort: appliedSort,
@@ -123,7 +123,15 @@ export function FilterDialog<TStatus extends string = never>({
                     label={label}
                     onClick={() => toggleStatus(value)}
                     variant={statuses.includes(value) ? 'filled' : 'outlined'}
-                    color={statuses.includes(value) ? 'primary' : 'default'}
+                    color="default"
+                    sx={statuses.includes(value) ? (theme) => ({
+                      backgroundColor: theme.palette.background.default,
+                      color: theme.palette.text.primary,
+                      border: 'none',
+                      '&:hover, &.Mui-focusVisible': {
+                        backgroundColor: theme.palette.background.default,
+                      },
+                    }) : undefined}
                     size="small"
                     clickable
                   />
@@ -142,8 +150,10 @@ export function FilterDialog<TStatus extends string = never>({
               value={roles}
               onChange={(_, value) => setSelectedFilters((current) => ({ ...current, roles: value }))}
               getOptionLabel={formatRole}
+              PaperComponent={DialogOptionsPaper}
+              renderOption={renderDialogRoleOption}
               renderInput={(params) => (
-                <TextField
+                <DialogTextField
                   {...params}
                   placeholder={roles.length === 0 ? 'Any role...' : ''}
                   size="small"

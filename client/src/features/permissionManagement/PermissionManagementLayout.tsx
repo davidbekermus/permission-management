@@ -18,13 +18,13 @@ interface PermissionManagementLayoutProps {
   children: ReactNode
 }
 
-export function PermissionManagementLayout({
+export const PermissionManagementLayout = ({
   activeView,
   showUsersTab,
   toolbarRef,
   onViewChange,
   children,
-}: PermissionManagementLayoutProps) {
+}: PermissionManagementLayoutProps) => {
   const handleTabChange = (_: SyntheticEvent, view: PermissionManagementView) => {
     onViewChange(view)
   }
@@ -43,7 +43,7 @@ export function PermissionManagementLayout({
         <ToolbarActions ref={toolbarRef} />
       </Toolbar>
 
-      <Divider />
+      <Divider sx={{ borderColor: '#3d465e' }} />
 
       {children}
     </PageWrapper>

@@ -25,19 +25,20 @@ function buildParams(filters: Omit<RoleSubmissionFilters, 'search'>) {
 const BASE = '/role-submissions'
 
 export const roleSubmissionsApi = {
-  getAll: async (filters: RoleSubmissionFilters = {}): Promise<RoleSubmission[]> => {
+  getAll: async (filters: RoleSubmissionFilters = {}, offset = 0): Promise<RoleSubmission[]> => {
     const { data } = await apiClient.get<RoleSubmission[]>(BASE, {
       params: {
         ...buildParams(filters),
+        offset,
         ...(filters.search ? { username: filters.search } : {}),
       },
     })
     return data
   },
 
-  getMine: async (filters: Omit<RoleSubmissionFilters, 'search'> = {}): Promise<RoleSubmission[]> => {
+  getMine: async (filters: Omit<RoleSubmissionFilters, 'search'> = {}, offset = 0): Promise<RoleSubmission[]> => {
     const { data } = await apiClient.get<RoleSubmission[]>(`${BASE}/my-submissions`, {
-      params: buildParams(filters),
+      params: { ...buildParams(filters), offset },
     })
     return data
   },

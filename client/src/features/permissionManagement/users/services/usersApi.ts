@@ -11,10 +11,11 @@ export interface UserFilters {
 const BASE = '/users'
 
 export const usersApi = {
-  getUsers: async (filters: UserFilters = {}): Promise<User[]> => {
+  getUsers: async (filters: UserFilters = {}, offset = 0): Promise<User[]> => {
     const { search, roles, sort } = filters
     const { data } = await apiClient.get<User[]>(BASE, {
       params: {
+        offset,
         ...(search ? { username: search } : {}),
         ...(roles?.length ? { roles: roles.join(',') } : {}),
         ...(sort ? { sort: sort === 'oldest' ? 'asc' : 'desc' } : {}),
@@ -33,13 +34,8 @@ export const usersApi = {
     return data
   },
 
-  createUser: async (username: string, roles: Roles[]): Promise<User> => {
-    const { data } = await apiClient.post<User>(BASE, { username, roles })
-    return data
-  },
-
   createUsers: async (usernames: string[], roles: Roles[]): Promise<User[]> => {
-    const { data } = await apiClient.post<User[]>(`${BASE}/bulk`, { usernames, roles })
+    const { data } = await apiClient.post<User[]>(BASE, { usernames, roles })
     return data
   },
 }

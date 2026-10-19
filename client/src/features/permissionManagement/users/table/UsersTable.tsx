@@ -4,76 +4,75 @@ import TableBody from '@mui/material/TableBody'
 import TableCell from '@mui/material/TableCell'
 import TableHead from '@mui/material/TableHead'
 import TableRow from '@mui/material/TableRow'
-import TableContainer from '@mui/material/TableContainer'
+import { InfiniteLoadingRow } from '../../shared/InfiniteLoadingRow'
 import Typography from '@mui/material/Typography'
 import CircularProgress from '@mui/material/CircularProgress'
 import Alert from '@mui/material/Alert'
-import { useGetUsers } from '../hooks/useUsers'
+import type { UserTableRow } from './row.types'
+import type { TableLoadingState } from '../../shared/table.types'
 import { UserActionsCell } from './UserActionsCell'
 import { UserRolesCell } from './UserRolesCell'
-import { canManagePermissions, getRolesInAdminScope } from '@/app/auth/auth.utils'
-import type { Roles, SortOrder } from '../../shared/types'
-import { EmptyRow, EmptyTableCell } from '../../shared/TableStyles.style'
+import type { Roles } from '../../shared/types'
+import { EmptyRow, EmptyTableCell, ScrollableTableContainer } from '../../shared/TableStyles.style'
 
-interface UsersTableProps {
-  search?: string
-  roleFilters?: Roles[]
-  sort?: SortOrder
+interface UsersTableProps extends TableLoadingState {
+  rows: UserTableRow[]
+  canManage: boolean
+  isAssigning: boolean
+  isRemoving: boolean
+  onAssignRole: (username: string, role: Roles) => Promise<boolean>
+  onRemoveRole: (username: string, role: Roles) => Promise<boolean>
 }
 
-export function UsersTable({ search, roleFilters = [], sort = 'latest' }: UsersTableProps) {
-  const isAnomalyAdmin = canManagePermissions()
+export const UsersTable = ({ rows, canManage, isAssigning, isRemoving, onAssignRole, onRemoveRole, isLoading, isError, pagination }: UsersTableProps) => {
   const [editingUsername, setEditingUsername] = useState<string | null>(null)
-
-  const { data, isLoading, isError } = useGetUsers({ search, roles: roleFilters, sort })
-  const users = data ?? []
-  const showLoading = isLoading && data === undefined
-
-  // The subset of ALL_ROLES this admin is allowed to assign — used to populate the dropdown
-  // this has to change in the real app to the generated type
-  const manageableRoles = getRolesInAdminScope()
-
+  const [container, setContainer] = useState<HTMLDivElement | null>(null)
   if (isError) return <Alert severity="error">Failed to load users.</Alert>
 
   return (
     <>
-      <TableContainer>
-        <Table>
+      <ScrollableTableContainer ref={setContainer}>
+        <Table stickyHeader>
           <TableHead>
             <TableRow>
               <TableCell>Username</TableCell>
               <TableCell>Roles</TableCell>
               <TableCell>Date added</TableCell>
-              {isAnomalyAdmin && <TableCell align="right">Actions</TableCell>}
+              {canManage && <TableCell align="right">Actions</TableCell>}
             </TableRow>
           </TableHead>
           <TableBody>
-            {showLoading && (
+            {isLoading && (
               <TableRow>
-                <EmptyTableCell colSpan={isAnomalyAdmin ? 4 : 3}>
+                <EmptyTableCell colSpan={canManage ? 4 : 3}>
                   <EmptyRow><CircularProgress /></EmptyRow>
                 </EmptyTableCell>
               </TableRow>
             )}
-            {!showLoading && users.length === 0 && (
+            {!isLoading && rows.length === 0 && (
               <TableRow>
-                <EmptyTableCell colSpan={isAnomalyAdmin ? 4 : 3}>
+                <EmptyTableCell colSpan={canManage ? 4 : 3}>
                   <EmptyRow>
                     <Typography variant="body2">No users found</Typography>
                   </EmptyRow>
                 </EmptyTableCell>
               </TableRow>
             )}
-            {users.map((user) => (
+            {rows.map(({ user, availableRoles, hasHighestAccess, canManageRoles }) => (
               <TableRow key={user._id}>
                 <TableCell>
                   <Typography variant="body2" fontWeight={500}>{user.username}</Typography>
                 </TableCell>
                 <UserRolesCell
                   user={user}
-                  manageableRoles={manageableRoles}
+                  availableRoles={availableRoles}
+                  hasHighestAccess={hasHighestAccess}
                   isEditing={editingUsername === user.username}
-                  canManage={isAnomalyAdmin}
+                  canManage={canManage}
+                  isAssigning={isAssigning}
+                  isRemoving={isRemoving}
+                  onAssignRole={onAssignRole}
+                  onRemoveRole={onRemoveRole}
                   onDone={() => setEditingUsername(null)}
                 />
                 <TableCell>
@@ -81,19 +80,28 @@ export function UsersTable({ search, roleFilters = [], sort = 'latest' }: UsersT
                     {new Date(user.createdAt).toLocaleDateString()}
                   </Typography>
                 </TableCell>
-                {isAnomalyAdmin && (
+                {canManage && (
                   <UserActionsCell
                     user={user}
-                    manageableRoles={manageableRoles}
+                    canManageRoles={canManageRoles}
                     isEditing={editingUsername === user.username}
                     onManage={setEditingUsername}
                   />
                 )}
               </TableRow>
             ))}
+            <InfiniteLoadingRow
+              container={container}
+              colSpan={canManage ? 4 : 3}
+              hasNextPage={pagination.hasNextPage}
+              isFetching={pagination.isFetching}
+              isError={pagination.isError}
+              enabled={pagination.enabled}
+              onLoadMore={pagination.onLoadMore}
+            />
           </TableBody>
         </Table>
-      </TableContainer>
+      </ScrollableTableContainer>
     </>
   )
 }

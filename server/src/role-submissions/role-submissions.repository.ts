@@ -40,8 +40,8 @@ export class RoleSubmissionsRepository {
     );
   }
 
-  find(filter: FilterQuery<RoleSubmissionDocument>, sortOrder: 1 | -1) {
-    return this.model.find(filter).sort({ createdAt: sortOrder }).limit(20).exec();
+  find(filter: FilterQuery<RoleSubmissionDocument>, sortOrder: 1 | -1, offset = 0) {
+    return this.model.find(filter).sort({ createdAt: sortOrder, _id: sortOrder }).skip(offset).limit(20).exec();
   }
 
   findById(id: string) {

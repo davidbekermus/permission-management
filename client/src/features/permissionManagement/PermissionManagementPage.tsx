@@ -9,7 +9,7 @@ interface PermissionManagementPageProps {
   onViewChange: (view: PermissionManagementView) => void
 }
 
-export function PermissionManagementPage({ view, onViewChange }: PermissionManagementPageProps) {
+export const PermissionManagementPage = ({ view, onViewChange }: PermissionManagementPageProps) => {
   const [toolbarContainer, setToolbarContainer] = useState<HTMLDivElement | null>(null)
   const isAdmin = canReadPermissionManagement()
   // Only admins can view users; flow admins see users in their own flow.

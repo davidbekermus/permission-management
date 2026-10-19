@@ -1,13 +1,13 @@
 import Tab from '@mui/material/Tab'
 import { StyledTabs } from '../PermissionManagementPage.style'
-import type { RoleSubmissionScope } from './hooks/useRoleSubmissions'
+import type { RoleSubmissionScope } from './types'
 
 interface RoleSubmissionsScopeTabsProps {
   scope: RoleSubmissionScope
   onScopeChange: (scope: RoleSubmissionScope) => void
 }
 
-export function RoleSubmissionsScopeTabs({ scope, onScopeChange }: RoleSubmissionsScopeTabsProps) {
+export const RoleSubmissionsScopeTabs = ({ scope, onScopeChange }: RoleSubmissionsScopeTabsProps) => {
   return (
     <StyledTabs
       value={scope}

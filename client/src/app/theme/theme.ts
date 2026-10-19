@@ -4,16 +4,17 @@ const theme = createTheme({
   palette: {
     mode: 'dark',
     primary: {
-      main: '#6366f1',
-      light: '#818cf8',
-      dark: '#4f46e5',
+      main: '#2dd070',
+      light: '#57d98c',
+      dark: '#1f914e',
+      contrastText: '#202735',
     },
     secondary: {
       main: '#22d3ee',
     },
     background: {
-      default: '#0d0f14',
-      paper: '#161b27',
+      default: '#202735',
+      paper: '#202735',
     },
     divider: 'rgba(255,255,255,0.08)',
     text: {
@@ -51,6 +52,14 @@ const theme = createTheme({
     borderRadius: 8,
   },
   components: {
+    MuiDialog: {
+      styleOverrides: {
+        paper: ({ theme }) => ({
+          backgroundImage: 'none',
+          backgroundColor: theme.palette.background.paper,
+        }),
+      },
+    },
     MuiButton: {
       styleOverrides: {
         root: {
@@ -72,7 +81,7 @@ const theme = createTheme({
       styleOverrides: {
         root: {
           backgroundImage: 'none',
-          backgroundColor: '#161b27',
+          backgroundColor: '#202735',
         },
       },
     },
@@ -82,9 +91,9 @@ const theme = createTheme({
           '& .MuiTableCell-root': {
             ...theme.typography.overline,
             lineHeight: 1.5,
-            color: '#64748b',
-            backgroundColor: '#0d0f14',
-            borderBottom: '1px solid rgba(255,255,255,0.10)',
+            color: theme.palette.text.primary,
+            backgroundColor: theme.palette.background.default,
+            borderBottom: '1px solid #13161e',
           },
         }),
       },
@@ -92,7 +101,7 @@ const theme = createTheme({
     MuiTableCell: {
       styleOverrides: {
         root: {
-          borderColor: 'rgba(255,255,255,0.10)',
+          borderColor: '#13161e',
           padding: '14px 16px',
         },
       },
@@ -100,7 +109,7 @@ const theme = createTheme({
     MuiTableRow: {
       styleOverrides: {
         root: {
-          '&:last-child .MuiTableCell-root': { borderBottom: 0 },
+          '&:last-child .MuiTableCell-body': { borderBottom: 0 },
           '&:hover': { backgroundColor: 'rgba(255,255,255,0.02)' },
         },
       },
@@ -122,7 +131,7 @@ const theme = createTheme({
       styleOverrides: {
         root: {
           backgroundImage: 'none',
-          backgroundColor: '#161b27',
+          backgroundColor: '#202735',
         },
       },
     },

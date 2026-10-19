@@ -8,7 +8,7 @@ interface RoleSubmissionsStatusChipsProps {
   onStatusDelete: (status: RoleSubmissionStatus) => void
 }
 
-export function RoleSubmissionsStatusChips({ statuses, onStatusDelete }: RoleSubmissionsStatusChipsProps) {
+export const RoleSubmissionsStatusChips = ({ statuses, onStatusDelete }: RoleSubmissionsStatusChipsProps) => {
   return (
     <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap>
       <Typography variant="body2" color="text.secondary">

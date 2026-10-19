@@ -34,3 +34,5 @@ export interface RoleSubmission {
   createdAt: string
   updatedAt: string
 }
+
+export type RoleSubmissionScope = 'review' | 'mine'

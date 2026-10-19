@@ -9,6 +9,9 @@ import {
   UseGuards,
   Request,
   Query,
+  DefaultValuePipe,
+  ParseIntPipe,
+  BadRequestException,
 } from '@nestjs/common';
 import { RoleSubmissionsService } from './role-submissions.service';
 import { CreateRoleSubmissionDto } from './dto/create-role-submission.dto';
@@ -36,10 +39,12 @@ export class RoleSubmissionsController {
     @Query('username') username?: string,
     @Query('roles') rolesParam?: string,
     @Query('sort') sort?: 'asc' | 'desc',
+    @Query('offset', new DefaultValuePipe(0), ParseIntPipe) offset = 0,
   ) {
     const statuses = statusesParam ? (statusesParam.split(',') as RoleSubmissionStatus[]) : undefined;
+    if (offset < 0) throw new BadRequestException('offset must be non-negative');
     const roles = rolesParam ? (rolesParam.split(',') as Role[]) : undefined;
-    return this.service.findAll(req.user.roles, statuses, username, roles, sort);
+    return this.service.findAll(req.user.roles, statuses, username, roles, sort, offset);
   }
 
   @Get('my-submissions')
@@ -48,10 +53,12 @@ export class RoleSubmissionsController {
     @Query('statuses') statusesParam?: string,
     @Query('roles') rolesParam?: string,
     @Query('sort') sort?: 'asc' | 'desc',
+    @Query('offset', new DefaultValuePipe(0), ParseIntPipe) offset = 0,
   ) {
     const statuses = statusesParam ? (statusesParam.split(',') as RoleSubmissionStatus[]) : undefined;
+    if (offset < 0) throw new BadRequestException('offset must be non-negative');
     const roles = rolesParam ? (rolesParam.split(',') as Role[]) : undefined;
-    return this.service.findMine(req.user.username, statuses, roles, sort);
+    return this.service.findMine(req.user.username, statuses, roles, sort, offset);
   }
 
   @Get(':id')

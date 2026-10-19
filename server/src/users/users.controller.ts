@@ -10,12 +10,14 @@ import {
   UseGuards,
   Request,
   ParseEnumPipe,
+  DefaultValuePipe,
+  ParseIntPipe,
+  BadRequestException,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { AdminRoles, Roles } from '../common/decorators/roles.decorator';
 import { Role } from '../common/utils/roles.util';
-import { CreateUserDto } from './dto/create-user.dto';
 import { CreateUsersDto } from './dto/create-users.dto';
 import { AssignRoleDto } from './dto/assign-role.dto';
 import { AuthedRequest } from '../common/interfaces/authed-request.interface';
@@ -40,9 +42,11 @@ export class UsersController {
     @Query('username') username?: string,
     @Query('roles') rolesParam?: string,
     @Query('sort') sort?: 'asc' | 'desc',
+    @Query('offset', new DefaultValuePipe(0), ParseIntPipe) offset = 0,
   ) {
+    if (offset < 0) throw new BadRequestException('offset must be non-negative');
     const roles = rolesParam ? (rolesParam.split(',') as Role[]) : undefined;
-    return this.usersService.findAll(req.user.roles, username, roles, sort);
+    return this.usersService.findAll(req.user.roles, username, roles, sort, offset);
   }
 
   /**
@@ -60,13 +64,7 @@ export class UsersController {
    */
   @Post()
   @Roles(Role.ANOMALY_ADMIN)
-  create(@Body() dto: CreateUserDto, @Request() req: AuthedRequest) {
-    return this.adminService.createUser(dto.username, dto.roles, req.user.roles, req.user.username);
-  }
-
-  @Post('bulk')
-  @Roles(Role.ANOMALY_ADMIN)
-  createMany(@Body() dto: CreateUsersDto, @Request() req: AuthedRequest) {
+  create(@Body() dto: CreateUsersDto, @Request() req: AuthedRequest) {
     return this.adminService.createUsers(dto.usernames, dto.roles, req.user.roles, req.user.username);
   }
 

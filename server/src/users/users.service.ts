@@ -7,7 +7,7 @@ import { Role, getFlowFromRole, getRolesForFlow, isAdminRole } from '../common/u
 export class UsersService {
   constructor(private readonly usersRepository: UsersRepository) {}
 
-  async findAll(requesterRoles: Role[], username?: string, roles?: Role[], sort?: 'asc' | 'desc'): Promise<UserDocument[]> {
+  async findAll(requesterRoles: Role[], username?: string, roles?: Role[], sort?: 'asc' | 'desc', offset = 0): Promise<UserDocument[]> {
     const filter: Record<string, unknown> = {};
     if (username) filter.username = { $regex: username, $options: 'i' };
     if (requesterRoles.includes(Role.ANOMALY_ADMIN)) {
@@ -18,7 +18,7 @@ export class UsersService {
       if (effectiveRoles.length === 0) return [];
       filter['roles.role'] = { $in: effectiveRoles };
     }
-    return this.usersRepository.find(filter, sort === 'asc' ? 1 : -1);
+    return this.usersRepository.find(filter, sort === 'asc' ? 1 : -1, offset);
   }
 
   async findByUsername(username: string, requesterRoles?: Role[]): Promise<UserDocument> {
