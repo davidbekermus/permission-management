@@ -23,7 +23,7 @@ export const PermissionRequestsView = ({ toolbarContainer }: PermissionRequestsV
         dialogTitle="Filter Permission Requests"
         {...view.filters}
       />
-      <Button
+      <Button color="secondary"
         variant="contained"
         size="small"
         startIcon={<AddCircleOutlineIcon fontSize="small" />}

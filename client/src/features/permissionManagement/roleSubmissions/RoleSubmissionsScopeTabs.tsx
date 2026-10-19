@@ -9,7 +9,7 @@ interface RoleSubmissionsScopeTabsProps {
 
 export const RoleSubmissionsScopeTabs = ({ scope, onScopeChange }: RoleSubmissionsScopeTabsProps) => {
   return (
-    <StyledTabs
+    <StyledTabs textColor="secondary" indicatorColor="secondary"
       value={scope}
       onChange={(_, value: RoleSubmissionScope) => onScopeChange(value)}
       aria-label="Permission request scopes"

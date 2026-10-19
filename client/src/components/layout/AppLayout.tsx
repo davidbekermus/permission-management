@@ -51,7 +51,7 @@ export const AppLayout = () => {
     <>
       <StyledAppBar position="static" elevation={0}>
         <Toolbar variant="dense" disableGutters sx={{ px: 2, minHeight: 48 }}>
-          <Button
+          <Button color="secondary"
             startIcon={<HomeIcon fontSize="small" />}
             onClick={() => navigate({ to: '/app/home' })}
             sx={{ textTransform: 'none', color: 'text.secondary', minWidth: 0 }}
@@ -75,7 +75,7 @@ export const AppLayout = () => {
               {username}
             </Typography>
           )}
-          <Button
+          <Button color="secondary"
             startIcon={<LogoutIcon fontSize="small" />}
             onClick={handleLogout}
             sx={{ textTransform: 'none', color: 'text.secondary' }}

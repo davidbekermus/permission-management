@@ -7,13 +7,13 @@ import { formatRole } from './role.utils'
 
 export const DialogTextField = styled(TextField)(({ theme }) => ({
   '& .MuiInputLabel-root:not(.Mui-error)': {
-    color: theme.palette.primary.main,
+    color: theme.palette.text.primary,
   },
   '& .MuiOutlinedInput-root': {
     color: theme.palette.text.primary,
     caretColor: theme.palette.text.primary,
     '&:not(.Mui-error):not(.Mui-disabled) .MuiOutlinedInput-notchedOutline': {
-      borderColor: theme.palette.primary.main,
+      borderColor: theme.palette.background.default,
       borderWidth: 2,
     },
   },

@@ -15,7 +15,13 @@ export const RoleChipsBox = styled('div')(({ theme }) => ({
   gap: theme.spacing(1),
 }))
 
-export const StyledFormControl = styled(FormControl)({
+export const StyledFormControl = styled(FormControl)(({ theme }) => ({
   width: 240,
   maxWidth: '100%',
-})
+  '& .MuiInputLabel-root.Mui-focused': {
+    color: theme.palette.text.primary,
+  },
+  '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
+    borderColor: theme.palette.background.default,
+  },
+}))

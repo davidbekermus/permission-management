@@ -95,6 +95,7 @@ export const ProductsPage = () => {
             onChange={(e) => setCategory(e.target.value)}
           />
           <Button
+            color="secondary"
             variant="contained"
             disabled={!name.trim() || !price || createProduct.isPending}
             onClick={handleCreate}

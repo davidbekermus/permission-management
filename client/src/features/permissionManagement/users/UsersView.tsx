@@ -16,7 +16,7 @@ export const UsersView = ({ toolbarContainer }: UsersViewProps) => {
     <>
       <SearchAndFilterControls dialogTitle="Filter Users" {...view.filters} />
       {view.canManage && (
-        <Button
+        <Button color="secondary"
           variant="contained"
           size="small"
           startIcon={<PersonAddIcon fontSize="small" />}

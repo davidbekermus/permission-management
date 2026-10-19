@@ -146,6 +146,7 @@ export const AddUserDialog = ({ open, onClose, availableRoles, isPending, onSubm
           Cancel
         </Button>
         <Button
+          color="secondary"
           variant="contained"
           onClick={handleSubmit}
           disabled={!isValid || isPending}

@@ -88,6 +88,7 @@ export const StoresPage = () => {
             sx={{ width: 120 }}
           />
           <Button
+            color="secondary"
             variant="contained"
             disabled={!name.trim() || !price || createItem.isPending}
             onClick={handleCreate}

@@ -35,7 +35,7 @@ export const InfiniteLoadingRow = ({ container, colSpan, hasNextPage, isFetching
       <EmptyTableCell colSpan={colSpan}>
         <EmptyRow>
           {isError
-            ? <Button onClick={() => void onLoadMore()}>Retry loading more</Button>
+            ? <Button color="secondary" onClick={() => void onLoadMore()}>Retry loading more</Button>
             : <CircularProgress size={24} aria-label="Loading more rows" />}
         </EmptyRow>
       </EmptyTableCell>

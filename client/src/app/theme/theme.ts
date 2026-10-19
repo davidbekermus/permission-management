@@ -57,9 +57,6 @@ const theme = createTheme({
         body: { backgroundColor: theme.palette.background.paper },
       }),
     },
-    MuiTabs: {
-      defaultProps: { textColor: 'secondary', indicatorColor: 'secondary' },
-    },
     MuiCircularProgress: {
       defaultProps: { color: 'secondary' },
     },
@@ -87,7 +84,6 @@ const theme = createTheme({
       },
     },
     MuiButton: {
-      defaultProps: { color: 'secondary' },
       styleOverrides: {
         root: {
           textTransform: 'none',

@@ -96,7 +96,7 @@ export const UserRolesCell = ({
                   ))}
                 </Select>
               </StyledFormControl>
-              <Button
+              <Button color="success"
                 size="small"
                 variant="contained"
                 disabled={!selectedRole || isAssigning}

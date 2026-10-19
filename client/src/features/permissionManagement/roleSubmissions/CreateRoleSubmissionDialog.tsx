@@ -4,7 +4,7 @@ import DialogContent from '@mui/material/DialogContent'
 import Autocomplete from '@mui/material/Autocomplete'
 import { DialogTextField, DialogOptionsPaper, renderDialogRoleOption } from '../shared/DialogFields.style'
 import Button from '@mui/material/Button'
-import Alert from '@mui/material/Alert'
+import Typography from '@mui/material/Typography'
 import DialogTitle from '@mui/material/DialogTitle'
 import CircularProgress from '@mui/material/CircularProgress'
 import type { Roles } from '../shared/types'
@@ -39,9 +39,9 @@ export const CreateRoleSubmissionDialog = ({ open, onClose, availableRoles, hasH
       <DialogContent dividers>
         <FieldStack>
           {hasHighestAccess ? (
-            <Alert severity="info" sx={{ color: 'secondary.main', '& .MuiAlert-icon': { color: 'secondary.main' } }}>
+            <Typography variant="body2" color="secondary.main">
               You already have the highest level of access. No additional roles can be requested.
-            </Alert>
+            </Typography>
           ) : (
             <Autocomplete
               multiple
@@ -71,6 +71,7 @@ export const CreateRoleSubmissionDialog = ({ open, onClose, availableRoles, hasH
           Cancel
         </Button>
         <Button
+          color="secondary"
           variant="contained"
           onClick={handleSubmit}
           disabled={roles.length === 0 || isPending}

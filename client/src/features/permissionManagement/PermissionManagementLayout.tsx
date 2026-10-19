@@ -32,7 +32,7 @@ export const PermissionManagementLayout = ({
   return (
     <PageWrapper>
       <Toolbar>
-        <StyledTabs
+        <StyledTabs textColor="secondary" indicatorColor="secondary"
           value={activeView}
           onChange={handleTabChange}
           aria-label="Permission management views"
