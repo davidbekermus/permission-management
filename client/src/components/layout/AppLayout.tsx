@@ -12,7 +12,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { getCurrentUsername, removeUserToken } from '@/app/auth/auth.utils'
 
 const MainContent = styled(Box)(({ theme }) => ({
-  backgroundColor: theme.palette.background.paper,
+  backgroundColor: theme.palette.background.default,
   minHeight: 'calc(100dvh - 49px)',
 }))
 

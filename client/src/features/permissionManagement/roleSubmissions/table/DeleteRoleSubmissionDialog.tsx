@@ -31,7 +31,7 @@ export const DeleteRoleSubmissionDialog = ({
         </Typography>
       </DialogContent>
       <StyledDialogActions disableSpacing>
-        <Button color="inherit" onClick={onClose} disabled={isPending}>Cancel</Button>
+        <Button color="inherit" onClick={onClose} disabled={isPending} sx={{ bgcolor: 'background.default', '&:hover': { bgcolor: 'background.default' } }}>Cancel</Button>
         <Button variant="contained" color="error" onClick={onConfirm} disabled={isPending}>
           {isPending ? 'Deleting...' : 'Delete'}
         </Button>

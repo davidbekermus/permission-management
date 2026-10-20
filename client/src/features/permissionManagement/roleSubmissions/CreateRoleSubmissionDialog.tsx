@@ -67,7 +67,7 @@ export const CreateRoleSubmissionDialog = ({ open, onClose, availableRoles, hasH
         </FieldStack>
       </DialogContent>
       <StyledDialogActions disableSpacing>
-        <Button onClick={handleClose} color="inherit" disabled={isPending}>
+        <Button onClick={handleClose} color="inherit" disabled={isPending} sx={{ bgcolor: 'background.default', '&:hover': { bgcolor: 'background.default' } }}>
           Cancel
         </Button>
         <Button

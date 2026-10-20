@@ -1,5 +1,17 @@
 import { createTheme } from '@mui/material/styles'
 
+declare module '@mui/material/styles' {
+  interface Palette {
+    tableDivider: string
+    gray: Palette['primary']
+  }
+
+  interface PaletteOptions {
+    tableDivider?: string
+    gray?: PaletteOptions['primary']
+  }
+}
+
 const theme = createTheme({
   palette: {
     mode: 'dark',

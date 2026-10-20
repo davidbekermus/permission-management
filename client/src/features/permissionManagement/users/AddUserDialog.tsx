@@ -142,7 +142,7 @@ export const AddUserDialog = ({ open, onClose, availableRoles, isPending, onSubm
         </FieldStack>
       </DialogContent>
       <StyledDialogActions disableSpacing>
-        <Button onClick={handleClose} color="inherit" disabled={isPending}>
+        <Button onClick={handleClose} color="inherit" disabled={isPending} sx={{ bgcolor: 'background.default', '&:hover': { bgcolor: 'background.default' } }}>
           Cancel
         </Button>
         <Button

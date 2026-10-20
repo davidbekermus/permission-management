@@ -125,11 +125,11 @@ export const FilterDialog = <TStatus extends string = never>({
                     variant={statuses.includes(value) ? 'filled' : 'outlined'}
                     color="default"
                     sx={statuses.includes(value) ? (theme) => ({
-                      backgroundColor: '#46515e',
+                      backgroundColor: theme.palette.action.selected,
                       color: theme.palette.text.primary,
                       border: 'none',
                       '&:hover, &.Mui-focusVisible': {
-                        backgroundColor: '#46515e',
+                        backgroundColor: theme.palette.action.selected,
                       },
                     }) : undefined}
                     size="small"
@@ -170,7 +170,7 @@ export const FilterDialog = <TStatus extends string = never>({
           Clear all
         </Button>
         <ButtonRow>
-          <Button color="inherit" onClick={onClose}>Cancel</Button>
+          <Button color="inherit" onClick={onClose} sx={{ bgcolor: 'background.default', '&:hover': { bgcolor: 'background.default' } }}>Cancel</Button>
           <Button color="secondary" variant="contained" onClick={handleApply} disabled={!hasSelectedFilters}>Apply</Button>
         </ButtonRow>
       </StyledDialogActions>
