@@ -22,6 +22,6 @@ export const StyledFormControl = styled(FormControl)(({ theme }) => ({
     color: theme.palette.text.primary,
   },
   '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
-    borderColor: theme.palette.background.default,
+    borderColor: theme.palette.background.paper,
   },
 }))

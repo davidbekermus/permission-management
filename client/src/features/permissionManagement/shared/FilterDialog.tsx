@@ -155,6 +155,7 @@ export const FilterDialog = <TStatus extends string = never>({
               renderInput={(params) => (
                 <DialogTextField
                   {...params}
+                  label="Roles"
                   placeholder={roles.length === 0 ? 'Any role...' : ''}
                   size="small"
                 />
