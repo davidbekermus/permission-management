@@ -1,3 +1,4 @@
+import Button from '@mui/material/Button'
 // Shared styled components used identically across all four dialogs
 // (FilterDialog, CreateRoleSubmissionDialog, DeleteRoleSubmissionDialog, AddUserDialog).
 // Import from here instead of redefining per-dialog.
@@ -21,3 +22,5 @@ export const ButtonRow = styled('div')(({ theme }) => ({
   display: 'flex',
   gap: theme.spacing(1),
 }))
+
+export const CancelButton = styled(Button)(({ theme }) => ({ backgroundColor: theme.palette.background.default, '&:hover': { backgroundColor: theme.palette.background.default } }))

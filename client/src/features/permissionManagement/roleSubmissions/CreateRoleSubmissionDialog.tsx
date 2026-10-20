@@ -1,3 +1,4 @@
+import { CancelButton } from '../shared/DialogStyles.style'
 import { useState } from 'react'
 import Dialog from '@mui/material/Dialog'
 import DialogContent from '@mui/material/DialogContent'
@@ -67,9 +68,9 @@ export const CreateRoleSubmissionDialog = ({ open, onClose, availableRoles, hasH
         </FieldStack>
       </DialogContent>
       <StyledDialogActions disableSpacing>
-        <Button onClick={handleClose} color="inherit" disabled={isPending} sx={{ bgcolor: 'background.default', '&:hover': { bgcolor: 'background.default' } }}>
+        <CancelButton onClick={handleClose} color="inherit" disabled={isPending}>
           Cancel
-        </Button>
+        </CancelButton>
         <Button
           color="secondary"
           variant="contained"

@@ -1,37 +1,17 @@
+import { PageWrapper, LoginCard, Form, LoginContent, LoginDescription } from './LoginPage.style'
 import { useState } from 'react'
 import { useMutation } from '@tanstack/react-query'
-import Box from '@mui/material/Box'
-import Card from '@mui/material/Card'
-import CardContent from '@mui/material/CardContent'
 import TextField from '@mui/material/TextField'
 import Button from '@mui/material/Button'
 import Typography from '@mui/material/Typography'
 import Alert from '@mui/material/Alert'
 import CircularProgress from '@mui/material/CircularProgress'
-import { styled } from '@mui/material/styles'
 import { useNavigate, useRouter } from '@tanstack/react-router'
 import { authApi } from './authApi'
 import { setUserToken } from '@/app/auth/auth.utils'
 
-const PageWrapper = styled(Box)(({ theme }) => ({
-  minHeight: '100vh',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  backgroundColor: theme.palette.background.paper,
-}))
 
-const LoginCard = styled(Card)(() => ({
-  width: '100%',
-  maxWidth: 400,
-  boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
-}))
 
-const Form = styled('form')(({ theme }) => ({
-  display: 'flex',
-  flexDirection: 'column',
-  gap: theme.spacing(2),
-}))
 
 export const LoginPage = () => {
   const [username, setUsername] = useState('')
@@ -55,13 +35,13 @@ export const LoginPage = () => {
   return (
     <PageWrapper>
       <LoginCard>
-        <CardContent sx={{ p: 4 }}>
+        <LoginContent>
           <Typography variant="h5" gutterBottom>
             Permission Management
           </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+          <LoginDescription variant="body2" color="text.secondary">
             Enter your username to continue
-          </Typography>
+          </LoginDescription>
           <Form onSubmit={handleSubmit}>
             {mutation.isError && (
               <Alert severity="error">Login failed. Please try again.</Alert>
@@ -85,7 +65,7 @@ export const LoginPage = () => {
               {mutation.isPending ? 'Signing in…' : 'Sign in'}
             </Button>
           </Form>
-        </CardContent>
+        </LoginContent>
       </LoginCard>
     </PageWrapper>
   )

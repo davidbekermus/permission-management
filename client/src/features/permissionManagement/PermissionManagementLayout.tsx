@@ -1,7 +1,7 @@
 import type { ReactNode, Ref, SyntheticEvent } from 'react'
 import Tab from '@mui/material/Tab'
-import Divider from '@mui/material/Divider'
 import {
+  SectionDivider,
   PageWrapper,
   Toolbar,
   ToolbarActions,
@@ -43,7 +43,7 @@ export const PermissionManagementLayout = ({
         <ToolbarActions ref={toolbarRef} />
       </Toolbar>
 
-      <Divider sx={{ borderColor: '#3d465e' }} />
+      <SectionDivider />
 
       {children}
     </PageWrapper>

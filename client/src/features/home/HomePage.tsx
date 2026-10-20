@@ -1,46 +1,13 @@
-import Box from '@mui/material/Box'
-import Card from '@mui/material/Card'
-import CardActionArea from '@mui/material/CardActionArea'
-import CardContent from '@mui/material/CardContent'
+import { PageWrapper, CardGrid, NavCard, IconWrapper, Description, NavActionArea, NavContent } from './HomePage.style'
 import Typography from '@mui/material/Typography'
-import { styled } from '@mui/material/styles'
 import StoreIcon from '@mui/icons-material/Store'
 import InventoryIcon from '@mui/icons-material/Inventory'
 import SettingsIcon from '@mui/icons-material/Settings'
 import { useNavigate } from '@tanstack/react-router'
 
-const PageWrapper = styled(Box)(({ theme }) => ({
-  padding: theme.spacing(4),
-}))
 
-const CardGrid = styled(Box)(({ theme }) => ({
-  display: 'grid',
-  gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
-  gap: theme.spacing(3),
-  marginTop: theme.spacing(3),
-}))
 
-const NavCard = styled(Card)(({ theme }) => ({
-  border: `1px solid ${theme.palette.divider}`,
-  boxShadow: 'none',
-  transition: 'box-shadow 0.15s, border-color 0.15s',
-  '&:hover': {
-    boxShadow: '0 4px 16px rgba(0,0,0,0.10)',
-    borderColor: theme.palette.secondary.main,
-  },
-}))
 
-const IconWrapper = styled(Box)(({ theme }) => ({
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  width: 48,
-  height: 48,
-  borderRadius: theme.shape.borderRadius,
-  backgroundColor: theme.palette.secondary.main + '18',
-  color: theme.palette.secondary.main,
-  marginBottom: theme.spacing(1.5),
-}))
 
 interface NavCardItem {
   label: string
@@ -76,23 +43,23 @@ export const HomePage = () => {
   return (
     <PageWrapper>
       <Typography variant="h5">Home</Typography>
-      <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+      <Description variant="body2" color="text.secondary">
         Select a section to get started
-      </Typography>
+      </Description>
       <CardGrid>
         {cards.map((card) => (
           <NavCard key={card.path}>
-            <CardActionArea onClick={() => navigate({ to: card.path })} sx={{ p: 2.5 }}>
-              <CardContent sx={{ p: 0 }}>
+            <NavActionArea onClick={() => navigate({ to: card.path })}>
+              <NavContent>
                 <IconWrapper>{card.icon}</IconWrapper>
                 <Typography variant="subtitle1" fontWeight={600}>
                   {card.label}
                 </Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                <Description variant="body2" color="text.secondary">
                   {card.description}
-                </Typography>
-              </CardContent>
-            </CardActionArea>
+                </Description>
+              </NavContent>
+            </NavActionArea>
           </NavCard>
         ))}
       </CardGrid>

@@ -1,3 +1,4 @@
+import { CancelButton } from '../shared/DialogStyles.style'
 import { useState } from 'react'
 import { useSnackbar } from 'notistack'
 import Dialog from '@mui/material/Dialog'
@@ -142,9 +143,9 @@ export const AddUserDialog = ({ open, onClose, availableRoles, isPending, onSubm
         </FieldStack>
       </DialogContent>
       <StyledDialogActions disableSpacing>
-        <Button onClick={handleClose} color="inherit" disabled={isPending} sx={{ bgcolor: 'background.default', '&:hover': { bgcolor: 'background.default' } }}>
+        <CancelButton onClick={handleClose} color="inherit" disabled={isPending}>
           Cancel
-        </Button>
+        </CancelButton>
         <Button
           color="secondary"
           variant="contained"

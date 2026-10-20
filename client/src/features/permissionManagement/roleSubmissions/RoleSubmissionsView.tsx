@@ -1,9 +1,8 @@
 import { createPortal } from 'react-dom'
 import Button from '@mui/material/Button'
-import Stack from '@mui/material/Stack'
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline'
 import { RoleSubmissionsTable } from './table/RoleSubmissionsTable'
-import { RequestsContent } from './table/RoleSubmissionsTable.style'
+import { RequestsContent, ScopeFiltersRow } from './table/RoleSubmissionsTable.style'
 import { CreateRoleSubmissionDialog } from './CreateRoleSubmissionDialog'
 import { RoleSubmissionsScopeTabs } from './RoleSubmissionsScopeTabs'
 import { RoleSubmissionsStatusChips } from './RoleSubmissionsStatusChips'
@@ -38,7 +37,7 @@ export const PermissionRequestsView = ({ toolbarContainer }: PermissionRequestsV
     <>
       {toolbarContainer && createPortal(toolbarActions, toolbarContainer)}
       <RequestsContent>
-        <Stack direction="row" spacing={3} alignItems="center" sx={{ mb: 2 }}>
+        <ScopeFiltersRow direction="row" spacing={3} alignItems="center">
           {view.isAdmin && (
             <RoleSubmissionsScopeTabs scope={view.scope} onScopeChange={view.changeScope} />
           )}
@@ -48,7 +47,7 @@ export const PermissionRequestsView = ({ toolbarContainer }: PermissionRequestsV
               onStatusDelete={view.removeStatus}
             />
           )}
-        </Stack>
+        </ScopeFiltersRow>
         <RequestsContent
           role={view.isAdmin ? 'tabpanel' : undefined}
           id="request-scope-panel"

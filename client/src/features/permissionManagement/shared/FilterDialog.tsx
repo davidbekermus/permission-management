@@ -1,3 +1,4 @@
+import { CancelButton } from './DialogStyles.style'
 import { useEffect, useState } from 'react'
 import Dialog from '@mui/material/Dialog'
 import DialogContent from '@mui/material/DialogContent'
@@ -5,7 +6,6 @@ import Button from '@mui/material/Button'
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup'
 import Autocomplete from '@mui/material/Autocomplete'
 import { DialogTextField, DialogOptionsPaper, renderDialogRoleOption } from './DialogFields.style'
-import Chip from '@mui/material/Chip'
 import DialogTitle from '@mui/material/DialogTitle'
 import Typography from '@mui/material/Typography'
 import type { Roles, SortOrder } from './types'
@@ -15,7 +15,7 @@ import {
   FieldStack,
   ButtonRow,
 } from './DialogStyles.style'
-import { FilterSection, StatusChips, StyledSortToggleButton } from './FilterDialog.style'
+import { StatusFilterChip, FilterSection, StatusChips, StyledSortToggleButton } from './FilterDialog.style'
 
 interface StatusOption<TStatus extends string> {
   value: TStatus
@@ -118,20 +118,13 @@ export const FilterDialog = <TStatus extends string = never>({
               </Typography>
               <StatusChips>
                 {statusOptions.map(({ value, label }) => (
-                  <Chip
+                  <StatusFilterChip
                     key={value}
                     label={label}
                     onClick={() => toggleStatus(value)}
                     variant={statuses.includes(value) ? 'filled' : 'outlined'}
                     color="default"
-                    sx={statuses.includes(value) ? (theme) => ({
-                      backgroundColor: theme.palette.action.selected,
-                      color: theme.palette.text.primary,
-                      border: 'none',
-                      '&:hover, &.Mui-focusVisible': {
-                        backgroundColor: theme.palette.action.selected,
-                      },
-                    }) : undefined}
+                    $selected={statuses.includes(value)}
                     size="small"
                     clickable
                   />
@@ -170,7 +163,7 @@ export const FilterDialog = <TStatus extends string = never>({
           Clear all
         </Button>
         <ButtonRow>
-          <Button color="inherit" onClick={onClose} sx={{ bgcolor: 'background.default', '&:hover': { bgcolor: 'background.default' } }}>Cancel</Button>
+          <CancelButton color="inherit" onClick={onClose}>Cancel</CancelButton>
           <Button color="secondary" variant="contained" onClick={handleApply} disabled={!hasSelectedFilters}>Apply</Button>
         </ButtonRow>
       </StyledDialogActions>

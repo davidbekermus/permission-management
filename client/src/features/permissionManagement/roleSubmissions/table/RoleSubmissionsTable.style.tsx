@@ -1,3 +1,4 @@
+import Stack from '@mui/material/Stack'
 import { styled } from '@mui/material/styles'
 import Box from '@mui/material/Box'
 import TableRow from '@mui/material/TableRow'
@@ -22,3 +23,5 @@ export const RequestsContent = styled('div')({
   flex: 1,
   minHeight: 0,
 })
+
+export const ScopeFiltersRow = styled(Stack)(({ theme }) => ({ marginBottom: theme.spacing(2) }))

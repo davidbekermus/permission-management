@@ -1,3 +1,4 @@
+import Divider from '@mui/material/Divider'
 import { styled } from '@mui/material/styles'
 import Tabs, { tabsClasses } from '@mui/material/Tabs'
 import { tabClasses } from '@mui/material/Tab'
@@ -70,3 +71,5 @@ export const SearchField = styled(TextField)(({ theme }) => ({
     width: '100%',
   },
 }))
+
+export const SectionDivider = styled(Divider)(({ theme }) => ({ borderColor: theme.palette.divider }))

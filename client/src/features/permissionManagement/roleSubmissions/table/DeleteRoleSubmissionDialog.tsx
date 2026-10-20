@@ -1,3 +1,4 @@
+import { CancelButton } from '../../shared/DialogStyles.style'
 import Dialog from '@mui/material/Dialog'
 import DialogContent from '@mui/material/DialogContent'
 import DialogTitle from '@mui/material/DialogTitle'
@@ -31,7 +32,7 @@ export const DeleteRoleSubmissionDialog = ({
         </Typography>
       </DialogContent>
       <StyledDialogActions disableSpacing>
-        <Button color="inherit" onClick={onClose} disabled={isPending} sx={{ bgcolor: 'background.default', '&:hover': { bgcolor: 'background.default' } }}>Cancel</Button>
+        <CancelButton color="inherit" onClick={onClose} disabled={isPending}>Cancel</CancelButton>
         <Button variant="contained" color="error" onClick={onConfirm} disabled={isPending}>
           {isPending ? 'Deleting...' : 'Delete'}
         </Button>

@@ -1,5 +1,5 @@
+import { PageWrapper, FormRow, UnauthorizedContent, UnauthorizedIcon, PriceField, EmptyMessage } from './StoresPage.style'
 import { useState } from 'react'
-import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
 import Table from '@mui/material/Table'
 import TableBody from '@mui/material/TableBody'
@@ -13,24 +13,12 @@ import Button from '@mui/material/Button'
 import IconButton from '@mui/material/IconButton'
 import CircularProgress from '@mui/material/CircularProgress'
 import Alert from '@mui/material/Alert'
-import { styled } from '@mui/material/styles'
-import LockIcon from '@mui/icons-material/Lock'
 import DeleteIcon from '@mui/icons-material/Delete'
 import { useStoreItems, useCreateStoreItem, useDeleteStoreItem } from './useStores'
 import { getCurrentRoles, isFlowAdmin } from '@/app/auth/auth.utils'
 import { Roles } from '@/features/permissionManagement/shared/types'
 
-const PageWrapper = styled(Box)(({ theme }) => ({
-  padding: theme.spacing(3),
-  maxWidth: 900,
-}))
 
-const FormRow = styled(Box)(({ theme }) => ({
-  display: 'flex',
-  gap: theme.spacing(2),
-  marginBottom: theme.spacing(3),
-  flexWrap: 'wrap',
-}))
 
 export const StoresPage = () => {
   const roles = getCurrentRoles()
@@ -40,13 +28,13 @@ export const StoresPage = () => {
   if (!hasAccess) {
     return (
       <PageWrapper>
-        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 300, gap: 2 }}>
-          <LockIcon sx={{ fontSize: 48, color: 'text.disabled' }} />
+        <UnauthorizedContent>
+          <UnauthorizedIcon />
           <Typography variant="h6" color="text.secondary">Unauthorized</Typography>
           <Typography variant="body2" color="text.disabled">
             You don't have permission to access Store Management.
           </Typography>
-        </Box>
+        </UnauthorizedContent>
       </PageWrapper>
     )
   }
@@ -79,13 +67,12 @@ export const StoresPage = () => {
             value={name}
             onChange={(e) => setName(e.target.value)}
           />
-          <TextField
+          <PriceField
             label="Price"
             size="small"
             type="number"
             value={price}
             onChange={(e) => setPrice(e.target.value)}
-            sx={{ width: 120 }}
           />
           <Button
             color="secondary"
@@ -117,9 +104,9 @@ export const StoresPage = () => {
               {items.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={isAdmin ? 4 : 3}>
-                    <Typography variant="body2" color="text.secondary" sx={{ py: 2, textAlign: 'center' }}>
+                    <EmptyMessage variant="body2" color="text.secondary">
                       No items yet
-                    </Typography>
+                    </EmptyMessage>
                   </TableCell>
                 </TableRow>
               )}
