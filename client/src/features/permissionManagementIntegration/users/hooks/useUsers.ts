@@ -1,7 +1,7 @@
 import { keepPreviousData, useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getCurrentUsername } from '@/app/auth/auth.utils'
 import { usersApi, type UserFilters } from '../services/usersApi'
-import type { Roles } from '../../shared/types'
+import type { Roles } from '../../../permissionManagement/shared/types'
 
 const usersKey = 'users'
 

@@ -1,10 +1,10 @@
 import { apiClient } from '@/app/api/axiosClient'
-import type { Roles, SortOrder } from '../../shared/types'
+import type { Roles, SortOrder } from '../../../permissionManagement/shared/types'
 import type {
   RoleSubmission,
   RoleSubmissionAction,
   RoleSubmissionStatus,
-} from '../types'
+} from '../../../permissionManagement/roleSubmissions/types'
 
 export interface RoleSubmissionFilters {
   search?: string

@@ -8,7 +8,12 @@ import Divider from '@mui/material/Divider'
 
 export const MainContent = styled(Box)(({ theme }) => ({
   backgroundColor: theme.palette.background.default,
-  minHeight: 'calc(100dvh - 49px)',
+  display: 'flex',
+  flexDirection: 'column',
+  height: 'calc(100dvh - 49px)',
+  minHeight: 0,
+  minWidth: 0,
+  overflow: 'auto',
 }))
 
 export const StyledAppBar = styled(AppBar)(({ theme }) => ({

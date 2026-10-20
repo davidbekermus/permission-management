@@ -1,12 +1,12 @@
 import { keepPreviousData, useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getCurrentUsername } from '@/app/auth/auth.utils'
 import { roleSubmissionsApi, type RoleSubmissionFilters } from '../services/roleSubmissionsApi'
-import type { Roles } from '../../shared/types'
-import type { RoleSubmissionAction, RoleSubmissionScope } from '../types'
+import type { Roles } from '../../../permissionManagement/shared/types'
+import type { RoleSubmissionAction, RoleSubmissionScope } from '../../../permissionManagement/roleSubmissions/types'
 
 const roleSubmissionsKey = 'roleSubmissions'
 
-export type { RoleSubmissionScope } from '../types'
+export type { RoleSubmissionScope } from '../../../permissionManagement/roleSubmissions/types'
 
 export function useGetRoleSubmissions(filters: RoleSubmissionFilters, scope: RoleSubmissionScope) {
   const username = getCurrentUsername()

@@ -62,7 +62,8 @@ function renderView(kind, { admin = true, records = [], fail = false } = {}) {
       if (name === 'notistack') return { useSnackbar: () => ({ enqueueSnackbar: (...args) => messages.push(args) }) }
       if (name === 'axios') return { isAxiosError: () => false }
       if (name.includes('auth.utils')) return auth
-      if (['./hooks/useUsersView', './hooks/useRoleSubmissionsView'].includes(name)) return load(path.resolve(path.dirname(filename), name + '.ts'))
+      if (name.endsWith('/useUsersView') || name.endsWith('/useRoleSubmissionsView')) return load(path.resolve(path.dirname(filename), name + '.ts'))
+      if (name.endsWith('/UsersView') || name.endsWith('/RoleSubmissionsView')) return load(path.resolve(path.dirname(filename), name + '.tsx'))
       if (name.endsWith('/useUsers') || name.endsWith('/useRoleSubmissions')) return hooks
       if (name.includes('useDebounce')) return { useDebounce: value => value }
       if (name.endsWith('/types') || name.endsWith('/role.utils')) return load(path.resolve(path.dirname(filename), name + '.ts'))
@@ -71,9 +72,8 @@ function renderView(kind, { admin = true, records = [], fail = false } = {}) {
     }, exports)
     return exports
   }
-  const file = kind === 'users' ? 'users/UsersView.tsx' : 'roleSubmissions/RoleSubmissionsView.tsx'
-  const view = load(path.resolve(__dirname, '../src/features/permissionManagement', file))
-  renderToStaticMarkup(React.createElement(view[kind === 'users' ? 'UsersView' : 'PermissionRequestsView'], { toolbarContainer: null }))
+  const view = load(path.resolve(__dirname, '../src/features/permissionManagementIntegration/PermissionManagementPage.tsx'))
+  renderToStaticMarkup(React.createElement(view[kind === 'users' ? 'UsersContainer' : 'PermissionRequestsContainer'], { toolbarContainer: null }))
   return { props, calls, messages, query }
 }
 
@@ -151,7 +151,7 @@ test('one creation hook posts one or many users to POST /users and invalidates b
     }, exports)
     return exports
   }
-  const base = path.resolve(__dirname, '../src/features/permissionManagement/users')
+  const base = path.resolve(__dirname, '../src/features/permissionManagementIntegration/users')
   const { usersApi } = evaluate(path.join(base, 'services/usersApi.ts'), {
     '@/app/api/axiosClient': {
       apiClient: {
@@ -179,4 +179,32 @@ test('one creation hook posts one or many users to POST /users and invalidates b
     await mutation.onSuccess()
   }
   assert.deepEqual(invalidated, [['users'], ['roleSubmissions'], ['users'], ['roleSubmissions']])
+})
+
+// Keep the copyable folder independent of this application's infrastructure.
+test('permission management UI does not import host integration, auth, APIs or query providers', () => {
+  const root = path.resolve(__dirname, '../src/features/permissionManagement')
+  const inspect = directory => {
+    for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+      const filename = path.join(directory, entry.name)
+      if (entry.isDirectory()) { inspect(filename); continue }
+      if (!/\.tsx?$/.test(entry.name)) continue
+      const source = fs.readFileSync(filename, 'utf8')
+      for (const match of source.matchAll(/from ['"]([^'"]+)['"]/g)) {
+        const dependency = match[1]
+        assert.equal(/permissionManagementIntegration|@tanstack\/react-query|axios|notistack|@\/app/.test(dependency), false, filename + ': ' + dependency)
+        if (dependency.startsWith('.')) {
+          const resolved = path.resolve(path.dirname(filename), dependency)
+          assert.equal(path.relative(root, resolved).startsWith('..'), false, filename + ': external relative import')
+        }
+      }
+    }
+  }
+  inspect(root)
+})
+
+test('role selection explanations are delivered through the host notification callback', () => {
+  const ctx = renderView('users')
+  ctx.props.AddUserDialog.onRoleSelectionNotice('Super Admin includes all permissions.')
+  assert.deepEqual(ctx.messages.at(-1), ['Super Admin includes all permissions.', { variant: 'info', preventDuplicate: true }])
 })

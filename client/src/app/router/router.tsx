@@ -9,7 +9,7 @@ import {
 } from '@tanstack/react-router'
 import { LoginPage } from '@/features/auth/LoginPage'
 import { AppLayout } from '@/components/layout/AppLayout'
-import { PermissionManagementPage } from '@/features/permissionManagement/PermissionManagementPage'
+import { PermissionManagementPage } from '@/features/permissionManagementIntegration/PermissionManagementPage'
 import type { PermissionManagementView } from '@/features/permissionManagement/PermissionManagementLayout'
 import { StoresPage } from '@/features/stores/StoresPage'
 import { ProductsPage } from '@/features/products/ProductsPage'

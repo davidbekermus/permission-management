@@ -7,14 +7,14 @@ import { CreateRoleSubmissionDialog } from './CreateRoleSubmissionDialog'
 import { RoleSubmissionsScopeTabs } from './RoleSubmissionsScopeTabs'
 import { RoleSubmissionsStatusChips } from './RoleSubmissionsStatusChips'
 import { SearchAndFilterControls } from '../shared/SearchAndFilterControls'
-import { useRoleSubmissionsView } from './hooks/useRoleSubmissionsView'
+import type { PermissionRequestsViewModel } from './view.types'
 
 interface PermissionRequestsViewProps {
   toolbarContainer: HTMLDivElement | null
+  view: PermissionRequestsViewModel
 }
 
-export const PermissionRequestsView = ({ toolbarContainer }: PermissionRequestsViewProps) => {
-  const view = useRoleSubmissionsView()
+export const PermissionRequestsView = ({ toolbarContainer, view }: PermissionRequestsViewProps) => {
   const toolbarActions = (
     <>
       <SearchAndFilterControls

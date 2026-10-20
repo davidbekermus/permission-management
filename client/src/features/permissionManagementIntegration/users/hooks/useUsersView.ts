@@ -3,11 +3,12 @@ import { useSnackbar } from 'notistack'
 import { canManagePermissions, getRolesInAdminScope } from '@/app/auth/auth.utils'
 import { useGetUsers, useAssignRole, useRemoveRole, useCreateUsers } from './useUsers'
 import { useDebounce } from '../../hooks/useDebounce'
-import { filterRequestableRoles } from '../../shared/role.utils'
-import { Roles, type SortOrder } from '../../shared/types'
+import { filterRequestableRoles } from '../../../permissionManagement/shared/role.utils'
+import { Roles, type SortOrder } from '../../../permissionManagement/shared/types'
+import type { UsersViewModel } from '../../../permissionManagement/users/view.types'
 
 /** Host integration point for users: queries, mutations, auth and notifications. */
-export function useUsersView() {
+export function useUsersView(): UsersViewModel {
   const isAnomalyAdmin = canManagePermissions()
   const [search, setSearch] = useState('')
   const [roles, setRoles] = useState<Roles[]>([])
@@ -102,6 +103,7 @@ export function useUsersView() {
       },
     },
     addUserDialog: {
+      onRoleSelectionNotice: (message) => enqueueSnackbar(message, { variant: 'info', preventDuplicate: true }),
       open: addUserOpen,
       onClose: () => {
         createUsers.reset()

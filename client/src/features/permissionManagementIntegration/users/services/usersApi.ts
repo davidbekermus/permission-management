@@ -1,6 +1,6 @@
 import { apiClient } from '@/app/api/axiosClient'
-import type { Roles, SortOrder } from '../../shared/types'
-import type { User } from '../types'
+import type { Roles, SortOrder } from '../../../permissionManagement/shared/types'
+import type { User } from '../../../permissionManagement/users/types'
 
 export interface UserFilters {
   search?: string

@@ -8,8 +8,11 @@ import TextField from '@mui/material/TextField'
 export const PageWrapper = styled('div')(({ theme }) => ({
   display: 'flex',
   flexDirection: 'column',
-  height: 'calc(100dvh - 49px)',
+  boxSizing: 'border-box',
+  flex: 1,
+  height: '100%',
   minHeight: 0,
+  minWidth: 0,
   overflow: 'hidden',
   gap: theme.spacing(2.5),
   padding: theme.spacing(3),

@@ -1,100 +1,85 @@
-# permissionManagement Feature
+# Permission Management UI
 
-Admin UI for managing users and role submissions with role-based access control (RBAC).
+This folder is the copyable UI. It contains components, separate `.style.tsx`
+files, UI types, role formatting/selection rules, and local form/editing state.
+It does not import this app's auth, HTTP client, query hooks, router, or snackbar
+provider. All components are arrow functions. Keep styling in style files.
 
-## What's in this folder
+## Folder boundary
 
+- `permissionManagement/`: copy this folder into the target app.
+- `../permissionManagementIntegration/`: host-specific containers, view hooks,
+  query hooks, API services, authentication checks, debounce, and notifications.
+  Adapt or replace this sibling folder for the target app; do not copy it as UI.
+
+Shared role and row types stay with the UI because they define the UI's input
+contract. Map the target backend's data to these types in its integration layer.
+
+## Connect the target app
+
+The target needs React, React DOM, MUI Material and icons, Emotion, and a matching
+MUI theme. The UI itself does not require Axios, React Query, Notistack, or a router.
+
+`users/view.types.ts` exports `UsersViewModel` and
+`roleSubmissions/view.types.ts` exports `PermissionRequestsViewModel`. Implement
+host hooks returning these models. They group filters, table rows, pagination,
+permission flags, dialog state, and callbacks. The existing sibling integration
+folder is a working example.
+
+Wrap each view in a host container:
+
+```tsx
+const TargetUsersContainer = ({ toolbarContainer }: {
+  toolbarContainer: HTMLDivElement | null
+}) => {
+  const view: UsersViewModel = useTargetUsersView()
+  return <UsersView toolbarContainer={toolbarContainer} view={view} />
+}
 ```
-permissionManagement/
-├── users/                  # Users tab — list, filter, add user, assign/remove roles
-│   ├── hooks/              # useUsers — TanStack Query wrapper
-│   ├── services/           # usersApi — axios calls to GET/POST /users, PATCH /users/:id/roles
-│   ├── *.style.tsx         # MUI styled components per file
-│   └── types.ts            # User, UserRole types
-├── roleSubmissions/     # Role Submissions tab — list, filter, approve/reject
-│   ├── hooks/              # useRoleSubmissions — TanStack Query wrapper
-│   ├── services/           # roleSubmissionsApi — axios calls to GET/PATCH /role-submissions
-│   ├── *.style.tsx
-│   └── types.ts            # PermissionRequest, RequestStatus types
-├── hooks/
-│   └── useDebounce.ts      # Generic debounce hook used by filter inputs
-├── shared/
-│   ├── types.ts            # Role enum shared across users + requests
-│   └── DialogStyles.style.tsx  # Common MUI dialog layout styles
-├── PermissionManagementPage.tsx        # Tabs container (Users | Role Submissions)
-└── PermissionManagementPage.style.tsx
+
+Do the same for `PermissionRequestsView`, using `PermissionRequestsViewModel`.
+Then mount the UI page from the host route:
+
+```tsx
+<PermissionManagementPage
+  view={activeView}
+  onViewChange={navigateToView}
+  canViewUsers={canReadUsers}
+  renderUsers={(toolbarContainer) => (
+    <TargetUsersContainer toolbarContainer={toolbarContainer} />
+  )}
+  renderSubmissions={(toolbarContainer) => (
+    <TargetRequestsContainer toolbarContainer={toolbarContainer} />
+  )}
+/>
 ```
 
-## Peer dependencies
+`activeView` is `'users'` or `'submissions'`. The host owns routing and auth.
+When `canViewUsers` is false, the page renders only submissions. Only the active
+container mounts, so inactive queries and local filter state behave as before.
+Server-side permission enforcement remains the host/backend's responsibility.
 
-```bash
-npm install @mui/material @mui/icons-material @emotion/react @emotion/styled
-npm install @tanstack/react-query axios jwt-decode
-```
+## Callback and notification contracts
 
-## Wiring into your project
+Mutation callbacks returning `Promise<boolean>` must resolve `true` on success
+and `false` after handled failure. The host handles errors and notifications.
+Dialogs and editors reset or close only after success.
 
-**HTTP client** — All `services/` files import `apiClient` from `@/app/api/axiosClient`. Replace that import with your own axios instance. The instance must:
-- Set `Authorization: Bearer <token>` on every request
-- Redirect to login on 401
+`AddUserDialog.onRoleSelectionNotice(message)` lets the host display explanatory
+messages when role selections conflict. The existing integration uses Notistack;
+the target can use its own notification system.
 
-**Token** — The feature reads the JWT from `localStorage.getItem('pm_token')`. Change the key in your project's constants file and update the import in `axiosClient`.
+Table pagination uses `shared/table.types.ts`, independent of query libraries.
+Supply `onLoadMore` and loading/error flags from the target's data layer.
 
-**Routing** — Mount `PermissionManagementPage` with a `view` (`'users'` or `'submissions'`) and an `onViewChange` callback. The host route layer owns navigation and maps view changes to its routes. The page restricts the users view to admins.
+## Layout and theme
 
-**React Query** — Wrap the feature (or your whole app) in a `QueryClientProvider`.
+The host must provide a bounded height with `minHeight: 0` through flex wrappers.
+The page fills that parent and the table scrolls internally. It does not assume
+the target app's header height. Theme tokens and global component overrides live
+outside this folder; supply the target theme when mounting the UI.
 
-## Adding a new role
+## Verification
 
-Update the `Role` enum in `shared/types.ts`. The pattern is `{FLOW}_ADMIN` / `{FLOW}_USER` (e.g. `STORE_ADMIN`, `STORE_USER`). No other changes needed in the frontend.
-
-## Backend contract
-
-Expects a NestJS backend with these endpoints:
-
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | /users | List users (supports `?username=` search) |
-| POST | /users | Create one or many users with `{ usernames: string[], roles: Role[] }` (admin only); returns created users, skipping existing usernames |
-| PATCH | /users/:id/roles | Assign or remove roles |
-| GET | /role-submissions | List role submissions (supports filters) |
-| PATCH | /role-submissions/:id/approve | Approve one role submission |
-| PATCH | /role-submissions/:id/reject | Reject one role submission |
-
-See the `server/src/role-submissions/CLAUDE.md` for the backend integration guide.
-
-
-## Container and UI boundaries
-
-`users/hooks/useUsersView.ts` and
-`roleSubmissions/hooks/useRoleSubmissionsView.ts` are the main host integration
-points. They own queries, mutations, authentication/permission checks, filters,
-row preparation, dialog visibility, and success/error notifications. Adapt these
-view hooks to the target project's hooks and auth helpers. API services and shared
-types may also need changes if the target backend has a different contract.
-
-`UsersView` and `PermissionRequestsView` call their view hook and compose the
-UI using its grouped `filters`, `table`, and dialog props. They contain no direct
-API/query/auth/notification logic. View hooks return plain UI props rather than
-exposing query or mutation objects.
-
-Tables, rows, cells, and create dialogs receive data, permission flags, pending
-state, and callbacks through props. They do not import API services, query hooks,
-auth helpers, or notification providers. Local form values, editing state, menus,
-and confirmation dialogs stay inside the UI components.
-
-Mutation callbacks that return `Promise<boolean>` return `true` after success and
-`false` after a handled failure. Forms/editors close or reset only on success.
-The container handles errors and notifications; UI callbacks must not reject.
-
-Table loading/pagination props use `shared/table.types.ts`, independent of React
-Query. The table's intersection observer only calls `onLoadMore`; the view supplies
-the request callback and whether another request is allowed. Keep a bounded flex
-height with `minHeight: 0` through wrappers so scrolling stays inside the table.
-
-Run container regression checks with `npm test` from `client/`.
-
-User creation uses only `POST /users` and the `useCreateUsers` mutation hook.
-Pass a one-item `usernames` array for a single user, or several entries for multiple
-users. Both cases return an array of created users; existing users are skipped.
-The former `POST /users/bulk` route and `{ username, roles }` request are removed.
+From `client/`, run `npm run build` and `npm test`. Tests exercise host containers
+and verify the copyable UI has no imports into host-specific infrastructure.

@@ -4,14 +4,14 @@ import PersonAddIcon from '@mui/icons-material/PersonAdd'
 import { UsersTable } from './table/UsersTable'
 import { AddUserDialog } from './AddUserDialog'
 import { SearchAndFilterControls } from '../shared/SearchAndFilterControls'
-import { useUsersView } from './hooks/useUsersView'
+import type { UsersViewModel } from './view.types'
 
 interface UsersViewProps {
   toolbarContainer: HTMLDivElement | null
+  view: UsersViewModel
 }
 
-export const UsersView = ({ toolbarContainer }: UsersViewProps) => {
-  const view = useUsersView()
+export const UsersView = ({ toolbarContainer, view }: UsersViewProps) => {
   const toolbarActions = (
     <>
       <SearchAndFilterControls dialogTitle="Filter Users" {...view.filters} />

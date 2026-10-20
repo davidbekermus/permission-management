@@ -1,30 +1,29 @@
-import { useState } from 'react'
-import { canReadPermissionManagement } from '@/app/auth/auth.utils'
-import { UsersView } from './users/UsersView'
-import { PermissionRequestsView } from './roleSubmissions/RoleSubmissionsView'
+import { useState, type ReactNode } from 'react'
 import { PermissionManagementLayout, type PermissionManagementView } from './PermissionManagementLayout'
 
-interface PermissionManagementPageProps {
+export interface PermissionManagementPageProps {
   view: PermissionManagementView
   onViewChange: (view: PermissionManagementView) => void
+  canViewUsers: boolean
+  renderUsers: (toolbarContainer: HTMLDivElement | null) => ReactNode
+  renderSubmissions: (toolbarContainer: HTMLDivElement | null) => ReactNode
 }
 
-export const PermissionManagementPage = ({ view, onViewChange }: PermissionManagementPageProps) => {
+export const PermissionManagementPage = ({ view, onViewChange, canViewUsers, renderUsers, renderSubmissions }: PermissionManagementPageProps) => {
   const [toolbarContainer, setToolbarContainer] = useState<HTMLDivElement | null>(null)
-  const isAdmin = canReadPermissionManagement()
   // Only admins can view users; flow admins see users in their own flow.
-  const activeView: PermissionManagementView = isAdmin ? view : 'submissions'
+  const activeView: PermissionManagementView = canViewUsers ? view : 'submissions'
 
   return (
     <PermissionManagementLayout
       activeView={activeView}
-      showUsersTab={isAdmin}
+      showUsersTab={canViewUsers}
       toolbarRef={setToolbarContainer}
       onViewChange={onViewChange}
     >
       {activeView === 'users'
-        ? <UsersView toolbarContainer={toolbarContainer} />
-        : <PermissionRequestsView toolbarContainer={toolbarContainer} />}
+        ? renderUsers(toolbarContainer)
+        : renderSubmissions(toolbarContainer)}
     </PermissionManagementLayout>
   )
 }

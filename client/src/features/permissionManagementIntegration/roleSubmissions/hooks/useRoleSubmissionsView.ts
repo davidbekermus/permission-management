@@ -16,16 +16,17 @@ import {
   useDeleteRoleSubmission,
   useCreateRoleSubmission,
 } from './useRoleSubmissions'
-import { filterRequestableRoles } from '../../shared/role.utils'
+import { filterRequestableRoles } from '../../../permissionManagement/shared/role.utils'
 import { useDebounce } from '../../hooks/useDebounce'
-import { ALL_ROLES, type Roles, type SortOrder } from '../../shared/types'
+import { ALL_ROLES, type Roles, type SortOrder } from '../../../permissionManagement/shared/types'
+import type { PermissionRequestsViewModel } from '../../../permissionManagement/roleSubmissions/view.types'
 import {
   ALL_STATUSES,
   RoleSubmissionAction,
   RoleSubmissionStatus,
   STATUS_LABELS,
   type RoleSubmissionScope,
-} from '../types'
+} from '../../../permissionManagement/roleSubmissions/types'
 
 const STATUS_FILTER_OPTIONS = ALL_STATUSES.map((status) => ({
   value: status,
@@ -47,7 +48,7 @@ const getInitialFilters = (isAdmin: boolean): PermissionRequestFilters => ({
 })
 
 /** Host integration point for permission requests and their action policies. */
-export function useRoleSubmissionsView() {
+export function useRoleSubmissionsView(): PermissionRequestsViewModel {
   const isAdmin = canReadPermissionManagement()
   const [selectedScope, setSelectedScope] = useState<RoleSubmissionScope>(isAdmin ? 'review' : 'mine')
   const scope = isAdmin ? selectedScope : 'mine'

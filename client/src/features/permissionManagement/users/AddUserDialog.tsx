@@ -1,6 +1,5 @@
 import { CancelButton } from '../shared/DialogStyles.style'
 import { useState } from 'react'
-import { useSnackbar } from 'notistack'
 import Dialog from '@mui/material/Dialog'
 import DialogContent from '@mui/material/DialogContent'
 import { DialogTextField, DialogOptionsPaper, renderDialogRoleOption } from '../shared/DialogFields.style'
@@ -18,6 +17,7 @@ interface AddUserDialogProps {
   availableRoles: Roles[]
   isPending: boolean
   onSubmit: (usernames: string[], roles: Roles[]) => Promise<boolean>
+  onRoleSelectionNotice: (message: string) => void
 }
 
 interface AddUserForm {
@@ -32,9 +32,8 @@ const INITIAL_FORM: AddUserForm = {
   selectedRoles: [],
 }
 
-export const AddUserDialog = ({ open, onClose, availableRoles, isPending, onSubmit }: AddUserDialogProps) => {
+export const AddUserDialog = ({ open, onClose, availableRoles, isPending, onSubmit, onRoleSelectionNotice }: AddUserDialogProps) => {
   const [form, setForm] = useState<AddUserForm>(INITIAL_FORM)
-  const { enqueueSnackbar } = useSnackbar()
   const { usernames, usernameInput, selectedRoles } = form
 
   const handleRolesChange = (roles: Roles[]) => {
@@ -49,7 +48,7 @@ export const AddUserDialog = ({ open, onClose, availableRoles, isPending, onSubm
           return `${formatRole(adminRole)} already includes ${formatRole(role)} permissions, so only the admin role is kept.`
         }).join(' ')
 
-      enqueueSnackbar(message, { variant: 'info', preventDuplicate: true })
+      onRoleSelectionNotice(message)
     }
 
     setForm((current) => ({ ...current, selectedRoles: normalizedRoles }))
