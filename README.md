@@ -5,6 +5,11 @@ and permission requests. Store and product pages demonstrate flow-specific acces
 Authentication is a local demo: username-only login issues a JWT. Replace that
 login with the target application's authentication when integrating.
 
+The server in this repository exists to run and test this UI locally. The target
+project uses a different backend. This server is not designed to be copied into
+the target project; connect the UI to that project's existing APIs, data models,
+and authentication through its host integration instead.
+
 ## Project layout
 
 ```text
@@ -14,7 +19,7 @@ client/
     CLAUDE.md                      # UI/host integration instructions
     permissionManagementUi/        # Copyable components, styles and UI contracts
     permissionManagementHost/      # App-specific data, auth and notifications
-server/                            # NestJS API and MongoDB models
+server/                            # Local demo backend supporting this UI
 compose.yaml                       # Container build with Nginx client
 compose.dev.yaml                   # Development containers with source mounts
 ```
