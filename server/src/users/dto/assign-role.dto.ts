@@ -1,5 +1,5 @@
-import { IsEnum, IsNotEmpty } from 'class-validator';
-import { Role } from '../../common/utils/roles.util';
+import { IsEnum, IsNotEmpty } from "class-validator";
+import { Role } from "../../common/utils/roles.util";
 
 export class AssignRoleDto {
   @IsEnum(Role)

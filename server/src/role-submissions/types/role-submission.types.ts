@@ -1,15 +1,15 @@
-import { Role } from '../../common/utils/roles.util';
+import { Role } from "../../common/utils/roles.util";
 
 /** Status of a single role submission. */
 export enum RoleSubmissionStatus {
-  PENDING = 'PENDING',
-  APPROVED = 'APPROVED',
-  REJECTED = 'REJECTED',
+  PENDING = "PENDING",
+  APPROVED = "APPROVED",
+  REJECTED = "REJECTED",
 }
 
 export enum RoleSubmissionAction {
-  ADDITION = 'ADDITION',
-  DELETION = 'DELETION',
+  ADDITION = "ADDITION",
+  DELETION = "DELETION",
 }
 
 export class RoleSubmissionItem {

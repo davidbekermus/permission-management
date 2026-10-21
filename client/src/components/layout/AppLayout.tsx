@@ -1,47 +1,60 @@
-import { MainContent, StyledAppBar, LayoutToolbar, HomeButton, LogoutButton, NavigationDivider, ToolbarSpacer, Username } from './AppLayout.style'
-import Typography from '@mui/material/Typography'
-import HomeIcon from '@mui/icons-material/Home'
-import LogoutIcon from '@mui/icons-material/Logout'
-import { Outlet, useNavigate, useRouter, useRouterState } from '@tanstack/react-router'
-import { useQueryClient } from '@tanstack/react-query'
-import { getCurrentUsername, removeUserToken } from '@/app/auth/auth.utils'
-
-
+import {
+  MainContent,
+  StyledAppBar,
+  LayoutToolbar,
+  HomeButton,
+  LogoutButton,
+  NavigationDivider,
+  ToolbarSpacer,
+  Username,
+} from "./AppLayout.style";
+import Typography from "@mui/material/Typography";
+import HomeIcon from "@mui/icons-material/Home";
+import LogoutIcon from "@mui/icons-material/Logout";
+import {
+  Outlet,
+  useNavigate,
+  useRouter,
+  useRouterState,
+} from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
+import { getCurrentUsername, removeUserToken } from "@/app/auth/auth.utils";
 
 const PAGE_TITLES: Record<string, string> = {
-  '/app/home': '',
-  '/app/stores': 'Store Management',
-  '/app/products': 'Product Management',
-  '/app/settings': 'Permission Settings',
-}
+  "/app/home": "",
+  "/app/stores": "Store Management",
+  "/app/products": "Product Management",
+  "/app/settings": "Permission Settings",
+};
 
 function getPageTitle(path: string): string {
-  if (path.startsWith('/app/settings')) return 'Permission Settings'
-  return PAGE_TITLES[path] ?? ''
+  if (path.startsWith("/app/settings")) return "Permission Settings";
+  return PAGE_TITLES[path] ?? "";
 }
 
 export const AppLayout = () => {
-  const username = getCurrentUsername()
-  const navigate = useNavigate()
-  const router = useRouter()
-  const queryClient = useQueryClient()
-  const { location } = useRouterState()
-  const pageTitle = getPageTitle(location.pathname)
+  const username = getCurrentUsername();
+  const navigate = useNavigate();
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  const { location } = useRouterState();
+  const pageTitle = getPageTitle(location.pathname);
 
   const handleLogout = async () => {
-    removeUserToken()
-    queryClient.clear()
-    await router.invalidate()
-    await navigate({ to: '/login' })
-  }
+    removeUserToken();
+    queryClient.clear();
+    await router.invalidate();
+    await navigate({ to: "/login" });
+  };
 
   return (
     <>
       <StyledAppBar position="static" elevation={0}>
         <LayoutToolbar variant="dense" disableGutters>
-          <HomeButton color="secondary"
+          <HomeButton
+            color="secondary"
             startIcon={<HomeIcon fontSize="small" />}
-            onClick={() => navigate({ to: '/app/home' })}
+            onClick={() => navigate({ to: "/app/home" })}
           >
             Home
           </HomeButton>
@@ -62,7 +75,8 @@ export const AppLayout = () => {
               {username}
             </Username>
           )}
-          <LogoutButton color="secondary"
+          <LogoutButton
+            color="secondary"
             startIcon={<LogoutIcon fontSize="small" />}
             onClick={handleLogout}
           >
@@ -75,5 +89,5 @@ export const AppLayout = () => {
         <Outlet />
       </MainContent>
     </>
-  )
-}
+  );
+};

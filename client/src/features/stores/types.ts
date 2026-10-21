@@ -1,12 +1,12 @@
 export interface StoreItem {
-  id: number
-  name: string
-  price: number
-  description?: string
+  id: number;
+  name: string;
+  price: number;
+  description?: string;
 }
 
 export interface CreateStoreItemDto {
-  name: string
-  price: number
-  description?: string
+  name: string;
+  price: number;
+  description?: string;
 }

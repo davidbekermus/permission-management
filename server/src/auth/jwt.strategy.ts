@@ -1,14 +1,14 @@
-import { Injectable } from '@nestjs/common';
-import { PassportStrategy } from '@nestjs/passport';
-import { ExtractJwt, Strategy } from 'passport-jwt';
-import { Role } from '../common/utils/roles.util';
-import { JWT_SECRET } from './auth.constants';
+import { Injectable } from "@nestjs/common";
+import { PassportStrategy } from "@nestjs/passport";
+import { ExtractJwt, Strategy } from "passport-jwt";
+import { Role } from "../common/utils/roles.util";
+import { JWT_SECRET } from "./auth.constants";
 
 export interface JwtPayload {
   /**
-   *  Always the username — consistent whether the user is in DB or not. 
+   *  Always the username — consistent whether the user is in DB or not.
    *  because the username originly comes from the oss
-  */
+   */
   sub: string;
   username: string;
   roles: Role[];
@@ -16,7 +16,7 @@ export interface JwtPayload {
 
 /**
  * this file is not needed to imported in to the app hwere entagrated thsi repo
- * 
+ *
  * JwtStrategy — validates incoming Bearer tokens and attaches the decoded
  * payload to request.user.
  *

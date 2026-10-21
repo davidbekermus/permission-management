@@ -1,7 +1,12 @@
-import { Injectable, CanActivate, ExecutionContext, Type } from '@nestjs/common';
-import { ModulesContainer, Reflector } from '@nestjs/core';
-import { ROLES_KEY } from '../decorators/roles.decorator';
-import { Role } from '../utils/roles.util';
+import {
+  Injectable,
+  CanActivate,
+  ExecutionContext,
+  Type,
+} from "@nestjs/common";
+import { ModulesContainer, Reflector } from "@nestjs/core";
+import { ROLES_KEY } from "../decorators/roles.decorator";
+import { Role } from "../utils/roles.util";
 
 /**
  * RolesGuard — checks that the authenticated user has at least one of the
@@ -26,7 +31,10 @@ import { Role } from '../utils/roles.util';
 @Injectable()
 export class RolesGuard implements CanActivate {
   // Controller → flow roles, memoized since the module graph is fixed after bootstrap.
-  private readonly flowRolesCache = new Map<Type<unknown>, Role[] | undefined>();
+  private readonly flowRolesCache = new Map<
+    Type<unknown>,
+    Role[] | undefined
+  >();
 
   constructor(
     private readonly reflector: Reflector,
@@ -39,8 +47,10 @@ export class RolesGuard implements CanActivate {
     // Read the required roles from @Roles() metadata — handler first, then controller.
     // Falls back to the owning flow module's own @Roles() metadata if neither has any.
     const requiredRoles =
-      this.reflector.getAllAndOverride<Role[]>(ROLES_KEY, [context.getHandler(), controllerClass]) ??
-      this.getFlowRoles(controllerClass);
+      this.reflector.getAllAndOverride<Role[]>(ROLES_KEY, [
+        context.getHandler(),
+        controllerClass,
+      ]) ?? this.getFlowRoles(controllerClass);
 
     // No @Roles() anywhere → route is accessible to any authenticated user
     if (!requiredRoles || requiredRoles.length === 0) {
@@ -53,7 +63,7 @@ export class RolesGuard implements CanActivate {
     // user.roles comes from the JWT payload (stateless — no DB lookup)
     const userRoles: Role[] = user?.roles ?? [];
 
-    console.debug('[RolesGuard]', {
+    console.debug("[RolesGuard]", {
       method: request.method,
       path: request.originalUrl,
       username: user?.username,

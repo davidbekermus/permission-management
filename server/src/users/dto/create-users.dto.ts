@@ -1,5 +1,12 @@
-import { ArrayMinSize, ArrayUnique, IsArray, IsEnum, IsString, MinLength } from 'class-validator';
-import { Role } from '../../common/utils/roles.util';
+import {
+  ArrayMinSize,
+  ArrayUnique,
+  IsArray,
+  IsEnum,
+  IsString,
+  MinLength,
+} from "class-validator";
+import { Role } from "../../common/utils/roles.util";
 
 export class CreateUsersDto {
   @IsArray()

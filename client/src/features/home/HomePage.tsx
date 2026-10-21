@@ -1,44 +1,48 @@
-import { PageWrapper, CardGrid, NavCard, IconWrapper, Description, NavActionArea, NavContent } from './HomePage.style'
-import Typography from '@mui/material/Typography'
-import StoreIcon from '@mui/icons-material/Store'
-import InventoryIcon from '@mui/icons-material/Inventory'
-import SettingsIcon from '@mui/icons-material/Settings'
-import { useNavigate } from '@tanstack/react-router'
-
-
-
-
+import {
+  PageWrapper,
+  CardGrid,
+  NavCard,
+  IconWrapper,
+  Description,
+  NavActionArea,
+  NavContent,
+} from "./HomePage.style";
+import Typography from "@mui/material/Typography";
+import StoreIcon from "@mui/icons-material/Store";
+import InventoryIcon from "@mui/icons-material/Inventory";
+import SettingsIcon from "@mui/icons-material/Settings";
+import { useNavigate } from "@tanstack/react-router";
 
 interface NavCardItem {
-  label: string
-  description: string
-  path: string
-  icon: React.ReactNode
+  label: string;
+  description: string;
+  path: string;
+  icon: React.ReactNode;
 }
 
 const cards: NavCardItem[] = [
   {
-    label: 'Store Management',
-    description: 'Browse and manage store items',
-    path: '/app/stores',
+    label: "Store Management",
+    description: "Browse and manage store items",
+    path: "/app/stores",
     icon: <StoreIcon />,
   },
   {
-    label: 'Product Management',
-    description: 'Browse and manage products',
-    path: '/app/products',
+    label: "Product Management",
+    description: "Browse and manage products",
+    path: "/app/products",
     icon: <InventoryIcon />,
   },
   {
-    label: 'Settings',
-    description: 'Manage users and permission requests',
-    path: '/app/settings',
+    label: "Settings",
+    description: "Manage users and permission requests",
+    path: "/app/settings",
     icon: <SettingsIcon />,
   },
-]
+];
 
 export const HomePage = () => {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   return (
     <PageWrapper>
@@ -64,5 +68,5 @@ export const HomePage = () => {
         ))}
       </CardGrid>
     </PageWrapper>
-  )
-}
+  );
+};

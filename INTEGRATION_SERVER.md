@@ -57,24 +57,25 @@ After copying, the only file you need to edit is `roles.util.ts` (see step 4). E
 ```ts
 // Before (test project flows)
 export enum Role {
-  ANOMALY_ADMIN = 'ANOMALY_ADMIN',
-  STORE_ADMIN   = 'STORE_ADMIN',
-  STORE_USER    = 'STORE_USER',
-  PRODUCT_ADMIN = 'PRODUCT_ADMIN',
-  PRODUCT_USER  = 'PRODUCT_USER',
+  ANOMALY_ADMIN = "ANOMALY_ADMIN",
+  STORE_ADMIN = "STORE_ADMIN",
+  STORE_USER = "STORE_USER",
+  PRODUCT_ADMIN = "PRODUCT_ADMIN",
+  PRODUCT_USER = "PRODUCT_USER",
 }
 
 // After (your real flows)
 export enum Role {
-  ANOMALY_ADMIN   = 'ANOMALY_ADMIN',    // ← keep this, it's the superadmin bypass
-  ORDERS_ADMIN    = 'ORDERS_ADMIN',
-  ORDERS_USER     = 'ORDERS_USER',
-  INVENTORY_ADMIN = 'INVENTORY_ADMIN',
-  INVENTORY_USER  = 'INVENTORY_USER',
+  ANOMALY_ADMIN = "ANOMALY_ADMIN", // ← keep this, it's the superadmin bypass
+  ORDERS_ADMIN = "ORDERS_ADMIN",
+  ORDERS_USER = "ORDERS_USER",
+  INVENTORY_ADMIN = "INVENTORY_ADMIN",
+  INVENTORY_USER = "INVENTORY_USER",
 }
 ```
 
 **Rules:**
+
 - Always keep `ANOMALY_ADMIN` — the guards rely on it as the full-access bypass
 - Pattern must be `{FLOW}_ADMIN` / `{FLOW}_USER` — all helpers derive flow names by splitting on `_`
 - Adding a new flow = add two enum values here only, nothing else changes
@@ -92,25 +93,25 @@ restrict a route, and `@UseGuards(JwtAuthGuard)` wherever you want to require au
 
 ```ts
 // src/app.module.ts
-import { Module } from '@nestjs/common'
-import { APP_GUARD } from '@nestjs/core'
-import { MongooseModule } from '@nestjs/mongoose'
-import { AuthModule } from './auth/auth.module'
-import { UsersModule } from './users/users.module'
-import { RoleSubmissionsModule } from './role-submissions/role-submissions.module'
-import { RolesGuard } from './common/guards/roles.guard'
+import { Module } from "@nestjs/common";
+import { APP_GUARD } from "@nestjs/core";
+import { MongooseModule } from "@nestjs/mongoose";
+import { AuthModule } from "./auth/auth.module";
+import { UsersModule } from "./users/users.module";
+import { RoleSubmissionsModule } from "./role-submissions/role-submissions.module";
+import { RolesGuard } from "./common/guards/roles.guard";
 
 @Module({
   imports: [
-    MongooseModule.forRoot(process.env.MONGO_URI ?? 'mongodb://localhost:27017/your-db'),
+    MongooseModule.forRoot(
+      process.env.MONGO_URI ?? "mongodb://localhost:27017/your-db",
+    ),
     AuthModule,
     UsersModule,
     RoleSubmissionsModule,
     // ... your existing modules
   ],
-  providers: [
-    { provide: APP_GUARD, useClass: RolesGuard },
-  ],
+  providers: [{ provide: APP_GUARD, useClass: RolesGuard }],
 })
 export class AppModule {}
 ```
@@ -125,22 +126,24 @@ so making it global doesn't change behavior for undecorated routes.
 
 ```ts
 // src/main.ts
-import { ValidationPipe } from '@nestjs/common'
+import { ValidationPipe } from "@nestjs/common";
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule)
+  const app = await NestFactory.create(AppModule);
 
   app.enableCors({
-    origin: process.env.CLIENT_URL ?? 'http://localhost:5173',
-  })
+    origin: process.env.CLIENT_URL ?? "http://localhost:5173",
+  });
 
-  app.useGlobalPipes(new ValidationPipe({
-    whitelist: true,           // strip unknown fields
-    forbidNonWhitelisted: true, // reject requests with unknown fields
-    transform: true,           // auto-transform payloads to DTO classes
-  }))
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true, // strip unknown fields
+      forbidNonWhitelisted: true, // reject requests with unknown fields
+      transform: true, // auto-transform payloads to DTO classes
+    }),
+  );
 
-  await app.listen(process.env.PORT ?? 3000)
+  await app.listen(process.env.PORT ?? 3000);
 }
 ```
 
@@ -157,6 +160,7 @@ POST /auth/login
 ```
 
 **What the server does:**
+
 - If `alice` exists in the database → JWT includes her real roles
 - If `alice` does not exist → JWT is issued with empty `roles: []`
 - No password validation — your OSS system is already the identity provider
@@ -164,14 +168,15 @@ POST /auth/login
 The client stores this JWT and sends it as `Authorization: Bearer <token>` on every subsequent request. The JWT is stateless — it carries the user's roles at the time of login. After a role change (approve, assign), the user must log in again to get an updated token.
 
 **How to trigger login from your frontend after OSS authentication:**
+
 ```ts
 // After your OSS provider gives you the username
-const res = await fetch('/auth/login', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
+const res = await fetch("/auth/login", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
   body: JSON.stringify({ username: ossUsername }),
-})
-const { access_token } = await res.json()
+});
+const { access_token } = await res.json();
 // Store and use this token for all subsequent API calls
 ```
 
@@ -184,18 +189,20 @@ If your project already does its own SSO exchange, mints its own JWT, and has it
 The one thing you must port over is the "look up the user's stored roles and embed them in the JWT payload" step:
 
 1. **In your existing auth service**, at the point where you currently sign the JWT after your SSO exchange, add a lookup against the newly-copied `users` collection and embed the roles before signing:
+
    ```ts
-   let roles: Role[]
+   let roles: Role[];
    try {
-     const user = await usersService.findByUsername(username)
-     roles = user.roles.map((r) => r.role)
+     const user = await usersService.findByUsername(username);
+     roles = user.roles.map((r) => r.role);
    } catch {
-     roles = [] // not in the users collection yet — still lets them hit POST /role-submissions
+     roles = []; // not in the users collection yet — still lets them hit POST /role-submissions
    }
 
-   const payload = { sub: username, username, roles }
+   const payload = { sub: username, username, roles };
    // ...sign payload with your existing JWT setup as before
    ```
+
    This is the same logic as `auth/auth.service.ts`'s `login()` method in this reference implementation — only the surrounding token-minting call changes, not this lookup.
 
 2. **Confirm your existing guard attaches the decoded payload to `request.user`** (standard behavior for a passport `validate()` return value, or equivalent in your own guard) — no guard changes needed as long as `request.user.roles` ends up populated.
@@ -220,8 +227,9 @@ curl -X POST http://localhost:3000/auth/seed
 Then log in as `superadmin` to get a JWT with `ANOMALY_ADMIN` — this is the only role that can approve/reject role submissions or assign/remove roles on other users (see step 11); flow admins cannot do this even within their own flow.
 
 You can change the seed username in `src/auth/auth.constants.ts`:
+
 ```ts
-export const SEED_ADMIN_USERNAME = 'superadmin' // change to your preferred name
+export const SEED_ADMIN_USERNAME = "superadmin"; // change to your preferred name
 ```
 
 ---
@@ -231,24 +239,26 @@ export const SEED_ADMIN_USERNAME = 'superadmin' // change to your preferred name
 There are two guards that work together on every protected endpoint:
 
 ### JwtAuthGuard
+
 Validates the Bearer token and populates `req.user` with the JWT payload (`{ sub, username, roles }`). Apply this to every controller that requires authentication.
 
 ```ts
-import { JwtAuthGuard } from './common/guards/jwt-auth.guard'
+import { JwtAuthGuard } from "./common/guards/jwt-auth.guard";
 
 @UseGuards(JwtAuthGuard)
-@Controller('your-resource')
+@Controller("your-resource")
 export class YourController {}
 ```
 
 ### RolesGuard
+
 Checks that `req.user.roles` contains at least one of the roles specified by the `@Roles()` / `@AdminRoles()` / `@FlowRoles()` decorators. ANOMALY_ADMIN bypasses all role checks automatically.
 
 Registered globally via `APP_GUARD` in step 5, so it runs on every route without needing `@UseGuards(RolesGuard)` anywhere — just add the decorator:
 
 ```ts
 @AdminRoles()
-@Controller('your-admin-resource')
+@Controller("your-admin-resource")
 export class YourAdminController {}
 ```
 
@@ -269,6 +279,7 @@ to require authentication — the decorators below are all that's needed to laye
 restrictions on top.
 
 ### `@Roles(...roles)` — explicit role list
+
 Only users who have at least one of the listed roles can access the endpoint.
 
 ```ts
@@ -282,6 +293,7 @@ findAll() { ... }
 ```
 
 ### `@AdminRoles()` — any flow admin
+
 Allows any `*_ADMIN` role (but not `*_USER`). Used on cross-flow write endpoints that any
 admin should reach, e.g. listing/reviewing resources across flows — see `findAll`/`findOne`
 in `role-submissions.controller.ts`, which use it for viewing (not managing) role submissions.
@@ -300,6 +312,7 @@ createReport(@Body() dto, @Request() req: AuthedRequest) {
 ```
 
 ### `@FlowRoles(flow)` — specific flow (admin + user)
+
 Allows both `{FLOW}_ADMIN` and `{FLOW}_USER` for a given flow. Use this on read endpoints for flow-specific resources.
 
 ```ts
@@ -311,6 +324,7 @@ findOrderItems() { ... }
 ```
 
 ### Module-level — declare a default for every controller a module imports
+
 All three decorators (`@Roles`, `@AdminRoles`, `@FlowRoles`) are just
 `SetMetadata(ROLES_KEY, roles)` — they don't care what kind of class they're
 applied to. If your project groups feature modules under a parent "flow"
@@ -318,7 +332,7 @@ module, you can put the decorator directly on that module instead of on
 every controller it imports:
 
 ```ts
-@FlowRoles('ORDERS')
+@FlowRoles("ORDERS")
 @Module({
   imports: [OrdersModule, OrderItemsModule],
 })
@@ -361,7 +375,7 @@ This system has two independent layers, and it's easy to assume they work the sa
    `@FlowRoles`/`@AdminRoles`/`@Roles` decorators directly on your project's real, existing
    controllers.
 
-2. **Role management** — i.e. deciding *who gets which role* — is intentionally **not**
+2. **Role management** — i.e. deciding _who gets which role_ — is intentionally **not**
    flow-scoped, and is **restricted to `ANOMALY_ADMIN` only**. Creating a user with roles,
    assigning a role, removing a role, and approving/rejecting a role submission all call
    `assertIsAnomalyAdmin` (`common/utils/roles.util.ts`), which throws `ForbiddenException`
@@ -441,19 +455,19 @@ The `ANOMALY_ADMIN` role bypasses all `RolesGuard` checks — it always passes.
 
 Once integrated, these endpoints are available:
 
-| Method | Path | Auth required | Who can call |
-|--------|------|---------------|--------------|
-| POST | `/auth/login` | No | Anyone (OSS username exchange) |
-| POST | `/auth/seed` | No | One-time bootstrap only |
-| GET | `/users` | JWT | Any authenticated user |
-| POST | `/users` | JWT + `ANOMALY_ADMIN` | ANOMALY_ADMIN only |
-| PATCH | `/users/:username/roles` | JWT + `ANOMALY_ADMIN` | ANOMALY_ADMIN only |
-| DELETE | `/users/:username/roles/:role` | JWT + `ANOMALY_ADMIN` | ANOMALY_ADMIN only |
-| GET | `/role-submissions` | JWT + any `*_ADMIN` | Admins see all (read-only for flow admins); scoped by flow |
-| GET | `/role-submissions/my-submissions` | JWT | Any user — sees only their own |
-| POST | `/role-submissions` | JWT | Any authenticated user |
-| PATCH | `/role-submissions/:id/approve` | JWT + `ANOMALY_ADMIN` | ANOMALY_ADMIN only |
-| PATCH | `/role-submissions/:id/reject` | JWT + `ANOMALY_ADMIN` | ANOMALY_ADMIN only |
+| Method | Path                               | Auth required         | Who can call                                               |
+| ------ | ---------------------------------- | --------------------- | ---------------------------------------------------------- |
+| POST   | `/auth/login`                      | No                    | Anyone (OSS username exchange)                             |
+| POST   | `/auth/seed`                       | No                    | One-time bootstrap only                                    |
+| GET    | `/users`                           | JWT                   | Any authenticated user                                     |
+| POST   | `/users`                           | JWT + `ANOMALY_ADMIN` | ANOMALY_ADMIN only                                         |
+| PATCH  | `/users/:username/roles`           | JWT + `ANOMALY_ADMIN` | ANOMALY_ADMIN only                                         |
+| DELETE | `/users/:username/roles/:role`     | JWT + `ANOMALY_ADMIN` | ANOMALY_ADMIN only                                         |
+| GET    | `/role-submissions`                | JWT + any `*_ADMIN`   | Admins see all (read-only for flow admins); scoped by flow |
+| GET    | `/role-submissions/my-submissions` | JWT                   | Any user — sees only their own                             |
+| POST   | `/role-submissions`                | JWT                   | Any authenticated user                                     |
+| PATCH  | `/role-submissions/:id/approve`    | JWT + `ANOMALY_ADMIN` | ANOMALY_ADMIN only                                         |
+| PATCH  | `/role-submissions/:id/reject`     | JWT + `ANOMALY_ADMIN` | ANOMALY_ADMIN only                                         |
 
 ---
 
@@ -483,4 +497,3 @@ Once integrated, these endpoints are available:
 - [ ] Flow-scoped controllers use `@FlowRoles('YOUR_FLOW')` (no need to add `RolesGuard` per-controller — it's global) — or declare it once on the flow module that imports them, if your project structures features that way
 - [ ] OSS login flow calls `POST /auth/login { username }` and forwards the JWT to the client
 - [ ] **OR** (if you already have your own auth): skipped the `auth/` module + `JwtAuthGuard`, wired a roles lookup into your own token-minting step instead (see step 7b), and ported the ANOMALY_ADMIN seed logic separately
-

@@ -18,19 +18,21 @@ npm install @tanstack/react-query axios jwt-decode
 The entire feature uses `@/` as the root import alias. Make sure your project has this configured.
 
 **vite.config.ts**
+
 ```ts
-import path from 'path'
+import path from "path";
 
 export default defineConfig({
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
+      "@": path.resolve(__dirname, "./src"),
     },
   },
-})
+});
 ```
 
 **tsconfig.json** (inside `compilerOptions`)
+
 ```json
 "baseUrl": ".",
 "paths": {
@@ -58,12 +60,12 @@ Copy the entire `client/src/features/permissionManagement/` directory into your 
 
 Also copy these support files and adapt them (see sections below):
 
-| Source | Destination | Action |
-|--------|-------------|--------|
-| `src/features/auth/types.ts` | `src/features/auth/types.ts` | **Edit** — update the Role enum |
-| `src/app/constants.ts` | `src/app/constants.ts` | **Edit** — change TOKEN_KEY if needed |
-| `src/app/api/axiosClient.ts` | `src/app/api/axiosClient.ts` | **Copy or merge** into your axios instance |
-| `src/app/providers/AuthProvider.tsx` | `src/app/providers/AuthProvider.tsx` | **Copy or merge** |
+| Source                                | Destination                           | Action                                                     |
+| ------------------------------------- | ------------------------------------- | ---------------------------------------------------------- |
+| `src/features/auth/types.ts`          | `src/features/auth/types.ts`          | **Edit** — update the Role enum                            |
+| `src/app/constants.ts`                | `src/app/constants.ts`                | **Edit** — change TOKEN_KEY if needed                      |
+| `src/app/api/axiosClient.ts`          | `src/app/api/axiosClient.ts`          | **Copy or merge** into your axios instance                 |
+| `src/app/providers/AuthProvider.tsx`  | `src/app/providers/AuthProvider.tsx`  | **Copy or merge**                                          |
 | `src/app/providers/QueryProvider.tsx` | `src/app/providers/QueryProvider.tsx` | **Copy or skip** if you already have a QueryClientProvider |
 
 ---
@@ -77,27 +79,27 @@ The pattern is `{FLOW}_ADMIN` / `{FLOW}_USER`. Example:
 ```ts
 // Before (test project flows)
 export type Role =
-  | 'ANOMALY_ADMIN'
-  | 'STORE_ADMIN'
-  | 'STORE_USER'
-  | 'PRODUCT_ADMIN'
-  | 'PRODUCT_USER'
+  | "ANOMALY_ADMIN"
+  | "STORE_ADMIN"
+  | "STORE_USER"
+  | "PRODUCT_ADMIN"
+  | "PRODUCT_USER";
 
 // After (your real flows — adjust to match your server's Role enum)
 export type Role =
-  | 'ANOMALY_ADMIN'
-  | 'ORDERS_ADMIN'
-  | 'ORDERS_USER'
-  | 'INVENTORY_ADMIN'
-  | 'INVENTORY_USER'
+  | "ANOMALY_ADMIN"
+  | "ORDERS_ADMIN"
+  | "ORDERS_USER"
+  | "INVENTORY_ADMIN"
+  | "INVENTORY_USER";
 
 export const ALL_ROLES: Role[] = [
-  'ANOMALY_ADMIN',
-  'ORDERS_ADMIN',
-  'ORDERS_USER',
-  'INVENTORY_ADMIN',
-  'INVENTORY_USER',
-]
+  "ANOMALY_ADMIN",
+  "ORDERS_ADMIN",
+  "ORDERS_USER",
+  "INVENTORY_ADMIN",
+  "INVENTORY_USER",
+];
 ```
 
 **Important:** the Role enum on the client must exactly match the server's `Role` enum in `roles.util.ts` — same string values, same spelling.
@@ -109,8 +111,9 @@ Do not change `getFlowFromRole` or `filterRequestableRoles` — they work with a
 ## 6. Set TOKEN_KEY
 
 `src/app/constants.ts`:
+
 ```ts
-export const TOKEN_KEY = 'your_project_token_key'
+export const TOKEN_KEY = "your_project_token_key";
 ```
 
 This is the localStorage key where the JWT is stored. Pick whatever key your project uses. Every consumer (`axiosClient`, `AuthProvider`, the router guard) imports from here — change it in one place.
@@ -120,12 +123,14 @@ This is the localStorage key where the JWT is stored. Pick whatever key your pro
 ## 7. Wire up the axios client
 
 `src/app/api/axiosClient.ts` does two things:
+
 1. Attaches `Authorization: Bearer <token>` to every request
 2. On 401, clears the token and redirects to `/login`
 
 If your project already has an axios instance, merge these two interceptors into it instead of using the one from this project.
 
 The `permissionManagement` services import `apiClient` from `@/app/api/axiosClient`. If you use a different export name or path, do a find-and-replace in the two service files:
+
 - `permissionManagement/users/services/usersApi.ts`
 - `permissionManagement/roleSubmissions/services/roleSubmissionsApi.ts`
 
@@ -137,14 +142,14 @@ The `permissionManagement` services import `apiClient` from `@/app/api/axiosClie
 
 ```tsx
 // main.tsx or App.tsx
-import { QueryProvider } from '@/app/providers/QueryProvider'
-import { AuthProvider } from '@/app/providers/AuthProvider'
+import { QueryProvider } from "@/app/providers/QueryProvider";
+import { AuthProvider } from "@/app/providers/AuthProvider";
 
 <QueryProvider>
   <AuthProvider>
     <YourRouter />
   </AuthProvider>
-</QueryProvider>
+</QueryProvider>;
 ```
 
 If your project already has a `QueryClientProvider`, skip `QueryProvider` and just add `AuthProvider`.
@@ -158,20 +163,23 @@ Your project uses automatic OSS login — the identity provider hands you the us
 After OSS gives you the username, make this call:
 
 ```ts
-import { useAuth } from '@/app/providers/AuthProvider'
+import { useAuth } from "@/app/providers/AuthProvider";
 
-const { login } = useAuth()
+const { login } = useAuth();
 
 // Call after OSS authentication gives you the username
-const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/auth/login`, {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ username: ossUsername }),
-})
-const { access_token } = await response.json()
+const response = await fetch(
+  `${import.meta.env.VITE_API_BASE_URL}/auth/login`,
+  {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username: ossUsername }),
+  },
+);
+const { access_token } = await response.json();
 
 // Store the token and update auth state in one call
-login(access_token)
+login(access_token);
 ```
 
 `login(token)` stores the JWT in localStorage under `TOKEN_KEY` and decodes it to populate `username`, `roles`, `isAdmin`, etc. immediately — no page reload needed.
@@ -185,71 +193,78 @@ Use `useAuth()` inside your route guard or component to check roles before rende
 ### TanStack Router (same as this project)
 
 ```ts
-import { createRoute, redirect } from '@tanstack/react-router'
-import { TOKEN_KEY } from '@/app/constants'
+import { createRoute, redirect } from "@tanstack/react-router";
+import { TOKEN_KEY } from "@/app/constants";
 
 // Protect any route — redirect to login if no token
 const protectedRoute = createRoute({
   beforeLoad: () => {
     if (!localStorage.getItem(TOKEN_KEY)) {
-      throw redirect({ to: '/login' })
+      throw redirect({ to: "/login" });
     }
   },
-})
+});
 
 // Protect an admin-only route — redirect to home if not admin
 const adminRoute = createRoute({
   beforeLoad: ({ context }) => {
-    const token = localStorage.getItem(TOKEN_KEY)
-    if (!token) throw redirect({ to: '/login' })
+    const token = localStorage.getItem(TOKEN_KEY);
+    if (!token) throw redirect({ to: "/login" });
     // Decode and check role — or use a shared helper
-    const payload = JSON.parse(atob(token.split('.')[1]))
-    const isAdmin = payload.roles?.some((r: string) => r.endsWith('_ADMIN'))
-    if (!isAdmin) throw redirect({ to: '/home' })
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    const isAdmin = payload.roles?.some((r: string) => r.endsWith("_ADMIN"));
+    if (!isAdmin) throw redirect({ to: "/home" });
   },
-})
+});
 ```
 
 ### React Router v6
 
 ```tsx
-import { Navigate } from 'react-router-dom'
-import { useAuth } from '@/app/providers/AuthProvider'
+import { Navigate } from "react-router-dom";
+import { useAuth } from "@/app/providers/AuthProvider";
 
 // Wrap any route that requires authentication
 export function RequireAuth({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated } = useAuth()
-  if (!isAuthenticated) return <Navigate to="/login" replace />
-  return <>{children}</>
+  const { isAuthenticated } = useAuth();
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  return <>{children}</>;
 }
 
 // Wrap any route that requires admin access
 export function RequireAdmin({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated, isAdmin } = useAuth()
-  if (!isAuthenticated) return <Navigate to="/login" replace />
-  if (!isAdmin) return <Navigate to="/home" replace />
-  return <>{children}</>
+  const { isAuthenticated, isAdmin } = useAuth();
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (!isAdmin) return <Navigate to="/home" replace />;
+  return <>{children}</>;
 }
 
 // Usage in your router
-<Route path="/settings" element={<RequireAdmin><PermissionManagementPage /></RequireAdmin>} />
+<Route
+  path="/settings"
+  element={
+    <RequireAdmin>
+      <PermissionManagementPage />
+    </RequireAdmin>
+  }
+/>;
 ```
 
 ### Hiding nav items conditionally
 
 ```tsx
-import { useAuth } from '@/app/providers/AuthProvider'
+import { useAuth } from "@/app/providers/AuthProvider";
 
 function Sidebar() {
-  const { isAdmin, isFlowAdmin } = useAuth()
+  const { isAdmin, isFlowAdmin } = useAuth();
 
   return (
     <nav>
       <NavItem to="/home">Home</NavItem>
       {isAdmin && <NavItem to="/settings">User Management</NavItem>}
-      {isFlowAdmin('ORDERS') && <NavItem to="/orders">Orders</NavItem>}
+      {isFlowAdmin("ORDERS") && <NavItem to="/orders">Orders</NavItem>}
     </nav>
-  )
+  );
 }
 ```
 
@@ -262,13 +277,14 @@ function Sidebar() {
 ## 11. Mount the Permission Management page
 
 ```tsx
-import { PermissionManagementPage } from '@/features/permissionManagement'
+import { PermissionManagementPage } from "@/features/permissionManagement";
 
 // Mount on any route — the page handles its own tab/table/dialog state
-<Route path="/settings" element={<PermissionManagementPage />} />
+<Route path="/settings" element={<PermissionManagementPage />} />;
 ```
 
 The page self-adapts based on the logged-in user's roles:
+
 - **Non-admin users** — see only their own role submissions + a "Submit role" button
 - **Flow admins** — read-only visibility of all users and requests scoped to their flow; cannot add users, assign/remove roles, or approve/reject requests
 - **ANOMALY_ADMIN** — full access: can add users, assign/remove roles, and approve/reject requests
@@ -283,7 +299,7 @@ The JWT is stateless. When an admin assigns or approves a role for a user, that 
 
 ```tsx
 // Example: show a banner after role assignment
-"Your new roles will take effect after your next login."
+"Your new roles will take effect after your next login.";
 ```
 
 If you want seamless role updates without re-login, that requires server-side session management (out of scope for this feature).
@@ -302,4 +318,3 @@ If you want seamless role updates without re-login, that requires server-side se
 - [ ] OSS login calls `login(access_token)` after getting the JWT
 - [ ] Routes protected via `useAuth()` checks
 - [ ] `PermissionManagementPage` mounted on an admin-accessible route
-

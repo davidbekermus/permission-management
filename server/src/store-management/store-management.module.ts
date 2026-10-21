@@ -1,6 +1,6 @@
-import { Module } from '@nestjs/common';
-import { StoreManagementController } from './store-management.controller';
-import { StoreManagementService } from './store-management.service';
+import { Module } from "@nestjs/common";
+import { StoreManagementController } from "./store-management.controller";
+import { StoreManagementService } from "./store-management.service";
 
 @Module({
   controllers: [StoreManagementController],

@@ -13,18 +13,18 @@ import {
   DefaultValuePipe,
   ParseIntPipe,
   BadRequestException,
-} from '@nestjs/common';
-import { UsersService } from './users.service';
-import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
-import { AdminRoles, Roles } from '../common/decorators/roles.decorator';
-import { Role } from '../common/utils/roles.util';
-import { CreateUsersDto } from './dto/create-users.dto';
-import { AssignRoleDto } from './dto/assign-role.dto';
-import { AuthedRequest } from '../common/interfaces/authed-request.interface';
-import { AdminService } from '../admin/admin.service';
+} from "@nestjs/common";
+import { UsersService } from "./users.service";
+import { JwtAuthGuard } from "../common/guards/jwt-auth.guard";
+import { AdminRoles, Roles } from "../common/decorators/roles.decorator";
+import { Role } from "../common/utils/roles.util";
+import { CreateUsersDto } from "./dto/create-users.dto";
+import { AssignRoleDto } from "./dto/assign-role.dto";
+import { AuthedRequest } from "../common/interfaces/authed-request.interface";
+import { AdminService } from "../admin/admin.service";
 
 @UseGuards(JwtAuthGuard)
-@Controller('users')
+@Controller("users")
 export class UsersController {
   constructor(
     private readonly usersService: UsersService,
@@ -39,23 +39,33 @@ export class UsersController {
   @AdminRoles()
   findAll(
     @Request() req: AuthedRequest,
-    @Query('username') username?: string,
-    @Query('roles') rolesParam?: string,
-    @Query('sort') sort?: 'asc' | 'desc',
-    @Query('offset', new DefaultValuePipe(0), ParseIntPipe) offset = 0,
+    @Query("username") username?: string,
+    @Query("roles") rolesParam?: string,
+    @Query("sort") sort?: "asc" | "desc",
+    @Query("offset", new DefaultValuePipe(0), ParseIntPipe) offset = 0,
   ) {
-    if (offset < 0) throw new BadRequestException('offset must be non-negative');
-    const roles = rolesParam ? (rolesParam.split(',') as Role[]) : undefined;
-    return this.usersService.findAll(req.user.roles, username, roles, sort, offset);
+    if (offset < 0)
+      throw new BadRequestException("offset must be non-negative");
+    const roles = rolesParam ? (rolesParam.split(",") as Role[]) : undefined;
+    return this.usersService.findAll(
+      req.user.roles,
+      username,
+      roles,
+      sort,
+      offset,
+    );
   }
 
   /**
    * GET /users/:username
    * Admins only. Flow admins may fetch users belonging to their own flows.
    */
-  @Get(':username')
+  @Get(":username")
   @AdminRoles()
-  findByUsername(@Param('username') username: string, @Request() req: AuthedRequest) {
+  findByUsername(
+    @Param("username") username: string,
+    @Request() req: AuthedRequest,
+  ) {
     return this.usersService.findByUsername(username, req.user.roles);
   }
 
@@ -65,32 +75,47 @@ export class UsersController {
   @Post()
   @Roles(Role.ANOMALY_ADMIN)
   create(@Body() dto: CreateUsersDto, @Request() req: AuthedRequest) {
-    return this.adminService.createUsers(dto.usernames, dto.roles, req.user.roles, req.user.username);
+    return this.adminService.createUsers(
+      dto.usernames,
+      dto.roles,
+      req.user.roles,
+      req.user.username,
+    );
   }
 
   /**
    * ANOMALY_ADMIN only — assign a role to a user.
    */
-  @Patch(':username/roles')
+  @Patch(":username/roles")
   @Roles(Role.ANOMALY_ADMIN)
   assignRole(
-    @Param('username') username: string,
+    @Param("username") username: string,
     @Body() dto: AssignRoleDto,
     @Request() req: AuthedRequest,
   ) {
-    return this.adminService.assignRole(username, dto.role, req.user.roles, req.user.username);
+    return this.adminService.assignRole(
+      username,
+      dto.role,
+      req.user.roles,
+      req.user.username,
+    );
   }
 
   /**
    * ANOMALY_ADMIN only — remove a role from a user.
    */
-  @Delete(':username/roles/:role')
+  @Delete(":username/roles/:role")
   @Roles(Role.ANOMALY_ADMIN)
   removeRole(
-    @Param('username') username: string,
-    @Param('role', new ParseEnumPipe(Role)) roleToRemove: Role,
+    @Param("username") username: string,
+    @Param("role", new ParseEnumPipe(Role)) roleToRemove: Role,
     @Request() req: AuthedRequest,
   ) {
-    return this.adminService.removeRole(username, roleToRemove, req.user.roles, req.user.username);
+    return this.adminService.removeRole(
+      username,
+      roleToRemove,
+      req.user.roles,
+      req.user.username,
+    );
   }
 }

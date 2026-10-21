@@ -1,1 +1,1 @@
-export const TOKEN_KEY = 'pm_token'
+export const TOKEN_KEY = "pm_token";

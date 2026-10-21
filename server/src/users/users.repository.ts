@@ -1,7 +1,7 @@
-import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { FilterQuery, Model } from 'mongoose';
-import { User, UserDocument, UserRoleEntry } from './schemas/user.schema';
+import { Injectable } from "@nestjs/common";
+import { InjectModel } from "@nestjs/mongoose";
+import { FilterQuery, Model } from "mongoose";
+import { User, UserDocument, UserRoleEntry } from "./schemas/user.schema";
 
 @Injectable()
 export class UsersRepository {
@@ -10,7 +10,12 @@ export class UsersRepository {
   ) {}
 
   find(filter: FilterQuery<UserDocument>, sortOrder: 1 | -1, offset = 0) {
-    return this.model.find(filter).sort({ createdAt: sortOrder, _id: sortOrder }).skip(offset).limit(20).exec();
+    return this.model
+      .find(filter)
+      .sort({ createdAt: sortOrder, _id: sortOrder })
+      .skip(offset)
+      .limit(20)
+      .exec();
   }
 
   findByUsername(username: string) {
@@ -18,7 +23,9 @@ export class UsersRepository {
   }
 
   findUsernames(usernames: string[]) {
-    return this.model.find({ username: { $in: usernames } }, { username: 1 }).exec();
+    return this.model
+      .find({ username: { $in: usernames } }, { username: 1 })
+      .exec();
   }
 
   create(username: string, roles: UserRoleEntry[]) {
@@ -30,11 +37,13 @@ export class UsersRepository {
   }
 
   upsertByUsername(username: string) {
-    return this.model.findOneAndUpdate(
-      { username },
-      {},
-      { new: true, upsert: true, setDefaultsOnInsert: true },
-    ).exec();
+    return this.model
+      .findOneAndUpdate(
+        { username },
+        {},
+        { new: true, upsert: true, setDefaultsOnInsert: true },
+      )
+      .exec();
   }
 
   save(user: UserDocument) {

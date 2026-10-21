@@ -1,10 +1,15 @@
-import { Injectable, Logger, NotFoundException, OnApplicationBootstrap } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
-import { UsersService } from '../users/users.service';
-import { Role } from '../common/utils/roles.util';
-import { JwtPayload } from './jwt.strategy';
-import { SEED_ADMIN_USERNAME } from './auth.constants';
-import { AdminService } from '../admin/admin.service';
+import {
+  Injectable,
+  Logger,
+  NotFoundException,
+  OnApplicationBootstrap,
+} from "@nestjs/common";
+import { JwtService } from "@nestjs/jwt";
+import { UsersService } from "../users/users.service";
+import { Role } from "../common/utils/roles.util";
+import { JwtPayload } from "./jwt.strategy";
+import { SEED_ADMIN_USERNAME } from "./auth.constants";
+import { AdminService } from "../admin/admin.service";
 
 @Injectable()
 export class AuthService implements OnApplicationBootstrap {
@@ -17,7 +22,7 @@ export class AuthService implements OnApplicationBootstrap {
   ) {}
 
   async onApplicationBootstrap(): Promise<void> {
-    if (process.env.AUTO_SEED_ADMIN !== 'true') return;
+    if (process.env.AUTO_SEED_ADMIN !== "true") return;
 
     const result = await this.seedSuperAdmin();
     this.logger.log(result.message);
@@ -25,7 +30,7 @@ export class AuthService implements OnApplicationBootstrap {
 
   /**
    * Simulates an OSS (external single sign-on) login.
-   * will be changed when intergrated to the app 
+   * will be changed when intergrated to the app
    * in the app theres already a service for recreateing the token
    * i just need to add the request to the user db to update howthe token is recreated
    *
@@ -68,7 +73,7 @@ export class AuthService implements OnApplicationBootstrap {
 
   /**
    * this is not really needed it could be added manually for the first time
-   * 
+   *
    * Dev-only seed: creates a ANOMALY_ADMIN user named "superadmin" if none exists.
    * Call POST /auth/seed once to bootstrap the system.
    */
@@ -80,7 +85,11 @@ export class AuthService implements OnApplicationBootstrap {
       if (!(e instanceof NotFoundException)) throw e;
     }
 
-    await this.adminService.createSystemUser(SEED_ADMIN_USERNAME, [Role.ANOMALY_ADMIN]);
-    return { message: `${SEED_ADMIN_USERNAME} created with ANOMALY_ADMIN role` };
+    await this.adminService.createSystemUser(SEED_ADMIN_USERNAME, [
+      Role.ANOMALY_ADMIN,
+    ]);
+    return {
+      message: `${SEED_ADMIN_USERNAME} created with ANOMALY_ADMIN role`,
+    };
   }
 }

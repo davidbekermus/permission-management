@@ -1,4 +1,4 @@
-import { ForbiddenException } from '@nestjs/common';
+import { ForbiddenException } from "@nestjs/common";
 
 /**
  * Central Role enum — single source of truth for all roles in the system.
@@ -6,9 +6,9 @@ import { ForbiddenException } from '@nestjs/common';
  * Naming convention: {FLOW}_{TYPE}
  *   - FLOW: uppercase string identifying the feature area (e.g. STORE, PRODUCT)
  *   - TYPE: either ADMIN or USER
- * 
+ *
  * note: the firxt index must be the name of the flow
- * 
+ *
  * Special case: ANOMALY_ADMIN has no flow and overrides ALL permissions.
  *
  * Adding a new flow (e.g. ORDER) requires ONLY adding two lines here:
@@ -16,13 +16,13 @@ import { ForbiddenException } from '@nestjs/common';
  *   ORDER_USER  = 'ORDER_USER',
  */
 export enum Role {
-  ANOMALY_ADMIN = 'ANOMALY_ADMIN',
+  ANOMALY_ADMIN = "ANOMALY_ADMIN",
 
-  STORE_ADMIN = 'STORE_ADMIN',
-  STORE_USER = 'STORE_USER',
+  STORE_ADMIN = "STORE_ADMIN",
+  STORE_USER = "STORE_USER",
 
-  PRODUCT_ADMIN = 'PRODUCT_ADMIN',
-  PRODUCT_USER = 'PRODUCT_USER',
+  PRODUCT_ADMIN = "PRODUCT_ADMIN",
+  PRODUCT_USER = "PRODUCT_USER",
 }
 
 // ---------------------------------------------------------------------------
@@ -43,7 +43,7 @@ export function isAnomalyAdmin(role: Role): boolean {
  * All roles ending in _ADMIN (including ANOMALY_ADMIN) are admin roles.
  */
 export function isAdminRole(role: Role): boolean {
-  return role.endsWith('_ADMIN');
+  return role.endsWith("_ADMIN");
 }
 
 /**
@@ -56,9 +56,9 @@ export function isAdminRole(role: Role): boolean {
  */
 export function getFlowFromRole(role: Role): string | null {
   if (isAnomalyAdmin(role)) return null;
-  const parts = role.split('_');
-  
-  return parts.slice(0, -1).join('_');
+  const parts = role.split("_");
+
+  return parts.slice(0, -1).join("_");
 }
 
 /**
@@ -69,9 +69,7 @@ export function getFlowFromRole(role: Role): string | null {
  * is scoped to its own flow.
  */
 export function getRolesForFlow(flow: string): Role[] {
-  return Object.values(Role).filter(
-    (role) => getFlowFromRole(role) === flow,
-  );
+  return Object.values(Role).filter((role) => getFlowFromRole(role) === flow);
 }
 
 /**
@@ -95,7 +93,10 @@ export function getAllFlowAdminRoles(): Role[] {
  *
  * Throws ForbiddenException if the requester lacks ANOMALY_ADMIN.
  */
-export function assertIsAnomalyAdmin(requesterRoles: Role[], action: string): void {
+export function assertIsAnomalyAdmin(
+  requesterRoles: Role[],
+  action: string,
+): void {
   if (!requesterRoles.includes(Role.ANOMALY_ADMIN)) {
     throw new ForbiddenException(`Only ANOMALY_ADMIN can ${action}`);
   }

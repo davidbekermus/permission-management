@@ -1,6 +1,6 @@
-import { NestFactory } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
-import { AppModule } from './app.module';
+import { NestFactory } from "@nestjs/core";
+import { ValidationPipe } from "@nestjs/common";
+import { AppModule } from "./app.module";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -11,7 +11,7 @@ async function bootstrap() {
    * - forbidNonWhitelisted: throw if unknown properties are sent
    * - transform: auto-cast primitives (e.g. string → number for @IsNumber)
    */
-  app.enableCors({ origin: process.env.CLIENT_URL ?? 'http://localhost:5173' });
+  app.enableCors({ origin: process.env.CLIENT_URL ?? "http://localhost:5173" });
 
   app.useGlobalPipes(
     new ValidationPipe({
@@ -24,12 +24,18 @@ async function bootstrap() {
   const port = process.env.PORT ?? 3000;
   await app.listen(port);
 
-  console.log(`\n🚀  Permission Management API is running on http://localhost:${port}`);
+  console.log(
+    `\n🚀  Permission Management API is running on http://localhost:${port}`,
+  );
   console.log(`\n📋  Quick start:`);
-  console.log(`    POST /auth/seed          — create superadmin (ANOMALY_ADMIN)`);
+  console.log(
+    `    POST /auth/seed          — create superadmin (ANOMALY_ADMIN)`,
+  );
   console.log(`    POST /auth/login         — { "username": "superadmin" }`);
   console.log(`    POST /role-submissions — submit roles (any JWT holder)`);
-  console.log(`    PATCH /role-submissions/:id/approve — approve a role submission\n`);
+  console.log(
+    `    PATCH /role-submissions/:id/approve — approve a role submission\n`,
+  );
 }
 
 bootstrap();

@@ -1,15 +1,15 @@
-import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { FilterQuery, Model } from 'mongoose';
-import { Role } from '../common/utils/roles.util';
+import { Injectable } from "@nestjs/common";
+import { InjectModel } from "@nestjs/mongoose";
+import { FilterQuery, Model } from "mongoose";
+import { Role } from "../common/utils/roles.util";
 import {
   RoleSubmission,
   RoleSubmissionDocument,
-} from './schemas/role-submission.schema';
+} from "./schemas/role-submission.schema";
 import {
   RoleSubmissionAction,
   RoleSubmissionStatus,
-} from './types/role-submission.types';
+} from "./types/role-submission.types";
 
 interface CreateSubmissionsInput {
   username: string;
@@ -40,8 +40,17 @@ export class RoleSubmissionsRepository {
     );
   }
 
-  find(filter: FilterQuery<RoleSubmissionDocument>, sortOrder: 1 | -1, offset = 0) {
-    return this.model.find(filter).sort({ createdAt: sortOrder, _id: sortOrder }).skip(offset).limit(20).exec();
+  find(
+    filter: FilterQuery<RoleSubmissionDocument>,
+    sortOrder: 1 | -1,
+    offset = 0,
+  ) {
+    return this.model
+      .find(filter)
+      .sort({ createdAt: sortOrder, _id: sortOrder })
+      .skip(offset)
+      .limit(20)
+      .exec();
   }
 
   findById(id: string) {

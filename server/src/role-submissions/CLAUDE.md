@@ -33,6 +33,7 @@ npm install @types/passport-jwt --save-dev
 ```
 
 Enable `ValidationPipe` globally in `main.ts`:
+
 ```ts
 app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
 ```
@@ -40,8 +41,9 @@ app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
 ## MongoDB
 
 Requires a Mongoose connection registered in your `AppModule`:
+
 ```ts
-MongooseModule.forRoot('mongodb://localhost:27017/your-db')
+MongooseModule.forRoot("mongodb://localhost:27017/your-db");
 ```
 
 Collections created automatically: `users`, `permissionrequests`.
@@ -62,10 +64,10 @@ All roles live in `common/utils/roles.util.ts`. Pattern: `{FLOW}_ADMIN` / `{FLOW
 
 ## Auth endpoints
 
-| Method | Path | Body | Description |
-|--------|------|------|-------------|
-| POST | /auth/seed | — | Creates `superadmin` user with `ANOMALY_ADMIN` role. Run once to bootstrap. |
-| POST | /auth/login | `{ username }` | Returns a JWT. No password (OSS simulation). User not in DB → JWT with empty roles. |
+| Method | Path        | Body           | Description                                                                         |
+| ------ | ----------- | -------------- | ----------------------------------------------------------------------------------- |
+| POST   | /auth/seed  | —              | Creates `superadmin` user with `ANOMALY_ADMIN` role. Run once to bootstrap.         |
+| POST   | /auth/login | `{ username }` | Returns a JWT. No password (OSS simulation). User not in DB → JWT with empty roles. |
 
 JWT is **stateless** — users must re-login after their roles change.
 
@@ -81,9 +83,8 @@ User documents are **only created in MongoDB on approval** — not on login.
 
 ## Users endpoints
 
-| Method | Path | Guard | Description |
-|--------|------|-------|-------------|
-| GET | /users | JWT + admin role | List users, supports `?username=` search |
-| POST | /users | JWT + admin role | Add user directly with roles |
-| PATCH | /users/:id/roles | JWT + admin role | Assign or remove roles from a user |
-
+| Method | Path             | Guard            | Description                              |
+| ------ | ---------------- | ---------------- | ---------------------------------------- |
+| GET    | /users           | JWT + admin role | List users, supports `?username=` search |
+| POST   | /users           | JWT + admin role | Add user directly with roles             |
+| PATCH  | /users/:id/roles | JWT + admin role | Assign or remove roles from a user       |

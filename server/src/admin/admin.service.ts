@@ -2,22 +2,22 @@ import {
   ConflictException,
   Injectable,
   NotFoundException,
-} from '@nestjs/common';
-import { RoleSubmissionsRepository } from '../role-submissions/role-submissions.repository';
+} from "@nestjs/common";
+import { RoleSubmissionsRepository } from "../role-submissions/role-submissions.repository";
 import {
   RoleSubmissionAction,
   RoleSubmissionStatus,
-} from '../role-submissions/types/role-submission.types';
-import { isReviewableStatus } from '../role-submissions/utils/role-submission.utils';
+} from "../role-submissions/types/role-submission.types";
+import { isReviewableStatus } from "../role-submissions/utils/role-submission.utils";
 import {
   Role,
   assertIsAnomalyAdmin,
   getFlowFromRole,
   isAdminRole,
   isAnomalyAdmin,
-} from '../common/utils/roles.util';
-import { UserDocument, UserRoleEntry } from '../users/schemas/user.schema';
-import { UsersRepository } from '../users/users.repository';
+} from "../common/utils/roles.util";
+import { UserDocument, UserRoleEntry } from "../users/schemas/user.schema";
+import { UsersRepository } from "../users/users.repository";
 
 @Injectable()
 export class AdminService {
@@ -32,7 +32,7 @@ export class AdminService {
     requesterRoles: Role[],
     grantedBy: string,
   ): Promise<UserDocument> {
-    assertIsAnomalyAdmin(requesterRoles, 'assign');
+    assertIsAnomalyAdmin(requesterRoles, "assign");
     if (await this.usersRepository.findByUsername(username)) {
       throw new ConflictException(`User "${username}" already exists`);
     }
@@ -40,18 +40,19 @@ export class AdminService {
     const grantedAt = new Date();
     const roleEntries = this.toRoleEntries(roles, grantedBy, grantedAt);
     const user = await this.usersRepository.create(username, roleEntries);
-    await this.recordApproved(username, roles, RoleSubmissionAction.ADDITION, grantedBy, grantedAt);
+    await this.recordApproved(
+      username,
+      roles,
+      RoleSubmissionAction.ADDITION,
+      grantedBy,
+      grantedAt,
+    );
     return user;
   }
 
   /** Trusted bootstrap path; never expose this method from an unguarded controller. */
   createSystemUser(username: string, roles: Role[]): Promise<UserDocument> {
-    return this.createUser(
-      username,
-      roles,
-      [Role.ANOMALY_ADMIN],
-      'system',
-    );
+    return this.createUser(username, roles, [Role.ANOMALY_ADMIN], "system");
   }
 
   async createUsers(
@@ -60,11 +61,13 @@ export class AdminService {
     requesterRoles: Role[],
     grantedBy: string,
   ): Promise<UserDocument[]> {
-    assertIsAnomalyAdmin(requesterRoles, 'assign');
+    assertIsAnomalyAdmin(requesterRoles, "assign");
     const normalized = usernames.map((username) => username.trim());
     const existing = await this.usersRepository.findUsernames(normalized);
     const existingNames = new Set(existing.map((user) => user.username));
-    const newNames = normalized.filter((username) => !existingNames.has(username));
+    const newNames = normalized.filter(
+      (username) => !existingNames.has(username),
+    );
     if (newNames.length === 0) return [];
 
     const grantedAt = new Date();
@@ -74,7 +77,13 @@ export class AdminService {
     );
     await Promise.all(
       newNames.map((username) =>
-        this.recordApproved(username, roles, RoleSubmissionAction.ADDITION, grantedBy, grantedAt),
+        this.recordApproved(
+          username,
+          roles,
+          RoleSubmissionAction.ADDITION,
+          grantedBy,
+          grantedAt,
+        ),
       ),
     );
     return users;
@@ -86,7 +95,7 @@ export class AdminService {
     requesterRoles: Role[],
     grantedBy: string,
   ): Promise<UserDocument> {
-    assertIsAnomalyAdmin(requesterRoles, 'assign');
+    assertIsAnomalyAdmin(requesterRoles, "assign");
     return this.upsertRoles(username, [{ role, grantedBy }], true);
   }
 
@@ -96,7 +105,7 @@ export class AdminService {
     requesterRoles: Role[],
     grantedBy: string,
   ): Promise<UserDocument> {
-    assertIsAnomalyAdmin(requesterRoles, 'remove');
+    assertIsAnomalyAdmin(requesterRoles, "remove");
     const user = await this.removeRoleFromUser(username, role);
     await this.recordApproved(
       username,
@@ -113,11 +122,14 @@ export class AdminService {
     reviewerUsername: string,
     reviewerRoles: Role[],
   ) {
-    assertIsAnomalyAdmin(reviewerRoles, 'approve');
+    assertIsAnomalyAdmin(reviewerRoles, "approve");
     const submission = await this.submissionsRepository.findById(submissionId);
-    if (!submission) throw new NotFoundException(`Role submission ${submissionId} not found`);
+    if (!submission)
+      throw new NotFoundException(`Role submission ${submissionId} not found`);
     if (!isReviewableStatus(submission.status)) {
-      throw new ConflictException(`Role submission ${submissionId} is already ${submission.status}`);
+      throw new ConflictException(
+        `Role submission ${submissionId} is already ${submission.status}`,
+      );
     }
 
     if (submission.action === RoleSubmissionAction.ADDITION) {
@@ -156,15 +168,23 @@ export class AdminService {
       baseRoles = user!.roles.filter((entry) => {
         if (incoming.includes(entry.role)) return false;
         const flow = getFlowFromRole(entry.role);
-        return !(flow && newAdminFlows.includes(flow) && entry.role.endsWith('_USER'));
+        return !(
+          flow &&
+          newAdminFlows.includes(flow) &&
+          entry.role.endsWith("_USER")
+        );
       });
     }
 
     user!.roles = [
       ...baseRoles,
-      ...this.toRoleEntries(incoming, rolesToAdd[0]?.grantedBy ?? 'system', grantedAt),
+      ...this.toRoleEntries(
+        incoming,
+        rolesToAdd[0]?.grantedBy ?? "system",
+        grantedAt,
+      ),
     ];
-    user!.markModified('roles');
+    user!.markModified("roles");
     const saved = await this.usersRepository.save(user!);
 
     if (recordApproved) {
@@ -172,7 +192,7 @@ export class AdminService {
         username,
         incoming,
         RoleSubmissionAction.ADDITION,
-        rolesToAdd[0]?.grantedBy ?? 'system',
+        rolesToAdd[0]?.grantedBy ?? "system",
         grantedAt,
       );
     }
@@ -183,14 +203,20 @@ export class AdminService {
     const user = await this.usersRepository.findByUsername(username);
     if (!user) throw new NotFoundException(`User "${username}" not found`);
     if (!user.roles.some((entry) => entry.role === role)) {
-      throw new ConflictException(`User "${username}" does not have role ${role}`);
+      throw new ConflictException(
+        `User "${username}" does not have role ${role}`,
+      );
     }
     user.roles = user.roles.filter((entry) => entry.role !== role);
-    user.markModified('roles');
+    user.markModified("roles");
     return this.usersRepository.save(user);
   }
 
-  private toRoleEntries(roles: Role[], grantedBy: string, grantedAt: Date): UserRoleEntry[] {
+  private toRoleEntries(
+    roles: Role[],
+    grantedBy: string,
+    grantedAt: Date,
+  ): UserRoleEntry[] {
     return roles.map((role) => ({ role, grantedBy, grantedAt }));
   }
 

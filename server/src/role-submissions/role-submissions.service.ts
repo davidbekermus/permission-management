@@ -4,23 +4,23 @@ import {
   NotFoundException,
   ConflictException,
   ForbiddenException,
-} from '@nestjs/common';
-import { RoleSubmissionDocument } from './schemas/role-submission.schema';
+} from "@nestjs/common";
+import { RoleSubmissionDocument } from "./schemas/role-submission.schema";
 import {
   RoleSubmissionAction,
   RoleSubmissionStatus,
-} from './types/role-submission.types';
-import { CreateRoleSubmissionDto } from './dto/create-role-submission.dto';
-import { UsersRepository } from '../users/users.repository';
-import { RoleSubmissionsRepository } from './role-submissions.repository';
-import { AdminService } from '../admin/admin.service';
+} from "./types/role-submission.types";
+import { CreateRoleSubmissionDto } from "./dto/create-role-submission.dto";
+import { UsersRepository } from "../users/users.repository";
+import { RoleSubmissionsRepository } from "./role-submissions.repository";
+import { AdminService } from "../admin/admin.service";
 import {
   Role,
   isAdminRole,
   assertIsAnomalyAdmin,
   getFlowFromRole,
   getRolesForFlow,
-} from '../common/utils/roles.util';
+} from "../common/utils/roles.util";
 
 @Injectable()
 export class RoleSubmissionsService {
@@ -38,9 +38,13 @@ export class RoleSubmissionsService {
       const user = await this.usersRepository.findByUsername(username);
       if (!user) throw new NotFoundException(`User "${username}" not found`);
       const heldRoles = user.roles.map((entry) => entry.role);
-      const rolesNotHeld = dto.roles.filter((role) => !heldRoles.includes(role));
+      const rolesNotHeld = dto.roles.filter(
+        (role) => !heldRoles.includes(role),
+      );
       if (rolesNotHeld.length > 0) {
-        throw new BadRequestException('Deletion requests may only include roles currently held by the user');
+        throw new BadRequestException(
+          "Deletion requests may only include roles currently held by the user",
+        );
       }
     }
 
@@ -57,13 +61,15 @@ export class RoleSubmissionsService {
     statuses?: RoleSubmissionStatus[],
     username?: string,
     roles?: Role[],
-    sort?: 'asc' | 'desc',
+    sort?: "asc" | "desc",
     offset = 0,
   ): Promise<RoleSubmissionDocument[]> {
-    const usernameFilter = username ? { username: { $regex: username, $options: 'i' } } : {};
+    const usernameFilter = username
+      ? { username: { $regex: username, $options: "i" } }
+      : {};
     const rolesFilter = roles?.length ? { role: { $in: roles } } : {};
     const statusFilter = statuses?.length ? { status: { $in: statuses } } : {};
-    const sortOrder = sort === 'asc' ? 1 : -1;
+    const sortOrder = sort === "asc" ? 1 : -1;
 
     if (requesterRoles.includes(Role.ANOMALY_ADMIN)) {
       return this.submissionsRepository.find(
@@ -97,12 +103,12 @@ export class RoleSubmissionsService {
     requesterUsername: string,
     statuses?: RoleSubmissionStatus[],
     roles?: Role[],
-    sort?: 'asc' | 'desc',
+    sort?: "asc" | "desc",
     offset = 0,
   ): Promise<RoleSubmissionDocument[]> {
     const rolesFilter = roles?.length ? { role: { $in: roles } } : {};
     const statusFilter = statuses?.length ? { status: { $in: statuses } } : {};
-    const sortOrder = sort === 'asc' ? 1 : -1;
+    const sortOrder = sort === "asc" ? 1 : -1;
 
     return this.submissionsRepository.find(
       { username: requesterUsername, ...rolesFilter, ...statusFilter },
@@ -111,16 +117,17 @@ export class RoleSubmissionsService {
     );
   }
 
-  async findById(id: string, requesterRoles: Role[]): Promise<RoleSubmissionDocument> {
+  async findById(
+    id: string,
+    requesterRoles: Role[],
+  ): Promise<RoleSubmissionDocument> {
     const submission = await this.fetchDocument(id);
     if (requesterRoles.includes(Role.ANOMALY_ADMIN)) return submission;
 
-    const scopedRoles = requesterRoles
-      .filter(isAdminRole)
-      .flatMap((role) => {
-        const flow = getFlowFromRole(role);
-        return flow ? getRolesForFlow(flow) : [];
-      });
+    const scopedRoles = requesterRoles.filter(isAdminRole).flatMap((role) => {
+      const flow = getFlowFromRole(role);
+      return flow ? getRolesForFlow(flow) : [];
+    });
 
     if (!scopedRoles.includes(submission.role)) {
       throw new NotFoundException(`Role submission "${id}" not found`);
@@ -146,10 +153,12 @@ export class RoleSubmissionsService {
     reviewerRoles: Role[],
   ): Promise<RoleSubmissionDocument> {
     const submission = await this.fetchDocument(submissionId);
-    assertIsAnomalyAdmin(reviewerRoles, 'reject');
+    assertIsAnomalyAdmin(reviewerRoles, "reject");
 
     if (submission.status !== RoleSubmissionStatus.PENDING) {
-      throw new ConflictException(`Role submission ${submissionId} is already ${submission.status}`);
+      throw new ConflictException(
+        `Role submission ${submissionId} is already ${submission.status}`,
+      );
     }
 
     submission.status = RoleSubmissionStatus.REJECTED;
@@ -158,8 +167,14 @@ export class RoleSubmissionsService {
     return this.submissionsRepository.save(submission);
   }
 
-  async deleteMine(submissionId: string, requesterUsername: string): Promise<void> {
-    const submission = await this.fetchOwnedPendingDocument(submissionId, requesterUsername);
+  async deleteMine(
+    submissionId: string,
+    requesterUsername: string,
+  ): Promise<void> {
+    const submission = await this.fetchOwnedPendingDocument(
+      submissionId,
+      requesterUsername,
+    );
     await this.submissionsRepository.delete(submission);
   }
 
@@ -169,17 +184,22 @@ export class RoleSubmissionsService {
   ): Promise<RoleSubmissionDocument> {
     const submission = await this.fetchDocument(submissionId);
     if (submission.username !== requesterUsername) {
-      throw new ForbiddenException('You can only modify your own role submissions');
+      throw new ForbiddenException(
+        "You can only modify your own role submissions",
+      );
     }
     if (submission.status !== RoleSubmissionStatus.PENDING) {
-      throw new ConflictException('Only pending role submissions can be modified');
+      throw new ConflictException(
+        "Only pending role submissions can be modified",
+      );
     }
     return submission;
   }
 
   private async fetchDocument(id: string): Promise<RoleSubmissionDocument> {
     const submission = await this.submissionsRepository.findById(id);
-    if (!submission) throw new NotFoundException(`Role submission ${id} not found`);
+    if (!submission)
+      throw new NotFoundException(`Role submission ${id} not found`);
     return submission;
   }
 }

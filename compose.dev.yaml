@@ -15,7 +15,13 @@ services:
       TSC_WATCHFILE: DynamicPriorityPolling
     healthcheck:
       # An unauthenticated request returns 401 once Nest is listening.
-      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/users').then(r => process.exit(r.status === 401 ? 0 : 1)).catch(() => process.exit(1))"]
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3000/users').then(r => process.exit(r.status === 401 ? 0 : 1)).catch(() => process.exit(1))",
+        ]
       interval: 2s
       timeout: 5s
       retries: 30

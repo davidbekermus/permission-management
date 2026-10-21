@@ -1,5 +1,5 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { CreateProductDto } from './dto/create-product.dto';
+import { Injectable, NotFoundException } from "@nestjs/common";
+import { CreateProductDto } from "./dto/create-product.dto";
 
 export interface Product {
   id: number;
@@ -18,9 +18,24 @@ export class ProductManagementService {
 
   /** Seed data so the GET endpoint returns something immediately. */
   private readonly products: Product[] = [
-    { id: this.nextId++, name: 'Laptop Pro', price: 1299.99, category: 'Electronics' },
-    { id: this.nextId++, name: 'Wireless Mouse', price: 29.99, category: 'Accessories' },
-    { id: this.nextId++, name: 'Mechanical Keyboard', price: 79.99, category: 'Accessories' },
+    {
+      id: this.nextId++,
+      name: "Laptop Pro",
+      price: 1299.99,
+      category: "Electronics",
+    },
+    {
+      id: this.nextId++,
+      name: "Wireless Mouse",
+      price: 29.99,
+      category: "Accessories",
+    },
+    {
+      id: this.nextId++,
+      name: "Mechanical Keyboard",
+      price: 79.99,
+      category: "Accessories",
+    },
   ];
 
   findAll(): Product[] {

@@ -1,14 +1,14 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import { ThemeProvider } from '@mui/material/styles'
-import CssBaseline from '@mui/material/CssBaseline'
-import { RouterProvider } from '@tanstack/react-router'
-import { SnackbarProvider } from 'notistack'
-import { router } from '@/app/router/router'
-import { QueryProvider } from '@/app/providers/QueryProvider'
-import theme from '@/app/theme/theme'
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import { ThemeProvider } from "@mui/material/styles";
+import CssBaseline from "@mui/material/CssBaseline";
+import { RouterProvider } from "@tanstack/react-router";
+import { SnackbarProvider } from "notistack";
+import { router } from "@/app/router/router";
+import { QueryProvider } from "@/app/providers/QueryProvider";
+import theme from "@/app/theme/theme";
 
-createRoot(document.getElementById('root')!).render(
+createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <ThemeProvider theme={theme}>
       <CssBaseline />
@@ -19,4 +19,4 @@ createRoot(document.getElementById('root')!).render(
       </QueryProvider>
     </ThemeProvider>
   </StrictMode>,
-)
+);

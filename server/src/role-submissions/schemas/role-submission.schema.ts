@@ -1,10 +1,10 @@
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
-import { Role } from '../../common/utils/roles.util';
+import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
+import { Document } from "mongoose";
+import { Role } from "../../common/utils/roles.util";
 import {
   RoleSubmissionAction,
   RoleSubmissionStatus,
-} from '../types/role-submission.types';
+} from "../types/role-submission.types";
 
 export type RoleSubmissionDocument = RoleSubmission & Document;
 
@@ -42,4 +42,5 @@ export class RoleSubmission {
   grantedAt?: Date | null;
 }
 
-export const RoleSubmissionSchema = SchemaFactory.createForClass(RoleSubmission);
+export const RoleSubmissionSchema =
+  SchemaFactory.createForClass(RoleSubmission);

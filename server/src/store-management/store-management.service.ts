@@ -1,5 +1,5 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { CreateItemDto } from './dto/create-item.dto';
+import { Injectable, NotFoundException } from "@nestjs/common";
+import { CreateItemDto } from "./dto/create-item.dto";
 
 export interface StoreItem {
   id: number;
@@ -18,9 +18,24 @@ export class StoreManagementService {
 
   /** Seed data so the GET endpoint returns something interesting immediately. */
   private readonly items: StoreItem[] = [
-    { id: this.nextId++, name: 'Widget A', price: 9.99, description: 'A standard widget' },
-    { id: this.nextId++, name: 'Widget B', price: 19.99, description: 'A premium widget' },
-    { id: this.nextId++, name: 'Gadget X', price: 49.99, description: 'A useful gadget' },
+    {
+      id: this.nextId++,
+      name: "Widget A",
+      price: 9.99,
+      description: "A standard widget",
+    },
+    {
+      id: this.nextId++,
+      name: "Widget B",
+      price: 19.99,
+      description: "A premium widget",
+    },
+    {
+      id: this.nextId++,
+      name: "Gadget X",
+      price: 49.99,
+      description: "A useful gadget",
+    },
   ];
 
   findAll(): StoreItem[] {
