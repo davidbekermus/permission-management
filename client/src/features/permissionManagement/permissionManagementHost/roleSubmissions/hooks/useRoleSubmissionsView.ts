@@ -51,7 +51,12 @@ const getInitialFilters = (isAdmin: boolean): PermissionRequestFilters => ({
   sort: "latest",
 });
 
-/** Host integration point for permission requests and their action policies. */
+/**
+ *  Host integration point for permission requests and their action policies. 
+ *  the data here would be passed differently and the inner hook file that calls the server
+ *  would be changes the use the generated hooks from this repo
+ * @useRoleSubmissions.
+ * */
 export function useRoleSubmissionsView(): PermissionRequestsViewModel {
   const isAdmin = canReadPermissionManagement();
   const [selectedScope, setSelectedScope] = useState<RoleSubmissionScope>(
@@ -148,21 +153,23 @@ export function useRoleSubmissionsView(): PermissionRequestsViewModel {
 
   const handleCreateSubmission = async (roles: Roles[]) => {
     try {
-      const created = await createSubmission.mutateAsync({
+      const createdSubmissions = await createSubmission.mutateAsync({
         roles,
         action: RoleSubmissionAction.ADDITION,
       });
+      skippedCount = roles.length - createdSubmissions.length;
+      const message = 
+            skippedCount > 0 
+              ? `${createdSubmissions.length} submitted, ${skippedCount} already requested or held`
+              : `${createdSubmissions.length}, permission ${createdSubmissions.length === 1 ? "request" : "requested"} submitted`
       enqueueSnackbar(
-        `${created.length} permission ${created.length === 1 ? "request" : "requests"} submitted`,
-        { variant: "success" },
-      );
+        message, { 
+          variant: createdSubmissions.length > 0 ? "success" : "info",
+        });
       changeScope("mine");
       return true;
     } catch (error) {
-      const message = isAxiosError<{ message?: string }>(error)
-        ? error.response?.data?.message
-        : undefined;
-      enqueueSnackbar(message || "Failed to submit permission request", {
+      enqueueSnackbar("Failed to submit permission request", {
         variant: "error",
       });
       return false;
