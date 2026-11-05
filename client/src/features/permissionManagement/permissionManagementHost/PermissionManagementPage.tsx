@@ -14,16 +14,18 @@ interface ViewContainerProps {
 }
 
 export const UsersContainer = ({ toolbarContainer }: ViewContainerProps) => {
-  const view = useUsersView();
-  return <UsersView toolbarContainer={toolbarContainer} view={view} />;
+  const viewModel = useUsersView();
+  return (
+    <UsersView toolbarContainer={toolbarContainer} viewModel={viewModel} />;
+  )
 };
 
 export const PermissionRequestsContainer = ({
   toolbarContainer,
 }: ViewContainerProps) => {
-  const view = useRoleSubmissionsView();
+  const viewModel = useRoleSubmissionsView();
   return (
-    <PermissionRequestsView toolbarContainer={toolbarContainer} view={view} />
+    <PermissionRequestsView toolbarContainer={toolbarContainer} viewModel={viewModel} />
   );
 };
 

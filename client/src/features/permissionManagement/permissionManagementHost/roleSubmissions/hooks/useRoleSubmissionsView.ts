@@ -29,7 +29,6 @@ import {
   RoleSubmissionAction,
   RoleSubmissionStatus,
   STATUS_LABELS,
-  ,
 } from "../../../permissionManagementUi/roleSubmissions/types";
 
 const STATUS_FILTER_OPTIONS = ALL_STATUSES.map((status) => ({

@@ -8,20 +8,20 @@ import type { UsersViewModel } from "./view.types";
 
 interface UsersViewProps {
   toolbarContainer: HTMLDivElement | null;
-  view: UsersViewModel;
+viewModel: UsersViewModel;
 }
 
-export const UsersView = ({ toolbarContainer, view }: UsersViewProps) => {
+export const UsersView = ({ toolbarContainer, viewModel }: UsersViewProps) => {
   const toolbarActions = (
     <>
-      <SearchAndFilterControls dialogTitle="Filter Users" {...view.filters} />
-      {view.canManage && (
+      <SearchAndFilterControls dialogTitle="Filter Users" {...viewModel.filters} />
+      {viewModel.canManage && (
         <Button
           color="secondary"
           variant="contained"
           size="small"
           startIcon={<PersonAddIcon fontSize="small" />}
-          onClick={view.openAddUser}
+          onClick={viewModel.openAddUser}
         >
           Add user
         </Button>
@@ -32,8 +32,8 @@ export const UsersView = ({ toolbarContainer, view }: UsersViewProps) => {
   return (
     <>
       {toolbarContainer && createPortal(toolbarActions, toolbarContainer)}
-      <UsersTable {...view.table} />
-      <AddUserDialog {...view.addUserDialog} />
+      <UsersTable {...viewModle.table} />
+      <AddUserDialog {...viewModel.addUserDialog} />
     </>
   );
 };

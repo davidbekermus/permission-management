@@ -14,26 +14,26 @@ import type { PermissionRequestsViewModel } from "./view.types";
 
 interface PermissionRequestsViewProps {
   toolbarContainer: HTMLDivElement | null;
-  view: PermissionRequestsViewModel;
+  viewModel: PermissionRequestsViewModel;
 }
 
 export const PermissionRequestsView = ({
   toolbarContainer,
-  view,
+  viewModel,
 }: PermissionRequestsViewProps) => {
   const toolbarActions = (
     <>
       <SearchAndFilterControls
-        key={view.scope}
+        key={viewModel.scope}
         dialogTitle="Filter Permission Requests"
-        {...view.filters}
+        {...viewModel.filters}
       />
       <Button
         color="secondary"
         variant="contained"
         size="small"
         startIcon={<AddCircleOutlineIcon fontSize="small" />}
-        onClick={view.openCreateDialog}
+        onClick={viewModel.openCreateDialog}
       >
         Request permission
       </Button>
@@ -45,30 +45,30 @@ export const PermissionRequestsView = ({
       {toolbarContainer && createPortal(toolbarActions, toolbarContainer)}
       <RequestsContent>
         <ScopeFiltersRow direction="row" spacing={3} alignItems="center">
-          {view.isAdmin && (
+          {viewModel.isAdmin && (
             <RoleSubmissionsScopeTabs
-              scope={view.scope}
-              onScopeChange={view.changeScope}
+              scope={viewModel.scope}
+              onScopeChange={viewModel.changeScope}
             />
           )}
-          {view.statuses.length > 0 && (
+          {viewModel.statuses.length > 0 && (
             <RoleSubmissionsStatusChips
-              statuses={view.statuses}
-              onStatusDelete={view.removeStatus}
+              statuses={viewModel.statuses}
+              onStatusDelete={viewModel.removeStatus}
             />
           )}
         </ScopeFiltersRow>
         <RequestsContent
-          role={view.isAdmin ? "tabpanel" : undefined}
+          role={viewModel.isAdmin ? "tabpanel" : undefined}
           id="request-scope-panel"
           aria-labelledby={
-            view.isAdmin ? `request-scope-${view.scope}` : undefined
+            viewModel.isAdmin ? `request-scope-${viewModel.scope}` : undefined
           }
         >
-          <RoleSubmissionsTable {...view.table} />
+          <RoleSubmissionsTable {...viewModel.table} />
         </RequestsContent>
       </RequestsContent>
-      <CreateRoleSubmissionDialog {...view.createDialog} />
+      <CreateRoleSubmissionDialog {...viewModel.createDialog} />
     </>
   );
 };
