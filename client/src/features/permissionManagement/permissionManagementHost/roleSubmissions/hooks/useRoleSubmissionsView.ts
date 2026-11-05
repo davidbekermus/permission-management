@@ -63,9 +63,12 @@ export function useRoleSubmissionsView(): PermissionRequestsViewModel {
     isAdmin ? "review" : "mine",
   );
   const scope = isAdmin ? selectedScope : "mine";
-  const [filters, setFilters] = useState<PermissionRequestFilters>(() =>
-    getInitialFilters(isAdmin),
-  );
+  const [filters, setFilters] = useState<PermissionRequestFilters>({
+  search: "",
+  statuses: [RoleSubmissionStatus.PENDING],
+  roles: [],
+  sort: "latest",
+});
   const { search, statuses, roles, sort } = filters;
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const debouncedSearch = useDebounce(search, 300);
@@ -157,7 +160,7 @@ export function useRoleSubmissionsView(): PermissionRequestsViewModel {
         roles,
         action: RoleSubmissionAction.ADDITION,
       });
-      skippedCount = roles.length - createdSubmissions.length;
+      const skippedCount = roles.length - createdSubmissions.length;
       const message = 
             skippedCount > 0 
               ? `${createdSubmissions.length} submitted, ${skippedCount} already requested or held`

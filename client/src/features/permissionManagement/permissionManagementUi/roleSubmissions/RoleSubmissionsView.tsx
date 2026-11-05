@@ -51,7 +51,7 @@ export const PermissionRequestsView = ({
               onScopeChange={view.changeScope}
             />
           )}
-          {view.isAdmin && view.statuses.length > 0 && (
+          {view.statuses.length > 0 && (
             <RoleSubmissionsStatusChips
               statuses={view.statuses}
               onStatusDelete={view.removeStatus}
