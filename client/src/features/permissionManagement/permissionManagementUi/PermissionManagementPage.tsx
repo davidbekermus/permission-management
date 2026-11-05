@@ -24,7 +24,7 @@ export const PermissionManagementPage = ({
   // Only admins can view users; flow admins see users in their own flow.
   const activeView: PermissionManagementView = canViewUsers
     ? view
-    : "submissions";
+    : PermissionManagementView.SUBMISSIONS;
 
   return (
     <PermissionManagementLayout
@@ -33,7 +33,7 @@ export const PermissionManagementPage = ({
       toolbarRef={setToolbarContainer}
       onViewChange={onViewChange}
     >
-      {activeView === "users"
+      {activeView === PermissionManagementView.USERS
         ? renderUsers(toolbarContainer)
         : renderSubmissions(toolbarContainer)}
     </PermissionManagementLayout>

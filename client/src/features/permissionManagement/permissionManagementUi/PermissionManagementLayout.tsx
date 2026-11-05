@@ -8,7 +8,10 @@ import {
   StyledTabs,
 } from "./PermissionManagementPage.style";
 
-export type PermissionManagementView = "users" | "submissions";
+export enum PermissionManagementView = {
+  USERS = "users",
+  SUBMISSIONS = "submissions",
+}
 
 interface PermissionManagementLayoutProps {
   activeView: PermissionManagementView;

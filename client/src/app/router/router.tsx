@@ -10,7 +10,7 @@ import {
 import { LoginPage } from "@/features/auth/LoginPage";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { PermissionManagementPage } from "@/features/permissionManagement/permissionManagementHost/PermissionManagementPage";
-import type { PermissionManagementView } from "@/features/permissionManagement/permissionManagementUi/PermissionManagementLayout";
+import { PermissionManagementView } from "@/features/permissionManagement/permissionManagementUi/PermissionManagementLayout";
 import { StoresPage } from "@/features/stores/StoresPage";
 import { ProductsPage } from "@/features/products/ProductsPage";
 import { HomePage } from "@/features/home/HomePage";
@@ -40,13 +40,13 @@ const PermissionManagementRoute = () => {
   const navigate = useNavigate();
   const pathname = useLocation({ select: (location) => location.pathname });
   const view: PermissionManagementView = pathname.endsWith(ROUTE_PATHS.users)
-    ? "users"
-    : "submissions";
+    ? PermissionsmanagementView.USERS
+    : PERMISSIONSManagementView.SUBMISSIONS;
 
   const handleViewChange = (nextView: PermissionManagementView) => {
     navigate({
       to:
-        nextView === "users"
+        nextView === PermissionManagementView.USERS
           ? ROUTE_PATHS.settingsUsers
           : ROUTE_PATHS.settingsPermissionRequests,
     });
