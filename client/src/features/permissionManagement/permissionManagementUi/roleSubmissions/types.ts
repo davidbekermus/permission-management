@@ -35,4 +35,7 @@ export interface RoleSubmission {
   updatedAt: string;
 }
 
-export type RoleSubmissionScope = "review" | "mine";
+export enum RoleSubmissionScope {
+  REVIEW = "review",
+  MINE = "mine",
+} 

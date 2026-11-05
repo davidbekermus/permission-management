@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useSnackbar } from "notistack";
-import { isAxiosError } from "axios";
 import {
   canReadPermissionManagement,
   canManagePermissions,
@@ -26,10 +25,11 @@ import {
 import type { PermissionRequestsViewModel } from "../../../permissionManagementUi/roleSubmissions/view.types";
 import {
   ALL_STATUSES,
+  RoleSubmissionScope,
   RoleSubmissionAction,
   RoleSubmissionStatus,
   STATUS_LABELS,
-  type RoleSubmissionScope,
+  ,
 } from "../../../permissionManagementUi/roleSubmissions/types";
 
 const STATUS_FILTER_OPTIONS = ALL_STATUSES.map((status) => ({
@@ -60,9 +60,9 @@ const getInitialFilters = (isAdmin: boolean): PermissionRequestFilters => ({
 export function useRoleSubmissionsView(): PermissionRequestsViewModel {
   const isAdmin = canReadPermissionManagement();
   const [selectedScope, setSelectedScope] = useState<RoleSubmissionScope>(
-    isAdmin ? "review" : "mine",
+    isAdmin ? RoleSubmissionScope.REVIEW : RoleSubmissionScope.MINE,
   );
-  const scope = isAdmin ? selectedScope : "mine";
+  const scope = isAdmin ? selectedScope : RoleSubmissionScope.MINE;
   const [filters, setFilters] = useState<PermissionRequestFilters>({
   search: "",
   statuses: [RoleSubmissionStatus.PENDING],
@@ -74,12 +74,12 @@ export function useRoleSubmissionsView(): PermissionRequestsViewModel {
   const debouncedSearch = useDebounce(search, 300);
   const filterCount =
     statuses.length + roles.length + (sort !== "latest" ? 1 : 0);
-  const roleOptions = scope === "review" ? getRolesInAdminScope() : ALL_ROLES;
+  const roleOptions = scope === RoleSubmissionScope.REVIEW ? getRolesInAdminScope() : ALL_ROLES;
   const username = getCurrentUsername();
-  const canReview = scope === "review" && canManagePermissions();
+  const canReview = scope === RoleSubmissionScope.REVIEW && canManagePermissions();
   const query = useGetRoleSubmissions(
     {
-      search: scope === "review" ? debouncedSearch : "",
+      search: scope === RoleSubmissionScope.REVIEW ? debouncedSearch : "",
       statuses,
       roles,
       sort,
@@ -169,7 +169,7 @@ export function useRoleSubmissionsView(): PermissionRequestsViewModel {
         message, { 
           variant: createdSubmissions.length > 0 ? "success" : "info",
         });
-      changeScope("mine");
+      changeScope(RoleSubmissionScope.MINE);
       return true;
     } catch (error) {
       enqueueSnackbar("Failed to submit permission request", {
@@ -192,7 +192,7 @@ export function useRoleSubmissionsView(): PermissionRequestsViewModel {
       }));
     },
     filters: {
-      showSearch: scope === "review",
+      showSearch: scope === RoleSubmissionScope.REVIEW,
       search,
       onSearchChange: (value: string) =>
         setFilters((current) => ({ ...current, search: value })),
