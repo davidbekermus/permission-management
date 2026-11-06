@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from "react";
 import {
   PermissionManagementLayout,
-  type PermissionManagementView,
+  PermissionManagementView,
 } from "./PermissionManagementLayout";
 
 export interface PermissionManagementPageProps {

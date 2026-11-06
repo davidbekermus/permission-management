@@ -40,8 +40,8 @@ const PermissionManagementRoute = () => {
   const navigate = useNavigate();
   const pathname = useLocation({ select: (location) => location.pathname });
   const view: PermissionManagementView = pathname.endsWith(ROUTE_PATHS.users)
-    ? PermissionsmanagementView.USERS
-    : PERMISSIONSManagementView.SUBMISSIONS;
+    ? PermissionManagementView.USERS
+    : PermissionManagementView.SUBMISSIONS;
 
   const handleViewChange = (nextView: PermissionManagementView) => {
     navigate({

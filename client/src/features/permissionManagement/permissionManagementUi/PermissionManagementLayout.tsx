@@ -8,7 +8,7 @@ import {
   StyledTabs,
 } from "./PermissionManagementPage.style";
 
-export enum PermissionManagementView = {
+export enum PermissionManagementView {
   USERS = "users",
   SUBMISSIONS = "submissions",
 }
